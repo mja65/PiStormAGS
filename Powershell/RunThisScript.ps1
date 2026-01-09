@@ -5,11 +5,11 @@ if ($IsWindows -or ($null -eq $IsWindows -and $env:OS -match "Windows")) {
 }
 elseif ($IsLinux) {
     $HostOS = "Linux"
-    $HSTImagerExecutableName = "Hst.imager"
+    $HSTImagerExecutableName = "hst.imager"
 }
 elseif ($IsMacOS) {
     $HostOS = "MacOS"
-    $HSTImagerExecutableName = "Hst.imager"
+    $HSTImagerExecutableName = "hst.imager"
 }
 else {
     $HostOS = "Unknown"
@@ -64,10 +64,14 @@ Write-Host "Running on $HostOS"
 $PathValid = $false
 while (-not $PathValid) {
     $HSTImagerLocation = Read-Host -Prompt "Provide the folder with HST Imager installed"
-    $HSTImagerLocation = $HSTImagerLocation.Trim('"').TrimEnd('\')
+    
     
     # Remove quotes if present
     $HSTImagerLocation = $HSTImagerLocation.Trim('"')
+
+    $HSTImagerLocation = $HSTImagerLocation.Trim('"').TrimEnd('\').TrimEnd('/')
+
+
 
     if (Test-Path -Path $HSTImagerLocation -PathType Container) {
         $FullHSTImagerPath = Join-Path -Path $HSTImagerLocation -ChildPath $HSTImagerExecutableName
@@ -84,12 +88,6 @@ while (-not $PathValid) {
         Write-Warning "The directory '$HSTImagerLocation' does not exist."
     }
 }
-
-if ($HostOS -ne "Windows") {
-    # Ensure the binary is executable on Linux/macOS
-    chmod +x "$FullHSTImagerPath"
-}
-
 
 Write-Host "`nListing disks via $HSTImagerExecutableName..." -ForegroundColor Green
 Write-Host "Identify the disk you wish to use to write the image. Note this disk will be erased!"
