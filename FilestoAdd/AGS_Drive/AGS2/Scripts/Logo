@@ -1,0 +1,12 @@
+If $HW NOT EQ "Real"
+ If $HW EQ "Mini"
+  Visage >NIL: MODE $29004 DELAY 3 NOBUSY AGS:Images/logo_hi.iff
+ Else
+  Visage >NIL: MODE $500A1000 DELAY 3 NOBUSY AGS:Images/logo_hi.iff
+ Endif
+Else
+ If $HW EQ "PiStorm"
+  Visage >NIL: MODE $501E100 DELAY 3 NOBUSY AGS:Images/logo_hi.iff
+ Else
+  Visage >NIL: DELAY 3 NOBUSY AGS:Images/logo_hi.iff
+ Endif

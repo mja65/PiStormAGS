@@ -1,0 +1,9 @@
+fs c "E:\AGS\AGS_UAE_v30\WinUAE\AGS_UAE\AGS_Drive.hdf\rdb\1\IGame.info" \diskx\MBR\2\rdb\DH4 -q -f
+fs c "E:\AGS\AGS_UAE_v30\WinUAE\AGS_UAE\AGS_Drive.hdf\rdb\1\AGS_Guide.info" \diskx\MBR\2\rdb\DH4 -q -f
+fs c "E:\AGS\AGS_UAE_v30\WinUAE\AGS_UAE\AGS_Drive.hdf\rdb\1\AGS" \diskx\MBR\2\rdb\DH4 -q -f
+fs c "E:\AGS\AGS_UAE_v30\WinUAE\AGS_UAE\AGS_Drive.hdf\rdb\1\AGS_Guide" \diskx\MBR\2\rdb\DH4 -q -f
+fs c "E:\AGS\AGS_UAE_v30\WinUAE\AGS_UAE\AGS_Drive.hdf\rdb\1\AGS.info" \diskx\MBR\2\rdb\DH4 -q -f
+fs c "E:\AGS\AGS_UAE_v30\WinUAE\AGS_UAE\AGS_Drive.hdf\rdb\1\Disk.info" \diskx\MBR\2\rdb\DH4 -q -f
+fs c "E:\AGS\AGS_UAE_v30\WinUAE\AGS_UAE\AGS_Drive.hdf\rdb\1\Docs Disks.info" \diskx\MBR\2\rdb\DH4 -q -f
+fs c "E:\AGS\AGS_UAE_v30\WinUAE\AGS_UAE\AGS_Drive.hdf\rdb\1\IGame" \diskx\MBR\2\rdb\DH4 -r -md -q -f
+fs c "E:\AGS\AGS_UAE_v30\WinUAE\AGS_UAE\AGS_Drive.hdf\rdb\1\Docs Disks" \diskx\MBR\2\rdb\DH4 -r -md -q -f

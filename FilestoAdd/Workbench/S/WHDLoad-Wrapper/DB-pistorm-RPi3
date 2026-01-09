@@ -1,0 +1,638 @@
+;------------------------------------
+;  DATABASE file for WHDLoadWrapper
+;
+;    Pistorm WHDLoad with RPi3
+;------------------------------------
+; WNC     : WHDLoad NOCACHE option (Switch)
+; NOTURBO : Emu68Info SetTurbo=0 option (Switch)
+; NFC     : EmuControl NOCACHE option (Switch)
+; SC      : EmuControl SLOWDOWNCHIP (SC) option (Switch)
+; SCS=x   : EmuControl SLOWCHIPSPACING (SCS) option (Number) Default=1
+; NBW     : EmuControl NOBLITTERWAIT (NBW) option (Switch)
+; ICNT=x  : EmuControl ICNT option (Number) default=2
+; CCRD=x  : EmuControl CCRD option (Number) default=0
+; MHZ=x   : Emu68Info/Emu68Downclocker CLOCKRATE option (Number)
+; WHD="x" : Additional WHDLoad options you need 
+; NOCACHE : CPU NOCACHE option
+;------------------------------------
+;Games we cannot get going perfectly:
+;
+;SuperSki2;WNC NBW ICNT=256 -Glitches in menu
+;ApanoSin;WNC -Red planet level glitches
+;
+Default;ICNT=2
+;---------------
+; WHDLoad GAMES
+;---------------
+1000Miglia;WNC
+AddamsFamily;WNC
+AgonyNTSC;WNC WHD="NOVBRMOVE"
+Alcatraz;WNC
+AmazingSpiderman;WNC ICNT=1
+AnotherWorld;
+AnotherWorldFr;
+AnotherWorldIt;
+Antago;WNC
+ApanoSin;WNC
+ApanoSinDe;WNC
+APB;WNC
+Apocalypse;WNC
+Arcticfox;WNC
+Aquaventura;WNC
+AquaventuraNTSC;WNC
+Archipelagos;WNC
+ArchipelagosNTSC;WNC
+AtomicRobokid;WNC
+BAT;WNC
+BATDe;WNC
+BATFr;WNC
+BATIt;WNC
+BAT2;WNC
+BAT2De;WNC
+BAT2Fr;WNC
+BattleCommand;WNC
+BabylonianTwinsDemo;SC SCS=2
+Barbarian2Palace;WNC SC SCS=2
+BarbarianPsygnosis;WNC
+Barbarian2Psygnosis;WNC
+BatmanTheMovie1Disk;WNC
+BatmanTheMovie2Disk;WNC
+BattleSquadron;SC ICNT=256 NBW WHD="CUSTOM4=1"
+BattleSquadronNTSC;SC ICNT=256 NBW WHD="CUSTOM4=1"
+BattleSquadronDemo;SC ICNT=256 NBW WHD="CUSTOM4=1"
+BestOfTheBest;SC ICNT=1
+BigRun;WNC WHD="CUSTOM3=1"
+BlackViper;WNC
+BlackTiger;WNC
+BloodMoney;WNC
+BMXSimulator;WNC
+Bobo;WNC
+BoboFr;WNC
+BodyBlows;WNC WHD="CUSTOM1=1" 
+BodyBlowsFast;WHD="CUSTOM1=1"
+BodyBlowsGalactic;
+BuggyBoy;SC SCS=2
+BumpNBurn;WNC ICNT=1
+Cabal;WNC
+CaliforniaGames;ICNT=1
+CannonFodder;WNC
+CannonFodderDe;WNC
+CannonFodderFr;WNC
+CannonFodderIt;WNC
+CannonFodderNewCampaign;WNC
+CannonFodderPlus;WNC
+CannonFodder2;WNC
+CannonFodder2De;WNC
+CannonFodder2Fr;WNC
+CannonFodder2AlienLevels;WNC
+Capone;WNC
+CarrierCommand;WNC
+Cartoons;WNC
+CastleMaster;WNC
+CastleMaster2;WNC
+Cecconoid;WHD="CUSTOM1=1"
+ChambersOfShaolin;WNC
+ChaseHQ2;WNC SC SCS=2
+Chicago90;WNC
+ChuckYeagersAFT2;WNC
+CiscoHeat;WNC ICNT=256 SC SCS=2
+CombatAirPatrol;WNC
+ComboRacer;WNC SC SCS=2
+Commando;WHD="CUSTOM3=1"
+ContinentalCircus;
+CoolSpot;WHD="PAL"
+Creatures;
+Cybercon3;WHD="CUSTOM1=1"
+Cyberzerk;WNC SC SCS=4
+DangerFreak;WNC SC
+Darius+;
+DarkFusion;WNC
+Darkmere;
+DarkSide;WNC ICNT=1 SC NOTURBO WHD="CUSTOM4=3"
+DarkSideNTSC;WNC ICNT=1 SC NOTURBO WHD="CUSTOM4=3"
+DaysOfThunder;WNC
+DeepCore;WNC
+DeepSpace;WNC
+Deflektor;WNC ICNT=1
+Deliverance;WNC
+Deliverance512k;WNC
+DisposableHero;WNC
+DisposableHeroFast;WNC
+DogFight;WNC
+Dominator;WNC ICNT=256
+DoubleDragon;WNC SC SCS=2
+DragonsLair;WNC ICNT=1
+Elfmania;
+Elfmania512k;
+ElfOcean;WNC
+ElfOceanNTSC;WNC
+Eliminator;WNC SC SCS=2 ICNT=256
+ElviraArcade;WNC
+EmlynHughesIntlSoccer;SC SCS=2
+EmpireStrikesBack;WNC
+EnchantedLand;ICNT=256 WNC
+Encounter;ICNT=256
+EnemyTempestOfViolence;WNC
+EnemyTempestOfViolenceDe;WNC
+EnemyTOVEasyPlay;WNC
+EnemyTOVEasyPlayDe;WNC
+EyeOfHorus;WNC
+Exile;WNC
+F15StrikeEagle2;WNC
+F19StealthFighter;WNC
+F19StealthFighterNTSC;WNC
+F29Retaliator;WNC
+FinalFight;WNC
+FinalFight512k;WNC
+Fire&Forget;WNC SC SCS=2
+Fire&Forget2;WNC SC SCS=2
+Fire&IceXmasDemo;WNC SC ICNT=256
+Fire&Ice;WNC SC ICNT=256
+Fireforce;WNC
+Flashback;WNC
+Flintstones;
+Galaga92;WNC
+GhoulsNGhosts1Disk;
+GhoulsNGhosts2Disk;
+Giganoid;SC SCS=2
+Globulus;WHD="NOVBRMOVE"
+GlobulusPR;WHD="NOVBRMOVE"
+GLOCR360;WNC
+Glubble;WNC
+Goal;WNC
+Gods;WNC
+GrandPrixCircuit;WNC SC ICNT=1 NOTURBO
+GravityForce;SC SCS=2
+GreatGianaSisters;WNC ICNT=256
+HagarTheHorrible;
+HagarTheHorribleDe;
+HardDrivin;WNC SC ICNT=1 NOTURBO
+HardDrivin2;WNC SC ICNT=1 NOTURBO
+HardNHeavy;ICNT=256
+Hostages;SC SCS=2 NBW
+HotRubber;WNC SC ICNT=1
+Humans;WNC
+HumansCD32;WNC
+HumansDe;WNC
+HumansFr;WNC
+Humans2;WNC
+Humans2De;WNC
+HybrisNTSC;WNC
+Hydra;WNC SC
+ImpossibleMission2;WNC
+Indianapolis500;WNC
+IndianaJonesLastCrusAdv;WNC SC ICNT=1
+IndianaJonesLastCrusAdvDe;WNC SC ICNT=1
+IndyLastCrusAdvDeCDTV;WNC SC ICNT=1
+IndianaJonesLastCrusAdvEs;WNC SC ICNT=1
+IndianaJonesLastCrusAdvFr;WNC SC ICNT=1
+IndianaJonesLastCrusAdvIt;WNC SC ICNT=1
+IndianaJonesLastCrusAdvNTSC;WNC SC ICNT=1
+Infestation;WNC
+Interphase;WNC
+InterphaseAmigaFormat;WNC
+Ivanhoe;WNC
+JaguarXJ220Files;WNC
+JaguarXJ220FilesChip;WNC
+JaguarXJ220Image;WNC 
+JaguarXJ220ImageChip;WNC
+JamesPond;
+JamesPond2;WNC ICNT=256
+JetSetWilly2;SC SCS=2
+JetStrike;WNC ICNT=1 NOTURBO
+JimmyWhitesSnooker;
+JimPower;WHD="CUSTOM5=1" WNC ICNT=256 CCRD=20
+Jinxter;WNC
+JudgeDredd;SC
+JumpingJackson;WNC
+KingdomsOfEngland;WNC
+Kristal;WNC
+KristalDe;WNC
+KristalNTSC;WNC
+LaserSquad;WNC SC
+Leviathan;WNC SC ICNT=1 NOTURBO
+Links;WNC
+LinksNTSC;WNC
+Links&DataDisks;WNC
+Links&DataDisksNTSC;WNC
+LiveAndLetDie;
+Liverpool;WNC SC SCS=2
+LombardRACRally1Disk;WNC
+LombardRACRally2Disk;WNC
+LombardRACRally1DiskDe;WNC
+LombardRACRally2DiskDe;WNC
+LordsOfTheRisingSun;WNC SC
+LostPatrol;SC ICNT=256
+LostPatrolNTSC;SC SCS=2
+Lotus2;WNC
+Lotus3;WNC
+Lotus;WNC ICNT=1
+LotusCD32;WNC
+Mach3;WNC
+MajorMotion;
+ManicMiner;WNC SC
+Manix;SC SCS=2
+MaupitiIsland;WNC
+MaupitiIslandDe;WNC
+MaupitiIslandEs;WNC
+MaupitiIslandFr;WNC
+MegaPhoenix;WNC
+MiamiChase;WNC SC SCS=2
+MidnightResistance;WNC
+MiG29MSuperFulcrum;WNC
+MonsterBusiness;WNC
+MontyPythonsFlyCir;
+MontyPythonsFlyCirNTSC;
+MoonshineRacers;SC
+Morph;WNC
+MortalKombat;WNC
+MortalKombatCensored;WNC
+MortvilleManor;WNC
+MotorbikeMadness;SC
+MysteriousWorlds;SC WNC
+NewZealandStory;WNC
+NewZealandStoryDemo;WNC
+NigelMansellsWrldChmp;WNC ICNT=256
+NightBreedMovie;SC SCS=2
+NinjaMission;SC
+NinjaMissionArcadia;SC
+NoBuddiesLand;WNC
+NorthAndSouthFiles;WNC
+NorthAndSouthFilesNTSC;WNC
+NorthAndSouthImage;WNC
+NorthAndSouthImageNTSC;WNC
+NorthSeaInferno;
+NoSecondPrize;WNC
+Odyssey;WNC
+OneStepBeyond;WNC
+OperationWolf;WNC SC
+Overlander;WNC
+PacMania;ICNT=256
+Pandora;WNC
+Pang;WNC
+PanzaKickBoxing;SC SCS=2 ICNT=1
+PanzaKickBoxingFr;SC SCS=2 ICNT=1
+PersianGulfInferno;
+PinballFntsies;ICNT=256
+Platoon;WNC NOTURBO
+PlatoonNTSC;WNC NOTURBO
+Plotting;WNC
+POW;WNC
+Powerdrome;WNC
+Powermonger;WHD="CUSTOM2=5"
+ProjectX;
+ProjectXv2;
+ProjectXSE;
+ProjectXBonusLevel;WNC SC SCS=2 ICNT=1
+PTC;SC SCS=2
+PuffysSaga;SC
+PushOver;WNC SC
+Quartz;SC SCS=2
+Rambo3;WNC
+Rambo3NTSC;WNC
+Realms;WNC
+Reflexity;SC SCS=2
+RickDangerous;WNC SC SCS=2
+RiskyWoods;WNC SC ICNT=256
+RoadRash;
+RoboCop3;WNC
+RoboCop3NTSC;WNC
+RoboCop;WNC
+RodLand;WNC SC SCS=2 ICNT=1
+Roguecraft;WNC WHD="NOVBRMOVE"
+RollingRonny;WNC
+Rotox;WNC ICNT=1
+RType2;WHD="CUSTOM3=1"
+Rubicon;WNC
+Ruffian;WNC
+Scorpio;SC SCS=2
+SecondSamurai;WNC
+Sensible Soccer;
+Sentinel;WNC
+Settlers;SC SCS=2
+SettlersFr;SC SCS=2
+SettlersLowMem;SC SCS=2
+SettlersLowMemFr;SC SCS=2
+ShadowFighter;
+ShermanM4;WNC SC ICNT=1
+Shinobi;WNC
+Simulcra;WNC MHZ=1200
+SkyChase;WNC
+SkyChaseFast;WNC
+Snoopy&Peanuts;SC SCS=2
+SonShuShi;WNC
+Sooty&Sweep;WNC
+SpaceCrusade;WNC
+SpaceGun;WNC SC SCS=2
+Speedball;WNC
+SpeedballNTSC;WNC
+Speedball2;SC SCS=2
+SpittingImage;WNC SC SCS=2
+StarTrash;WNC
+StarWars;WNC
+StreetRod2;WNC
+StreetRod;WNC
+Strider2;WNC
+StuntCarRacer;WNC
+StuntcarRacerTNT;WNC
+StreetRod;WNC
+StreetRod2;WNC
+StuntCarRacer;WNC
+StuntCarRacerTNT;WNC
+SummerGames;WNC
+SummerGames2;WNC
+SuperHangOn;WNC
+SuperHangOnNTSC;WNC
+SuperOffRoad;ICNT=255
+SuperSki2;WNC NBW ICNT=256
+SuperTwintris;WNC
+Switchblade2;WNC
+TeamSuzuki;WNC
+TechnoCop;SC SCS=2
+Terminator2JudgmentDay;SC SCS=2
+TestDrive;WNC SC SCS=2
+Thunderblade;SC SCS=2
+ThunderbladeNTSC;SC SCS=2
+TimeBandit;SC
+Titan;WNC SC
+TopCat;WNC
+TrapsNTreasures;
+TrapsNTreasuresDe;
+TrexWarrior;WNC SC SCS=2
+Trolls;WNC
+TrollsCD32;WNC
+Turrican3;WNC
+Turrican3Demo;WNC
+Tusker;
+Twintris;WNC
+UFOEnemyUnknown;ICNT=1
+UniversalMonsters;
+Uridium2;WNC ICNT=256
+VideoKid;WNC
+Voyager;WNC
+Vroom;WNC
+Vroom&DataDisk;WNC
+VroomMultiPlayer;WNC
+Wall;WNC SC
+Wanted;WNC SC
+Warhead;SC
+WhereTimeStoodStill;WNC
+WhoFramedRogerRabbit;WNC
+WhoFramedRogerRabbitPR;WNC
+WingCommander;WNC NOTURBO
+WingCommanderDe;WNC NOTURBO
+Wings;WNC
+WingsOfDeath;WNC
+WinterGames;SC SCS=2
+Wizball;WNC
+Wizkid;WNC SC ICNT=1
+Wolfchild;
+XOut1Disk;WNC SC MHZ=1200
+XOut2Disk;WNC SC MHZ=1200
+YoJoe;WNC
+Yoomp;WNC
+Zool;WNC NBW
+Zoom;SC
+ZOut;WNC
+;
+; Generic Slaves used on non-Retroplay Games
+; You must use the same named generic slaves for the games
+;
+GenericDisk13Airport;WNC SC ICNT=1
+Workbench31ArcticMoves;WNC ICNT=256
+Workbench31FPUMonopolySupervision;WNC SC ICNT=1 NOTURBO
+;---------------
+; WHDLoad DEMOS
+;---------------
+2Unlimited;WNC
+3DNetAnalyzer;WNC
+3DDemo2;WNC
+3DDemo;WNC ICNT=1
+9Fingers;NBW
+AbsoluteInebriation;WNC
+Algebra;WNC
+AllWeNeedIsMusic5;WNC
+Alpha&Omega;WNC SC ICNT=1
+AlternativeReality;WNC SC
+AmazingTunes;WNC
+AnarchyPartySlide;WNC ICNT=1
+Announce;WNC
+Arte;WNC NBW ICNT=256
+A.S.S;ICNT=256 NBW WNC
+AudioX;WNC
+BanditsRadio;WNC
+BatmanVuelve;ICNT=1
+Birthday;WNC
+Blast_Monopoly;WNC
+BoundlessVoid;NBW
+BurningSpear;WNC
+CapricornOne;WNC
+CeBit90;WNC
+Colors;WNC
+Contagion;WNC
+Contravention;NBW ICNT=1
+Copperslave;SC
+CrystalSymphonies2;ICNT=1
+CrystalSymphonies;ICNT=1
+Dane;WNC
+DecayingParadise;WNC
+Deformations;WNC NOTURBO
+DejaVu;WNC
+DeliriumDeform;WNC
+DeliriumFraxion;WNC
+DemonDownload;WNC
+DemonsRage;WNC
+DeProfundis;WNC
+DemonsAreForever;WNC
+DesertDream;WNC WHD="CUSTOM4=1"
+Devilskey;WNC SCS=2
+DigitalConcert4;WNC NBW
+DigitalConcert6;WNC
+DigitalInnovation;WNC SCS=3
+DiscoFever;WNC
+DOS;WNC
+Elektrica;SC
+Elysium;SC SCS=5
+EndOfTheMisery;WNC
+EnjoyTheSilents;WNC
+EvolutionDesire;SCS=5
+Extemporized;SCS=3
+ElectronsAtWork;WNC ICNT=128
+Enigma;WNC
+EnjoyTheSilents;WNC
+FallingUp;WNC
+FasterThanHell;WNC SCS=4
+FelixDontYouwantMe;WNC SC
+FlowerPower;WNC
+FutureSynthetix;WNC
+GateToHell;WNC
+GlobalTrash;WNC
+Groovy;SCS=3
+GuardianDragon2;WNC ICNT=1
+GuardianDragon;WNC
+Hallucinations&Dreams;WNC
+Hammer;WNC
+Hardwired_pistorm;WNC NBW
+Heliopolis;WNC
+HereWeAre;WNC
+Hitcollection1;WNC
+Hologon;WNC
+Hologon512k;WNC
+How2SkinACat;WNC
+HumanTarget;WNC
+HuntFor7thOctober;WNC
+Ice;WNC ICNT=1
+Imperialtunes2;WNC
+Impulse2;WNC NBW
+InFullAffect;WNC
+InsideTheMachine;ICNT=1 CCRD=0 WNC
+Interspace;WNC SC
+Innervision;WNC
+Interference;WNC
+JOESlideshow2;WNC
+KninPeaks;WNC
+KrestMassLeftovers;WNC
+Linus;WNC
+Lostworld;SC SCS=2
+Love&Anarchy;WHD="NORESINT"
+MaestroJamsVol1;WNC
+MagneticDreams;WNC
+ManicRaves2;WNC
+Marchewki;WNC SCS=5
+Masterpieces;NBW
+MaximumVelocity;WNC
+Megablast;WNC NBW
+Megademo2BudBrain;WNC
+Megademo2Dexion;SCS=5
+Megademo2NorthStar;WNC
+Megademo2Rebels;WNC
+Megademo2Vortex42;WNC NBW
+Megademo3Nsflt;WNC SC ICNT=1
+Megademo6Kefrens;WNC NBW
+Megademo7Kefrens;WNC
+Megademo8;WNC
+Megademo8Kefrens;WNC NBW
+MegademoBrainstorm;WNC NBW
+MegademoBudBrain; WNC NBW
+MegademoCult;WNC NBW SCS=5
+MegademoDigitech&IBB;NBW
+MegademoEOA;NBW
+MegademoHumanoids;WNC
+MegademoJoy&MGF&TJC;WNC NBW SCS=5
+MegademoPhenomena;WNC
+MegademoPossessed;NBW
+MegademoPowerslaves;WNC SCS=3
+MegademoPredators;WNC
+MegademoRedSectorInc;WNC SC
+MegademoRoyalAmigaForce;WNC
+MegademoSargon;WNC  
+MegademoScoopex;NBW SCS=5
+MegademoVermin;SC
+MentalHangover;WNC
+Mesmerized;NFC SCS=3
+MindRiot;WNC
+Mirror;WNC ICNT=1
+MiseryDentro2;WNC
+MoinJungs;WNC
+Monoxide;WNC
+Museum;WNC
+MusicBoxExodus;WNC
+MusicCollectionKatharsis;WNC
+MusicDemoDeform;WNC
+MusicDisk1Alcatraz;WNC
+Musicdisk6RamJam;NBW
+MusicDiskEscape;WNC
+MusicDream1;ICNT=1
+Musicland;WNC
+Musicland2;WNC
+Musics3;WNC
+MuzaksDisk1;WNC
+Muzzax3;WNC
+Muzzax7;WNC
+NegativeFX;WNC
+NeuralAssault;WNC
+NoBrainNoPainFlashProd;WNC
+Nugget;SC
+Numeric3;WNC
+OneStone;WNC ICNT=1
+OdysseyAlcatraz;WNC
+PanicVoicesOfEnergy;WNC
+Party2Slideshow;WNC
+PixeledPleasures;WNC
+PointBlank;WNC
+Prism;SC
+ProSIAK;WNC
+PsygnosisMusicPictureDisc;SC
+Qed;WNC
+RampageTEK;WNC NBW
+RapIsCrap;WNC
+RayOfHope2;WNC
+RayOfHope;WNC ICNT=1 NBW WHD="DCACHE"
+RealEmpathy;WNC
+RinkADinkRedux;SC
+Rockbox2;WNC
+SeeingIsBelieving;WNC
+Sequential;WNC
+SevenSeas;WNC SC
+SevenSins;WNC
+ShakeYourSelf;WNC SCS=3
+SiliconSounds;WNC
+Smau92MusicDisk;SC
+Snap;WNC
+Software;WNC
+SonicAttack;WNC
+SOS;WNC
+SoundArcadiaTeam;WNC
+SoundDiskPossessed;WNC
+SoundVision;ICNT=1
+SpacedOutVol2:WNC
+Spasmolytic;WNC WHD="Custom1=1"
+StateOfTheArt;WNC ICNT=1
+StaticChaos;WNC
+StatusQuo;WNC SCS=2
+StatusQuoFast;WNC SCS=2
+StrangeMusic2;SC
+Substance;WNC
+SubtleShades;WNC
+SystemViolation;WNC SC
+TechnologicalDeath;WNC SCS=2
+TEK-Transhuman;ICNT=256
+Terminator;WNC
+Testament;WNC
+ThirdDimension;WNC
+TitanTrax;WNC
+Trashcan;WNC
+VectorDance2;SC
+VectorDemoTristanLorach;WNC
+VectorExterminator;WNC
+Viktoria;WNC
+VirtualWorld;WNC
+VoyageRazor1911;WNC ICNT=1
+WalkmanMusic;WNC
+WallKefrens;WNC
+Wayfarer;WNC
+WeWillSmashYou;WNC
+WhiteRoom;WNC
+WickedSensations;WNC
+WildCat;WNC
+WithVectorsToHeaven;WNC
+WorldOfCommodore;WNC
+WorldOfCommodoreAltVer;WNC
+XPose;WNC
+;---------------
+; WHDLoad INTROS
+;---------------
+ANG-PrinceOfPersia;WNC
+BamigaSectorOne-GPC;WNC
+CMP-AnotherWorld;WNC SC
+CowsInColor;WNC SC
+CRY-AlloAllo;WNC
+Defjam;WHD="FULLCHIP"
+Dominium;SC
+ICS;WNC
+NRC;SC
+ParadoxDS;WHD="FULLCHIP"
+PNM-ComboRacer;WNC SC
+SkidRow;WHD="CHKINTS"
+WorldOfWonders;WHD="CHKINTS"
+WorldOfWondersCC;WNC SC WHD="NOFILTER"

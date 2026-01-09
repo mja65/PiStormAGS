@@ -1,0 +1,85 @@
+; Set paths and assigns for AGS launcher
+
+If $HW NOT EQ "Real"
+ 
+ Assign AGS: AGS_Drive:AGS2
+ 
+ If $HW EQ "Mini"
+  Assign WHD_Games: WHD_Games1:
+  Assign WHD_Games: WHD_Games2: ADD
+  Assign WHD_Games: WHD_Demos: ADD
+ Endif
+
+Else
+
+ Assign AGS: WHDLoad:AGS2
+ 
+ Assign WHD_Games: WHDLoad:
+ Assign WHD_Demos: WHDLoad:
+ Assign ST-00: Media:ST-00
+ Assign Emulators: Work Emulators:
+ Assign Premium: Games:Premium
+
+Endif
+
+Assign AGSOS: AGS:OS
+Assign Scripts: AGS:Scripts
+Assign Admin: Scripts:Admin
+Assign WHDSaves: $whdlsaves
+Path AGSOS:C ADD 
+
+; Start AGS Boot process
+
+Cls
+Echo "Booting Amiga Game Selector..."
+
+; Select Hardware Variable
+
+Execute Scripts:HW_Select
+
+; Reset CPU Speed.
+
+If $HW NOT EQ "Real"
+  If $PiStorm NOT EQ "1"
+    Ex Scripts:Speed_Reset
+  Endif
+Endif
+
+Echo "*e[1m"
+
+Ex Scripts:Splash
+
+If $HW EQ "Real"
+ Echo ""
+ Echo "                      Welcome to Amiga Game Selector!"
+ Wait 1
+Endif
+
+If $HW EQ "Real"
+ Cls
+Endif
+
+Type AGS:Texts/Retro32.txt
+Echo ""
+Wait 1
+
+If $HW EQ "Real"
+ Cls
+Endif
+
+Type AGS:Texts/immortal.txt
+Echo "*e[0m"
+Wait 1
+
+If $HW EQ "Real"
+ Cls
+Endif
+
+Ex Scripts:Startup_Info
+
+Wait 4
+
+If $BOOT EQ "AGS"
+  Ex Scripts:Logo
+  Ex Scripts:Start_AGS
+Endif

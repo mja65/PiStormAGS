@@ -1,0 +1,208 @@
+; ********************************************************
+; * Work & Workbench drive assigns                       *.
+; * The Work drive is required for AGS to work correctly *. 
+; ********************************************************
+
+;BEGIN AmosPro
+ Assign AmosPro_Accessories: "Work:Programming/Amos Collection/AmosPro"
+;END AmosPro
+
+;BEGIN Blitz Basic 2
+ Assign Blitz2: Work:Programming/Blitz2
+ Assign BlitzLibs: Work:Programming/Blitz2/Blitzlibs
+;END Blitz Basic 2
+
+;BEGIN DPaint V
+ Assign DPaintV: "Work:Paint/Deluxe Paint/DPaintV"
+;END DPaint V
+
+;BEGIN DPaint IV
+ Assign DPaintIV: "Work:Paint/Deluxe Paint/DPaintIV"
+;END DPaintIV
+
+;BEGIN Art Department
+ Assign ADPro: Work:Paint/ADpro
+ Assign ADP_Fred: ADPro:
+ Assign ADPROSCRIPTS: Adpro:Commands2
+ Assign FREDSCRIPTS: Adpro:FredScripts
+;END Art Department
+
+;BEGIN Aladdin 4D
+ Assign Aladdin4D: Work:3DRendering/Aladdin4d
+ Assign Aladdin4DTools: Aladdin4d:tools
+ Assign Aladdin4DDef: Aladdin4D:Support/Def/Defaults
+;END Aladdin 4D
+
+;BEGIN Mand2000
+ Assign Mand2000: Work:Fractal/Mand2000
+;END Mand2000
+
+;BEGIN Eagleplayer
+ Assign Eagleplayer: "Work:Music Players/Eagleplayer"
+;END Eagleplayer
+
+;BEGIN Lightwave 3D
+ Assign Toaster: Work:3DRendering/Toaster
+ Assign 3D: Work:3DRendering/Toaster
+;END Lightwave 3D
+
+;BEGIN CAPREFS
+ C:CAPrefs >NIL:
+;END CAPREFS
+
+;BEGIN Picasso96
+ Assign Picasso96: "System:Utilities/Picasso96"
+;END Picasso96
+
+;BEGIN SAS/C
+ Assign sc: Work:Programming/SAS-C
+ Assign lib: sc:lib
+ Assign include: sc:include
+ Path sc:c add
+;END SAS/C
+
+;BEGIN ASMPro
+ Assign asmpro: Work:Programming/ASMPro
+;END ASMPro
+
+;BEGIN PageStream3
+ Assign PageStream3: "Work:Design/PageStream3"
+ Assign SoftLogik: "PageStream3:SoftLogik"
+ Assign Fonts: "PageStream3:SoftLogik/Fonts" ADD
+;END PageStream3
+
+;BEGIN ARexx
+ sys:system/rexxmast >NIL:
+;END ARexx
+
+;BEGIN ModePro
+;Don't run ModePro from User-Startup
+;END ModePro
+
+;BEGIN CanDo
+ ASSIGN CanDo: "Work:Multimedia/CanDo"
+;END CanDo
+
+;BEGIN AmigaWriter
+ ASSIGN AMIGAWRITER: Work:Office/AmigaWriter
+;END AmigaWriter
+
+;BEGIN Real3D_V3
+ Assign R3D3: Work:3DRendering/Real3DV3
+;END Real3D_V3
+
+;BEGIN AmiSSL
+ Assign AmiSSL: "Work:Web/AmiSSL"
+ If Exists AmiSSL:Libs
+  Assign LIBS: AmiSSL:Libs ADD
+ EndIf
+ Path AmiSSL: ADD
+;END AmiSSL
+
+;BEGIN Miami
+ Assign Miami: "Work:Web/Miami"
+;END Miami
+
+;BEGIN Ami-Express
+ Assign bbs: Work:Web/AmiExpress
+ Assign doors: bbs:doors
+ Path bbs:utils add
+ Resident SYS:Rexxc/RX pure
+;END Ami-Express
+
+;BEGIN MUI
+ If Exists "Workbench:Utilities/MUI"
+   assign MUI: "Workbench:Utilities/MUI"
+   if exists MUI:Libs
+      assign add LIBS: MUI:Libs
+   endif
+   if exists MUI:Locale
+      assign add LOCALE: MUI:Locale
+   endif
+   version >nil: exec.library 39
+   if not warn
+      if exists MUI:Docs
+         if exists HELP:dummy ; do not remove
+         endif                ; this entry!
+         assign add HELP: MUI:Docs
+      endif
+   endif
+ endif
+;END MUI
+
+;BEGIN AmiTCP/IP
+ Assign AmiTCP: Work:Web/AmiTCP
+ path AmiTCP:bin add
+ ;AmiTCP:bin/login -f AGS >"con:*/*/*/200/AmiTCP-IP Login/AUTO/CLOSE/WAIT"
+ ;AmiTCP:bin/umask 022
+ ;run AmiTCP:bin/startnet
+;END AmiTCP/IP
+
+;BEGIN FreePascal
+ Assign FPC: Work:Programming/FPC
+ Path FPC:bin/m68k-amiga add
+;END FreePascal
+
+;BEGIN AMIGAGPT
+ If Exists "Work:Web/AmigaGPT"
+  Assign AMIGAGPT: "Work:Web/AmigaGPT"
+ Endif
+;END AMIGAGPT
+
+; ********************************************************
+; * Drive checks and assigns                             *
+; ********************************************************
+
+Infoq >T:Drives VOLUMES
+
+; Clear Tools Daemon Menu File
+
+Delete >NIL: S:ToolsDaemon.menu
+
+; Copy a blank Tools Daemon file from S:
+
+Copy S:ToolsDaemonMenus/ToolsDaemon.Blank S:ToolsDaemon.menu
+
+If $PiStorm EQ "1"
+Assign SHARED: PCO:Shared
+EndIf
+
+; ************************************************************************************************
+; * AGS requires Workbench, Work, AGS_Drive and at least one of the WHDLoad drives as a minimum. *
+; * All other drives are optional and the following scripts will add any menus as required.      *
+; ************************************************************************************************
+
+; Append the main required menus to the blank file.
+
+Append S:ToolsDaemonMenus/Toolsdaemon.Main S:ToolsDaemon.menu 
+
+Search >NIL: T:Drives Music QUIET
+If not warn
+ Execute S:Music-Stuff
+ Append S:ToolsDaemonMenus/Toolsdaemon.Music S:ToolsDaemon.menu
+Endif
+
+Search >NIL: T:Drives Emulators1 QUIET
+If not warn
+ Assign Emulators: Emulators1:
+ Append S:ToolsDaemonMenus/Toolsdaemon.Emulators S:ToolsDaemon.menu
+Endif
+
+Search >NIL: T:Drives Emulators2 QUIET
+If not warn
+ Append S:ToolsDaemonMenus/Toolsdaemon.Scummvm S:ToolsDaemon.menu
+ Append S:ToolsDaemonMenus/Toolsdaemon.Mame S:ToolsDaemon.menu
+ Assign ScummVM: Emulators2:ScummVM
+ Assign Mame: Emulators2:Mame
+Endif
+
+If $DEVMODE EQ 1
+ Append S:ToolsDaemonMenus/Toolsdaemon.DevMode S:ToolsDaemon.menu
+Endif
+
+Append S:ToolsDaemonMenus/Toolsdaemon.End S:ToolsDaemon.menu
+
+Search >NIL: T:Drives AGS_Drive QUIET
+If not warn
+ Execute S:AGS-Stuff
+Endif

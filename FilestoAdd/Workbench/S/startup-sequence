@@ -1,0 +1,177 @@
+C:MuMove4k
+
+RemLib >Nil: icon.library
+
+C:SetPatch QUIET
+;C:BlazeWCP
+
+; Checks for 68060 processor and removes 68040.library
+
+Assign >NIL: ENV: RAM:
+
+If $PiStorm EQ "0"
+
+C:CPU >RAM:CPU CPUTYPE
+
+Search >NIL: RAM:CPU 68060 QUIET
+
+If NOT WARN
+ If EXISTS Libs:68040.library
+  If NOT WARN
+   Echo ""
+   Echo "68060 detected. Renaming 68040.library..."
+   Echo "This process only happens once."
+   Echo ""
+   Echo "Rebooting..." 
+   Echo "" 
+   Wait 2 
+   Remlib >NIL: 68040.library    ; Unload 68040.library if loaded
+   CD Libs:
+   If EXISTS Libs:68040.backup
+    Delete >NIL: 68040.backup    ; Delete 68040.backup if in folder
+   Endif
+   Rename >NIL: 68040.library 68040.backup QUIET ; Rename 68040.library
+   Reboot
+  Endif
+ Endif
+Else
+ If NOT EXISTS Libs:68040.library
+  If EXISTS Libs:68040.backup
+   Rename >NIL: libs:68040.backup Libs:68040.library QUIET ; Rename 68040.library
+  Endif
+ Endif
+Endif
+
+Delete >NIL: RAM:CPU
+
+; Check for FPU and install Softieee if one doesn't exist.
+
+If $RetroArch EQ "0"
+
+ C:CPU >RAM:FPU FPUTYPE
+ Search >NIL: RAM:FPU 6888 QUIET
+ 
+ If NOT WARN
+  C:SOFTIEEE >NIL: <NIL:
+ Endif 
+
+; Cleanup
+
+ Delete >NIL: RAM:FPU
+ Delete >NIL: RAM:CPU
+ Assign >NIL: ENV: REMOVE
+
+Endif
+
+Endif
+
+C:Version >NIL:
+C:AddBuffers >NIL: DF0: 15
+
+C:MakeDir RAM:T RAM:Clipboards RAM:ENV RAM:ENV/Sys
+C:Copy >NIL: ENVARC: RAM:ENV ALL NOREQ
+
+Resident >NIL: C:Assign PURE
+Resident >NIL: C:Execute
+
+Assign >NIL: System: SYS:
+Assign >NIL: ENV: RAM:ENV
+Assign >NIL: T: RAM:T
+Assign >NIL: CLIPS: RAM:Clipboards
+Assign >NIL: REXX: S:
+Assign >NIL: PRINTERS: DEVS:Printers
+Assign >NIL: KEYMAPS: DEVS:Keymaps
+Assign >NIL: LOCALE: SYS:Locale
+Assign >NIL: LIBS: SYS:Classes ADD
+Assign >NIL: HELP: LOCALE:Help DEFER
+
+BindDrivers
+
+ ; Installs the pistorm shared drive dos driver
+
+If $PiStorm EQ "1"
+
+If $FirstBoot EQ "1"
+
+Delete >NIL: Libs:680x0.library 
+Delete >NIL: Libs:68020.library 
+Delete >NIL: Libs:68030.library 
+Delete >NIL: Libs:68040.library 
+Delete >NIL: Libs:68060.library 
+Delete >NIL: Devs:Monitors/uaegfx
+Delete >NIL: Devs:Monitors/uaegfx.info
+Delete >NIL: Devs:Monitors/HD720.info
+Delete >NIL: Devs:Monitors/HighGFX.info
+Delete >NIL: Devs:Monitors/SuperPlus.info
+Delete >NIL: Devs:Monitors/Xtreme.info
+Delete >NIL: Devs:Monitors/HD720
+Delete >NIL: Devs:Monitors/HighGFX
+Delete >NIL: Devs:Monitors/SuperPlus
+Delete >NIL: Devs:Monitors/Xtreme
+
+AGS_Drive:AGS2
+List >T:ThemeChange themes PAT #?.conf LFORMAT "searchreplace FROM %N TO %N SEARCH $500A1000 REPLACE $501E1000 INPLACE"
+CD AGS_Drive:AGS2/Themes
+Ex T:ThemeChange
+CD AGS_Drive:AGS2/Themes.ags
+Searchreplace FROM AGS_Drive:AGS2/ags2.conf TO AGS_Drive:AGS2/ags2.conf SEARCH $500A1000 REPLACE $501E1000 INPLACE
+Delete >NIL: SYS:Prefs/Env-Archive/FirstBoot
+
+Endif
+
+ DevEx >NIL brcm-emmc.device
+ If NOT WARN
+  Copy SYS:Storage/DOSDrivers/PC0_Pistorm_emmc DEVS:DOSDrivers/PCO
+  Copy SYS:Storage/DOSDrivers/PC0_Pistorm_emmc.info DEVS:DOSDrivers/PCO.info
+ Else
+  Copy SYS:Storage/DOSDrivers/PC0_Pistorm_sdhc DEVS:DOSDrivers/PCO
+  Copy SYS:Storage/DOSDrivers/PC0_Pistorm_sdhc.info DEVS:DOSDrivers/PCO.info
+ Endif
+
+Endif
+
+C:Mount >NIL: DEVS:DOSDrivers/~(#?.info)
+
+IF EXISTS DEVS:Monitors
+  IF EXISTS DEVS:Monitors/VGAOnly
+    DEVS:Monitors/VGAOnly
+  EndIF
+  C:List >NIL: DEVS:Monitors/~(#?.info|VGAOnly) TO T:M LFORMAT "DEVS:Monitors/%s"
+  Execute T:M
+  C:Delete >NIL: T:M
+EndIF
+
+SetEnv Language "english"
+SetEnv Workbench $Workbench
+SetEnv Kickstart $Kickstart
+UnSet Workbench
+UnSet Kickstart
+
+C:AddDataTypes REFRESH QUIET
+
+If $HW EQ "Real"
+ FBlit
+ FText
+Endif
+
+C:IPrefs
+System:Utilities/FullPalette/FPPrefs
+C:ConClip
+C:PatchWB
+C:SetpatchMrgCop
+C:IconsToFastMem
+C:StackAttack
+Run >NIL: C:NewIcons
+
+Path >NIL: RAM: C: SYS:Utilities SYS:Rexxc SYS:System S: SYS:Prefs SYS:WBStartup SYS:Tools SYS:Tools/Commodities
+
+IF EXISTS S:User-Startup
+  Execute S:User-Startup
+EndIF
+
+Resident Execute REMOVE
+Resident Assign REMOVE
+
+C:LoadWB
+
+EndCLI >NIL:

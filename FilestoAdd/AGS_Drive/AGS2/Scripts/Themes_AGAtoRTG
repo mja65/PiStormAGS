@@ -1,0 +1,24 @@
+Cls
+Echo "Converting themes from AGA to RTG..."
+AGS:
+If $PiStorm EQ "1"
+ List >T:ThemeChange themes PAT #?.conf LFORMAT "searchreplace FROM %N TO %N SEARCH $00029004 REPLACE $501E1000 INPLACE"
+ELSE
+ List >T:ThemeChange themes PAT #?.conf LFORMAT "searchreplace FROM %N TO %N SEARCH $00029004 REPLACE $500A1000 INPLACE"
+Endif
+CD AGS:Themes
+Ex T:ThemeChange
+Echo ""
+Echo "Setting default theme."
+If $PiStorm EQ "1"
+ Searchreplace FROM ags:ags2.conf TO ags:ags2.conf SEARCH $00029004 REPLACE $501E1000 INPLACE
+Else
+ Searchreplace FROM ags:ags2.conf TO ags:ags2.conf SEARCH $00029004 REPLACE $500A1000 INPLACE
+Endif
+Echo ""
+CD AGS:Themes.ags
+Rename "- Use RTG Screen -.run" TO "- Use RTG Screen -.rub"
+Rename "- Use AGA Screen -.rub" TO "- Use AGA Screen -.run"
+Echo "Process complete!"
+Delete >NIL: T:ThemeChange
+AGS:

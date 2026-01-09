@@ -1,0 +1,30 @@
+blank "E:\AGS\Clean.vhd" 5mb
+write "E:\AGS\Clean.vhd" \disk6 --skip-unused-sectors FALSE
+mbr part add "\disk6" 0xb 1073741824 --start-sector 2048
+mbr part format "\disk6" 1 EMU68BOOT
+mbr part add "\disk6" 0x76 58gb --start-sector 2099200
+rdb filesystem add \disk6\mbr\2 "E:\AGS\pfs3aio" PFS3
+rdb part add "\disk6\mbr\2" DH0 PFS3 1gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable True --boot-priority 1
+rdb part add "\disk6\mbr\2" DH1 PFS3 2gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
+rdb part add "\disk6\mbr\2" DH2 PFS3 4gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
+rdb part add "\disk6\mbr\2" DH3 PFS3 4gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
+rdb part add "\disk6\mbr\2" DH4 PFS3 4gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
+rdb part add "\disk6\mbr\2" DH5 PFS3 8gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
+rdb part add "\disk6\mbr\2" DH6 PFS3 8gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
+rdb part add "\disk6\mbr\2" DH7 PFS3 4gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
+rdb part add "\disk6\mbr\2" DH13 PFS3 4gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
+rdb part add "\disk6\mbr\2" DH14 PFS3 8gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
+rdb part add "\disk6\mbr\2" DH15 PFS3 8gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
+fs c "E:\AGS\AGS_UAE_v30\WinUAE\AGS_UAE\Workbench.hdf\rdb\1" "E:\AGS\Extracted\DH0\" -r -md -q
+fs c "E:\AGS\AGS_UAE_v30\WinUAE\AGS_UAE\Work.hdf\rdb\1" "E:\AGS\Extracted\DH1\" -r -md -q
+fs c "E:\AGS\AGS_UAE_v30\WinUAE\AGS_UAE\Music.hdf\rdb\1" "E:\AGS\Extracted\DH2\" -r -md -q
+fs c "E:\AGS\AGS_UAE_v30\WinUAE\AGS_UAE\Media.hdf\rdb\1" "E:\AGS\Extracted\DH3\" -r -md -q
+fs c "E:\AGS\AGS_UAE_v30\WinUAE\AGS_UAE\AGS_Drive.hdf\rdb\1" "E:\AGS\Extracted\DH4\" -r -md -q
+fs c "E:\AGS\AGS_UAE_v30\WinUAE\AGS_UAE\Games.hdf\rdb\1" "E:\AGS\Extracted\DH5\" -r -md -q
+fs c "E:\AGS\AGS_UAE_v30\WinUAE\AGS_UAE\Premium.hdf\rdb\1" "E:\AGS\Extracted\DH6\" -r -md -q
+fs c "E:\AGS\AGS_UAE_v30\WinUAE\AGS_UAE\Emulators.hdf\rdb\1" "E:\AGS\Extracted\DH7\" -r -md -q
+fs c "E:\AGS\AGS_UAE_v30\WinUAE\AGS_UAE\WHD_Demos.hdf\rdb\1" "E:\AGS\Extracted\DH13\" -r -md -q
+fs c "E:\AGS\AGS_UAE_v30\WinUAE\AGS_UAE\WHD_Games.hdf\rdb\1" "E:\AGS\Extracted\DH14\" -r -md -q
+fs c "E:\AGS\AGS_UAE_v30\WinUAE\AGS_UAE\Emulators2.hdf\rdb\1" "E:\AGS\Extracted\DH15\" -r -md -q
+
+fs c "E:\AGS\AGS_Classic_AGA_KickstartFix_v30\AGS_Classic_AGA_KickstartFix_v30.img\rdb\3\AGS2" "E:\AGS\Extracted\AGS2\" -r -md -q

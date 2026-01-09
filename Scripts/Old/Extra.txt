@@ -1,0 +1,9 @@
+fs c "\disk6\MBR\2\rdb\DH0\s\startup-sequence" "\disk6\MBR\2\rdb\DH0\s\startup-sequence.bak"
+fs c "\disk6\MBR\2\rdb\DH0\s\user-startup" "\disk6\MBR\2\rdb\DH0\s\user-startup.bak"
+fs c "\disk6\MBR\2\rdb\DH0\s\AGS-Stuff" "\disk6\MBR\2\rdb\DH0\s\AGS-Stuff.bak"
+fs c "E:\AGS\FilestoAdd\Workbench" \disk6\MBR\2\rdb\DH0 -r -md -q -f
+fs c "E:\AGS\FilestoAdd\AGS_Drive" \disk6\MBR\2\rdb\DH4 -r -md -q -f
+fs c "\disk6\MBR\2\rdb\DH0\Devs\monitors\HD720*" "\disk6\MBR\2\rdb\DH0\storage\monitors"
+fs c "\disk6\MBR\2\rdb\DH0\Devs\monitors\HighGFX*" "\disk6\MBR\2\rdb\DH0\storage\monitors"
+fs c "\disk6\MBR\2\rdb\DH0\Devs\monitors\SuperPlus*" "\disk6\MBR\2\rdb\DH0\storage\monitors"
+fs c "\disk6\MBR\2\rdb\DH0\Devs\monitors\Xtreme*" "\disk6\MBR\2\rdb\DH0\storage\monitors"

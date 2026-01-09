@@ -1,0 +1,54 @@
+blank "E:\AGS\Clean.vhd" 10mb
+write "E:\AGS\Clean.vhd" \disk6 --skip-unused-sectors FALSE
+mbr init \disk6
+mbr part add \disk6 0xb 1073741824 --start-sector 2048
+mbr part format \disk6 1 EMU68BOOT
+mbr part add \disk6 0x76 58gb --start-sector 2099200
+rdb init \disk6\mbr\2
+rdb filesystem add \disk6\mbr\2 "E:\AGS\pfs3aio" PFS3
+rdb part add "\disk6\mbr\2" DH0 PFS3 1gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable True --boot-priority 1
+rdb part format "\disk6\mbr\2" 1 Workbench
+rdb part add "\disk6\mbr\2" DH1 PFS3 2gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
+rdb part format "\disk6\mbr\2" 2 Work
+rdb part add "\disk6\mbr\2" DH2 PFS3 4gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
+rdb part format "\disk6\mbr\2" 3 Music
+rdb part add "\disk6\mbr\2" DH3 PFS3 4gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
+rdb part format "\disk6\mbr\2" 4 Media
+rdb part add "\disk6\mbr\2" DH4 PFS3 4gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
+rdb part format "\disk6\mbr\2" 5 AGS_Drive
+rdb part add "\disk6\mbr\2" DH5 PFS3 8gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
+rdb part format "\disk6\mbr\2" 6 Games
+rdb part add "\disk6\mbr\2" DH6 PFS3 8gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
+rdb part format "\disk6\mbr\2" 7 Premium
+rdb part add "\disk6\mbr\2" DH7 PFS3 4gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
+rdb part format "\disk6\mbr\2" 8 Emulators1
+rdb part add "\disk6\mbr\2" DH13 PFS3 4gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
+rdb part format "\disk6\mbr\2" 9 WHD_Demos
+rdb part add "\disk6\mbr\2" DH14 PFS3 8gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
+rdb part format "\disk6\mbr\2" 10 WHD_Games
+rdb part add "\disk6\mbr\2" DH15 PFS3 8gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
+rdb part format "\disk6\mbr\2" 11 Emulators2
+fs c "E:\AGS\AGS_UAE_v30\WinUAE\AGS_UAE\Workbench.hdf\rdb\1" "\disk6\MBR\2\rdb\DH0\" -r -md -q
+fs c "E:\AGS\AGS_UAE_v30\WinUAE\AGS_UAE\Work.hdf\rdb\1" "\disk6\MBR\2\rdb\DH1\" -r -md -q
+fs c "E:\AGS\AGS_UAE_v30\WinUAE\AGS_UAE\Music.hdf\rdb\1" "\disk6\MBR\2\rdb\DH2\" -r -md -q
+fs c "E:\AGS\AGS_UAE_v30\WinUAE\AGS_UAE\Media.hdf\rdb\1" "\disk6\MBR\2\rdb\DH3\" -r -md -q
+fs c "E:\AGS\AGS_UAE_v30\WinUAE\AGS_UAE\AGS_Drive.hdf\rdb\1" "\disk6\MBR\2\rdb\DH4\" -r -md -q
+fs c "E:\AGS\AGS_UAE_v30\WinUAE\AGS_UAE\Games.hdf\rdb\1" "\disk6\MBR\2\rdb\DH5\" -r -md -q
+fs c "E:\AGS\AGS_UAE_v30\WinUAE\AGS_UAE\Premium.hdf\rdb\1" "\disk6\MBR\2\rdb\DH6\" -r -md -q
+fs c "E:\AGS\AGS_UAE_v30\WinUAE\AGS_UAE\Emulators.hdf\rdb\1" "\disk6\MBR\2\rdb\DH7\" -r -md -q
+fs c "E:\AGS\AGS_UAE_v30\WinUAE\AGS_UAE\WHD_Demos.hdf\rdb\1" "\disk6\MBR\2\rdb\DH13\" -r -md -q
+fs c "E:\AGS\AGS_UAE_v30\WinUAE\AGS_UAE\WHD_Games.hdf\rdb\1" "\disk6\MBR\2\rdb\DH14\" -r -md -q
+fs c "E:\AGS\AGS_UAE_v30\WinUAE\AGS_UAE\Emulators2.hdf\rdb\1" "\disk6\MBR\2\rdb\DH15\" -r -md -q
+fs c "E:\Emulators\Amiga Files\Shared\rom\amiga-os-310-a1200.rom" \disk6\MBR\1\kick.rom 
+fs c "E:\AGS\FilestoAdd\Emu68Boot" \disk6\MBR\1\ -r -md -q
+fs mkdir \disk6\MBR\1\SHARED\SaveGames
+fs c "\disk6\MBR\2\rdb\DH0\s\startup-sequence" "\disk6\MBR\2\rdb\DH0\s\startup-sequence.bak"
+fs c "\disk6\MBR\2\rdb\DH0\s\user-startup" "\disk6\MBR\2\rdb\DH0\s\user-startup.bak"
+fs c "\disk6\MBR\2\rdb\DH0\s\AGS-Stuff" "\disk6\MBR\2\rdb\DH0\s\AGS-Stuff.bak"
+fs c \disk6\MBR\2\rdb\DH0\c\whdload \disk6\MBR\2\rdb\DH0\c\whdload.ori
+fs c "E:\AGS\FilestoAdd\Workbench" \disk6\MBR\2\rdb\DH0 -r -md -q -f
+fs c "E:\AGS\FilestoAdd\AGS_Drive" \disk6\MBR\2\rdb\DH4 -r -md -q -f
+fs c "\disk6\MBR\2\rdb\DH0\Devs\monitors\HD720*" "\disk6\MBR\2\rdb\DH0\storage\monitors"
+fs c "\disk6\MBR\2\rdb\DH0\Devs\monitors\HighGFX*" "\disk6\MBR\2\rdb\DH0\storage\monitors"
+fs c "\disk6\MBR\2\rdb\DH0\Devs\monitors\SuperPlus*" "\disk6\MBR\2\rdb\DH0\storage\monitors"
+fs c "\disk6\MBR\2\rdb\DH0\Devs\monitors\Xtreme*" "\disk6\MBR\2\rdb\DH0\storage\monitors"
