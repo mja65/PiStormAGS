@@ -31,8 +31,8 @@ if (-not $IsAdmin) {
     Write-Host "Not running as Admin. Attempting to escalate..." -ForegroundColor Yellow
     
     # Check if we are running as a file or just pasted code
-    if ($PSCommandPath) {
-        $ArgList = "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`""
+    if ($PSCommandPath) {        
+        $ArgList = "-NoProfile -ExecutionPolicy Bypass -File `"`"$PSCommandPath`"`""
         if ($IsWindows -or ($null -eq $IsWindows)) {
             try {
                 # Launch a NEW powershell window as Admin
@@ -64,6 +64,7 @@ Write-Host "Running on $HostOS"
 $PathValid = $false
 while (-not $PathValid) {
     $HSTImagerLocation = Read-Host -Prompt "Provide the folder with HST Imager installed"
+    $HSTImagerLocation = $HSTImagerLocation.Trim('"').TrimEnd('\')
     
     # Remove quotes if present
     $HSTImagerLocation = $HSTImagerLocation.Trim('"')
@@ -86,7 +87,7 @@ while (-not $PathValid) {
 
 if ($HostOS -ne "Windows") {
     # Ensure the binary is executable on Linux/macOS
-    chmod +x "$FullExecPath"
+    chmod +x "$FullHSTImagerPath"
 }
 
 
@@ -132,7 +133,8 @@ $SourceValid = $false
 while (-not $SourceValid) {
     $AGSSourceLocation = Read-Host -Prompt "Provide the folder containing your AGS HDF files"
     $AGSSourceLocation = $AGSSourceLocation.Trim('"')
-
+    $AGSSourceLocation = $AGSSourceLocation.Trim('"').TrimEnd('\')
+    
     if (Test-Path -Path $AGSSourceLocation -PathType Container) {
         $MissingItems = @()
 
@@ -181,6 +183,7 @@ while (-not $ROMValid) {
 
 # If $PSScriptRoot is empty (not running from a file), use the current working directory ($PWD)
 $BaseDir = if ($PSScriptRoot) { $PSScriptRoot } else { $PWD }
+$FileSystemFolder = (Get-Item (Join-Path -Path $BaseDir -ChildPath "..\FileSystem")).FullName
 
 $TempFolderPath = Join-Path -Path $BaseDir -ChildPath "temp"
 if (-not (Test-Path -Path $TempFolderPath)) {
@@ -201,7 +204,7 @@ mbr part add \disk$DisktoUse 0xb 1073741824 --start-sector 2048
 mbr part format \disk$DisktoUse 1 EMU68BOOT
 mbr part add \disk$DisktoUse 0x76 58gb --start-sector 2099200
 rdb init \disk$DisktoUse\mbr\2
-rdb filesystem add \disk$DisktoUse\mbr\2 "$BaseDir\FileSystem\pfs3aio" PFS3
+rdb filesystem add \disk$DisktoUse\mbr\2 "$FileSystemFolder\pfs3aio" PFS3
 rdb part add "\disk$DisktoUse\mbr\2" DH0 PFS3 1gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable True --boot-priority 1
 rdb part format "\disk$DisktoUse\mbr\2" 1 Workbench
 rdb part add "\disk$DisktoUse\mbr\2" DH1 PFS3 2gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
