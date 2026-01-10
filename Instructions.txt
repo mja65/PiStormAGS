@@ -4,6 +4,8 @@ You must have the UAE version of AGS downloaded and extracted. If you have done 
 
 <Path of Extraction>\AGS_UAE_v30\WinUAE\AGS_UAE. This would be the <FolderpathtoAGSDrives> mentioned below. 
 
+Manual Instructions:
+
 Download HST Imager (console version) from the Github and install:
 
 https://github.com/henrikstengaard/hst-imager/releases
@@ -24,6 +26,11 @@ Do a search and replace for <FolderpathtoAGSDrives> so that this string represen
 Do a search and replace for <FilepathtoKickstartROM> so that this string represents the file for the A1200 3.1 Kickstart ROM to use for PiStorm
 
 Run the command HST.imager.exe script <FilepathtoAGSHSTImagerScript.txt> where <FilepathtoAGSHSTImagerScript.txt> is the file path to the script file you have been editing
+
+Automated Instructions:
+
+Run the RunThisScript.ps1 shortcut. This will open Powershell which will lead you through the information and download HST Imager.
+
 Wait a long time! This is because each .HDF file for AGS is set up as a separate Hard Drive Image. There are 11 of these but there can only be a maximum of 3 on Pistorm due to limitations in the MBR disk structure. There are also limitations with the Amiga RDB structure meaning you can not easily copy at a partition level. This means the data for each of the partitions needs to be copied at a file level.
 
 Note, RTG is setup, the WHDLoadWrapper is installed, and both wifipi.device and genet.device are too. 
