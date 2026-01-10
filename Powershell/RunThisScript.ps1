@@ -3,10 +3,7 @@ if ($IsWindows -or ($null -eq $IsWindows -and $env:OS -match "Windows")) {
     $HostOS = "Windows"
     $HSTImagerExecutableName = "Hst.imager.exe"
     $HSTImagerURL = "https://github.com/henrikstengaard/hst-imager/releases/download/1.5.541/hst-imager_v1.5.541-90b4b77_console_windows_x64.zip"
-    Add-Type -AssemblyName System.Net.Http
-    $client = [System.Net.Http.HttpClient]::new()
-	$client.DefaultRequestHeaders.UserAgent.ParseAdd("PowerShellHttpClient")
-
+    
 }
 elseif ($IsLinux) {
     $HostOS = "Linux"
@@ -27,6 +24,9 @@ else {
 
 Write-host "AGS PiStorm Image Generator"
 Write-Host "Running on $HostOS"
+Add-Type -AssemblyName System.Net.Http
+$client = [System.Net.Http.HttpClient]::new()
+$client.DefaultRequestHeaders.UserAgent.ParseAdd("PowerShellHttpClient")
 
 # If $PSScriptRoot is empty (not running from a file), use the current working directory ($PWD)
 
@@ -72,36 +72,31 @@ $FullHSTImagerPath = Join-Path $HSTProgramFolder -ChildPath $HSTImagerExecutable
 if (-not (Test-Path "$HSTProgramFolder\$HSTImagerExecutableName")){
     Write-Host "HST Imager not found. Downloading..." -ForegroundColor Cyan
     $ZipPath = Join-Path $TempFolderPath -ChildPath "HSTImager.zip"
-    If ($HostOS -eq "Windows"){
-        $response = $client.GetAsync($HSTImagerURL, [System.Net.Http.HttpCompletionOption]::ResponseHeadersRead).Result
-        $response.IsSuccessStatusCode
+    $response = $client.GetAsync($HSTImagerURL, [System.Net.Http.HttpCompletionOption]::ResponseHeadersRead).Result
+    $response.IsSuccessStatusCode
 
-        $FileLength = $response.Content.Headers.ContentLength
-        $stream = $response.Content.ReadAsStreamAsync().Result
-        $fileStream = [System.IO.File]::OpenWrite($ZipPath )
-        $buffer = New-Object byte[] 65536  # 64 KB
-        $read = 0
-        $totalRead = 0
-        $percentComplete = 0
-        while (($read = $stream.Read($buffer, 0, $buffer.Length)) -gt 0) {
-            $fileStream.Write($buffer, 0, $read)
-            $totalRead += $read
-            $newPercent = [math]::Floor(($totalRead/$FileLength)*100)
-            if ($newPercent -ne $percentComplete) {
-                $percentComplete = $newPercent
-                Write-Progress -Activity "Downloading" -Status "$percentComplete% Complete" -PercentComplete $percentComplete
-            }
+    $FileLength = $response.Content.Headers.ContentLength
+    $stream = $response.Content.ReadAsStreamAsync().Result
+    $fileStream = [System.IO.File]::OpenWrite($ZipPath )
+    $buffer = New-Object byte[] 65536  # 64 KB
+    $read = 0
+    $totalRead = 0
+    $percentComplete = 0
+    while (($read = $stream.Read($buffer, 0, $buffer.Length)) -gt 0) {
+        $fileStream.Write($buffer, 0, $read)
+        $totalRead += $read
+        $newPercent = [math]::Floor(($totalRead/$FileLength)*100)
+        if ($newPercent -ne $percentComplete) {
+            $percentComplete = $newPercent
+            Write-Progress -Activity "Downloading" -Status "$percentComplete% Complete" -PercentComplete $percentComplete
         }
-        Write-Progress -Activity "Downloading" -Completed -Status "Done"
-        if ($fileStream) {
-            $fileStream.Dispose()
-            $fileStream = $null
-        }  
     }
-    else {
-        Invoke-WebRequest -Uri $HSTImagerURL -OutFile $ZipPath
-    }
-		       
+    Write-Progress -Activity "Downloading" -Completed -Status "Done"
+    if ($fileStream) {
+        $fileStream.Dispose()
+        $fileStream = $null
+    }  
+    
     Expand-Archive -Path $ZipPath -DestinationPath $HSTProgramFolder 
 
     # Fix permissions for Linux/macOS
