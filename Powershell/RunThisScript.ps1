@@ -2,90 +2,118 @@
 if ($IsWindows -or ($null -eq $IsWindows -and $env:OS -match "Windows")) {
     $HostOS = "Windows"
     $HSTImagerExecutableName = "Hst.imager.exe"
+    $HSTImagerURL = "https://github.com/henrikstengaard/hst-imager/releases/download/1.5.541/hst-imager_v1.5.541-90b4b77_console_windows_x64.zip"
 }
 elseif ($IsLinux) {
     $HostOS = "Linux"
     $HSTImagerExecutableName = "hst.imager"
+    $HSTImagerURL = "https://github.com/henrikstengaard/hst-imager/releases/download/1.5.541/hst-imager_v1.5.541-90b4b77_console_linux_x64.zip"
 }
 elseif ($IsMacOS) {
     $HostOS = "MacOS"
     $HSTImagerExecutableName = "hst.imager"
+    $HSTImagerURL = "https://github.com/henrikstengaard/hst-imager/releases/download/1.5.541/hst-imager_v1.5.541-90b4b77_console_macos_x64.zip"
 }
 else {
     $HostOS = "Unknown"
     $HSTImagerExecutableName = "Hst.imager"
+    Write-Error "Unsupported OS for automatic download."
+    exit
 }
 
-# Check for Administrative/Root privileges
-# 1. ESCALATION TO ADMIN/ROOT
+Write-host "AGS PiStorm Image Generator"
+Write-Host "Running on $HostOS"
+
+# If $PSScriptRoot is empty (not running from a file), use the current working directory ($PWD)
+
+if ($PSScriptRoot) {
+    $BaseDir = (Get-item $PSScriptRoot).FullName   
+} 
+else { 
+    $BaseDir = (Get-Item (Join-Path -Path $PWD -ChildPath "Powershell")).FullName
+}
+
+# Define folder paths (creating them if they don't exist)
+$FolderMapping = @{
+    "Temp"       = "..\Temp"
+    "HSTImager"  = "..\HSTImager"
+}
+
+$Paths = @{}
+foreach ($key in $FolderMapping.Keys) {
+    $Target = Join-Path -Path $BaseDir -ChildPath $FolderMapping[$key]
+    if (-not (Test-Path $Target)) {
+        $null = New-Item -Path $Target -ItemType Directory -Force
+    }
+    # Resolve the full absolute path now that we are sure it exists
+    $Paths[$key] = (Get-Item $Target).FullName
+}
+
+# Creates a 'temp' folder in the script's current directory
+if (-not (Test-Path (Join-Path -Path $BaseDir -ChildPath "..\Temp"))){
+    $null = New-Item -Path (Join-Path -Path $BaseDir -ChildPath "..\Temp") -ItemType Directory
+}
+
+# Creates a 'temp' folder in the script's current directory
+if (-not (Test-Path (Join-Path -Path $BaseDir -ChildPath "..\HSTImager"))){
+    $null = New-Item -Path (Join-Path -Path $BaseDir -ChildPath "..\HSTImager") -ItemType Directory
+}
+
+$FileSystemFolder = (Get-Item (Join-Path -Path $BaseDir -ChildPath "..\FileSystem")).FullName
+$TempFolderPath   = $Paths["Temp"]
+$HSTProgramFolder = $Paths["HSTImager"]
+$FullHSTImagerPath = Join-Path $HSTProgramFolder -ChildPath $HSTImagerExecutableName
+
+if (-not (Test-Path "$HSTProgramFolder\$HSTImagerExecutableName")){
+    Write-Host "HST Imager not found. Downloading..." -ForegroundColor Cyan
+    $ZipPath = Join-Path $TempFolderPath -ChildPath "HSTImager.zip"
+    Invoke-WebRequest -Uri $HSTImagerURL -OutFile $ZipPath
+    Expand-Archive -Path $ZipPath -DestinationPath $HSTProgramFolder 
+
+    # Fix permissions for Linux/macOS
+    if ($HostOS -ne "Windows") {
+        # Using /usr/bin/chmod for reliability on Unix systems
+        & chmod +x "$FullHSTImagerPath"
+    }
+
+}
+
+# 1. ESCALATION / PRIVILEGE CHECK
 $IsAdmin = $false
-# Robust Windows Check
+
+# Robust OS and Admin Check
 if ($IsWindows -or ($null -eq $IsWindows -and $env:OS -match "Windows")) {
     $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
     $IsAdmin = $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 } else {
-    $IsAdmin = (id -u) -eq 0
+    # Check for UID 0 on Linux/macOS
+    $IsAdmin = ($(id -u) -eq 0)
 }
 
 if (-not $IsAdmin) {
-    Write-Host "Not running as Admin. Attempting to escalate..." -ForegroundColor Yellow
-    
-    # Check if we are running as a file or just pasted code
-    if ($PSCommandPath) {        
-        $ArgList = "-NoProfile -ExecutionPolicy Bypass -File `"`"$PSCommandPath`"`""
-        if ($IsWindows -or ($null -eq $IsWindows)) {
+    if ($IsWindows -or ($null -eq $IsWindows -and $env:OS -match "Windows")) {
+        Write-Host "Not running as Admin. Attempting to escalate..." -ForegroundColor Yellow
+        if ($PSCommandPath) {        
+            $ArgList = "-NoProfile -ExecutionPolicy Bypass -File `"`"$PSCommandPath`"`""
             try {
-                # Launch a NEW powershell window as Admin
                 Start-Process powershell.exe -ArgumentList $ArgList -Verb RunAs -ErrorAction Stop
                 exit
             } catch {
-                Write-Host "Failed to elevate. Please right-click and 'Run as Administrator'." -ForegroundColor Red
+                Write-Host "Failed to elevate automatically. Please right-click and 'Run as Administrator'." -ForegroundColor Red
                 Read-Host "Press Enter to exit"
                 exit
             }
         } else {
-            Start-Process sudo -ArgumentList "pwsh $ArgList"
+            Write-Error "Script must be saved as a .ps1 file to auto-escalate on Windows."
+            Read-Host "Press Enter to exit"
             exit
         }
     } else {
-        Write-Error "Script must be saved as a .ps1 file to auto-escalate."
-        Read-Host "Press Enter to exit"
+        # Linux / MacOS Logic: Stop and Error
+        Write-Host "ERROR: This script requires root privileges to access disks." -ForegroundColor Red
+        Write-Host "Please run this script using sudo:" -ForegroundColor Yellow
+        Write-Host "Example: sudo pwsh $(if($PSCommandPath){$PSCommandPath}else{'YourScript.ps1'})" -ForegroundColor Cyan
         exit
-    }
-}
-
-Write-host "AGS PiStorm Image Generator"
-
-
-
-Write-Host "Running on $HostOS"
-
-# Validation loop
-$PathValid = $false
-while (-not $PathValid) {
-    $HSTImagerLocation = Read-Host -Prompt "Provide the folder with HST Imager installed"
-    
-    
-    # Remove quotes if present
-    $HSTImagerLocation = $HSTImagerLocation.Trim('"')
-
-    $HSTImagerLocation = $HSTImagerLocation.Trim('"').TrimEnd('\').TrimEnd('/')
-
-
-
-    if (Test-Path -Path $HSTImagerLocation -PathType Container) {
-        $FullHSTImagerPath = Join-Path -Path $HSTImagerLocation -ChildPath $HSTImagerExecutableName
-        
-        if (Test-Path -Path $FullHSTImagerPath -PathType Leaf) {
-            $PathValid = $true
-            Write-Host "Success: Found $FullHSTImagerPath" -ForegroundColor Green
-        }
-        else {
-            Write-Warning "Folder found, but $HSTImagerExecutableName was not found inside."
-        }
-    }
-    else {
-        Write-Warning "The directory '$HSTImagerLocation' does not exist."
     }
 }
 
@@ -97,25 +125,48 @@ $DiskList # Display the list to the user
 
 $DiskValid = $false
 while (-not $DiskValid) {
-    $DisktoUse = Read-Host "Which disk number do you wish to use? This should be a single number. For example if you see `"\disk6`" then enter `"6`" (without the quote marks)"
+    if ($HostOS -eq "Windows") {
+        $RawInput = Read-Host "Which disk number do you wish to use? (e.g., enter '6' for \disk6)"
+        # Strip \disk prefix if they typed it, so we only have the number for regex
+        $CleanInput = $RawInput -replace '^\\disk', ''
+        $InputPattern = '^\d+$'
+    } else {
+        $RawInput = Read-Host "Enter the full disk path (e.g., /dev/sdb)"
+        $CleanInput = $RawInput
+        $InputPattern = '^/dev/.*'
+    }
 
-    # 1. Ensure input is not empty and is a digit
-    if ($DisktoUse -match '^\d+$') {
+    # 1. Basic format check
+    if ($CleanInput -match $InputPattern) {
         
-        # 2. Check if the disk number exists in the Hst.imager output
-        # We look for the pattern "\disk[number]" or "disk [number]" in the text
-        if ($DiskList -match "\\disk$DisktoUse\b" -or $DiskList -match "disk $DisktoUse\b") {
+        # 2. Define search pattern for Hst.imager output
+        $SearchPattern = if ($HostOS -eq "Windows") {
+            "\\disk$CleanInput\b|disk $CleanInput\b"
+        } else {
+            [regex]::Escape($CleanInput)
+        }
+
+        # 3. Check if it actually exists in the imager's list
+        if ($DiskList -match $SearchPattern) {
             $DiskValid = $true
-            Write-Host "Disk $DisktoUse selected and verified." -ForegroundColor Green
+            
+            # 4. Finalizing $DisktoUse based on OS
+            if ($HostOS -eq "Windows") {
+                $DisktoUse = "\disk$CleanInput"
+            } else {
+                $DisktoUse = $CleanInput
+            }
+
+            Write-Host "Success: '$DisktoUse' verified and selected." -ForegroundColor Green
         }
         else {
-            Write-Warning "Disk number '$DisktoUse' was not found in the list above. Please check the number and try again."
+            Write-Warning "Disk '$CleanInput' was not found in the Hst.imager list. Check the list and try again."
         }
     }
     else {
-        Write-Warning "Invalid input. Please enter a single numeric value only."
+        $ErrorMsg = if ($HostOS -eq "Windows") { "Please enter a numeric disk ID." } else { "Linux/Mac paths must start with '/dev/'." }
+        Write-Warning "Invalid format. $ErrorMsg"
     }
-
 }
 
 # Define the list of required files/folders for the AGS Image source
@@ -177,18 +228,6 @@ while (-not $ROMValid) {
     }
 }
 
-# Creates a 'temp' folder in the script's current directory
-
-# If $PSScriptRoot is empty (not running from a file), use the current working directory ($PWD)
-$BaseDir = if ($PSScriptRoot) { $PSScriptRoot } else { $PWD }
-$FileSystemFolder = (Get-Item (Join-Path -Path $BaseDir -ChildPath "..\FileSystem")).FullName
-
-$TempFolderPath = Join-Path -Path $BaseDir -ChildPath "temp"
-if (-not (Test-Path -Path $TempFolderPath)) {
-    New-Item -ItemType Directory -Path $TempFolderPath | Out-Null
-    Write-Host "Created temporary folder: $TempFolderPath" -ForegroundColor Cyan
-}
-
 # 3. Define Output Script Path
 $ScriptOutputFile = Join-Path -Path $TempFolderPath -ChildPath "hst_commands.txt"
 
@@ -196,75 +235,82 @@ $ScriptOutputFile = Join-Path -Path $TempFolderPath -ChildPath "hst_commands.txt
 # Injected variables: $TempFolderPath, $AGSSourceLocation, $DisktoUse, $FilepathtoKickstartROM
 $ScriptContent = @"
 blank "$TempFolderPath\Clean.vhd" 10mb
-write "$TempFolderPath\Clean.vhd" \disk$DisktoUse --skip-unused-sectors FALSE
-mbr init \disk$DisktoUse
-mbr part add \disk$DisktoUse 0xb 1073741824 --start-sector 2048
-mbr part format \disk$DisktoUse 1 EMU68BOOT
-mbr part add \disk$DisktoUse 0x76 58gb --start-sector 2099200
-rdb init \disk$DisktoUse\mbr\2
-rdb filesystem add \disk$DisktoUse\mbr\2 "$FileSystemFolder\pfs3aio" PFS3
-rdb part add "\disk$DisktoUse\mbr\2" DH0 PFS3 1gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable True --boot-priority 1
-rdb part format "\disk$DisktoUse\mbr\2" 1 Workbench
-rdb part add "\disk$DisktoUse\mbr\2" DH1 PFS3 2gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
-rdb part format "\disk$DisktoUse\mbr\2" 2 Work
-rdb part add "\disk$DisktoUse\mbr\2" DH2 PFS3 4gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
-rdb part format "\disk$DisktoUse\mbr\2" 3 Music
-rdb part add "\disk$DisktoUse\mbr\2" DH3 PFS3 4gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
-rdb part format "\disk$DisktoUse\mbr\2" 4 Media
-rdb part add "\disk$DisktoUse\mbr\2" DH4 PFS3 4gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
-rdb part format "\disk$DisktoUse\mbr\2" 5 AGS_Drive
-rdb part add "\disk$DisktoUse\mbr\2" DH5 PFS3 8gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
-rdb part format "\disk$DisktoUse\mbr\2" 6 Games
-rdb part add "\disk$DisktoUse\mbr\2" DH6 PFS3 8gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
-rdb part format "\disk$DisktoUse\mbr\2" 7 Premium
-rdb part add "\disk$DisktoUse\mbr\2" DH7 PFS3 4gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
-rdb part format "\disk$DisktoUse\mbr\2" 8 Emulators1
-rdb part add "\disk$DisktoUse\mbr\2" DH13 PFS3 4gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
-rdb part format "\disk$DisktoUse\mbr\2" 9 WHD_Demos
-rdb part add "\disk$DisktoUse\mbr\2" DH14 PFS3 8gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
-rdb part format "\disk$DisktoUse\mbr\2" 10 WHD_Games
-rdb part add "\disk$DisktoUse\mbr\2" DH15 PFS3 8gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
-rdb part format "\disk$DisktoUse\mbr\2" 11 Emulators2
-fs c "$AGSSourceLocation\Workbench.hdf\rdb\1" "\disk$DisktoUse\MBR\2\rdb\DH0\" -r -md -q
-fs c "$AGSSourceLocation\Work.hdf\rdb\1" "\disk$DisktoUse\MBR\2\rdb\DH1\" -r -md -q
-fs c "$AGSSourceLocation\Music.hdf\rdb\1" "\disk$DisktoUse\MBR\2\rdb\DH2\" -r -md -q
-fs c "$AGSSourceLocation\Media.hdf\rdb\1" "\disk$DisktoUse\MBR\2\rdb\DH3\" -r -md -q
-fs c "$AGSSourceLocation\AGS_Drive.hdf\rdb\1" "\disk$DisktoUse\MBR\2\rdb\DH4\" -r -md -q
-fs c "$AGSSourceLocation\Games.hdf\rdb\1" "\disk$DisktoUse\MBR\2\rdb\DH5\" -r -md -q
-fs c "$AGSSourceLocation\Premium.hdf\rdb\1" "\disk$DisktoUse\MBR\2\rdb\DH6\" -r -md -q
-fs c "$AGSSourceLocation\Emulators.hdf\rdb\1" "\disk$DisktoUse\MBR\2\rdb\DH7\" -r -md -q
-fs c "$AGSSourceLocation\WHD_Demos.hdf\rdb\1" "\disk$DisktoUse\MBR\2\rdb\DH13\" -r -md -q
-fs c "$AGSSourceLocation\WHD_Games.hdf\rdb\1" "\disk$DisktoUse\MBR\2\rdb\DH14\" -r -md -q
-fs c "$AGSSourceLocation\Emulators2.hdf\rdb\1" "\disk$DisktoUse\MBR\2\rdb\DH15\" -r -md -q
-fs c "$FilepathtoKickstartROM" \disk$DisktoUse\MBR\1\kick.rom 
-fs c "$TempFolderPath\FilestoAdd\Emu68Boot" \disk$DisktoUse\MBR\1\ -r -md -q
-fs mkdir \disk$DisktoUse\MBR\1\SHARED\SaveGames
-fs c "\disk$DisktoUse\MBR\2\rdb\DH0\s\startup-sequence" "\disk$DisktoUse\MBR\2\rdb\DH0\s\startup-sequence.bak"
-fs c "\disk$DisktoUse\MBR\2\rdb\DH0\s\user-startup" "\disk$DisktoUse\MBR\2\rdb\DH0\s\user-startup.bak"
-fs c "\disk$DisktoUse\MBR\2\rdb\DH0\s\AGS-Stuff" "\disk$DisktoUse\MBR\2\rdb\DH0\s\AGS-Stuff.bak"
-fs c \disk$DisktoUse\MBR\2\rdb\DH0\c\whdload \disk$DisktoUse\MBR\2\rdb\DH0\c\whdload.ori
-fs c "$TempFolderPath\FilestoAdd\Workbench" \disk$DisktoUse\MBR\2\rdb\DH0 -r -md -q -f
-fs c "$TempFolderPath\FilestoAdd\AGS_Drive" \disk$DisktoUse\MBR\2\rdb\DH4 -r -md -q -f
-fs c "\disk$DisktoUse\MBR\2\rdb\DH0\Devs\monitors\HD720*" "\disk$DisktoUse\MBR\2\rdb\DH0\storage\monitors"
-fs c "\disk$DisktoUse\MBR\2\rdb\DH0\Devs\monitors\HighGFX*" "\disk$DisktoUse\MBR\2\rdb\DH0\storage\monitors"
-fs c "\disk$DisktoUse\MBR\2\rdb\DH0\Devs\monitors\SuperPlus*" "\disk$DisktoUse\MBR\2\rdb\DH0\storage\monitors"
-fs c "\disk$DisktoUse\MBR\2\rdb\DH0\Devs\monitors\Xtreme*" "\disk$DisktoUse\MBR\2\rdb\DH0\storage\monitors"
+write "$TempFolderPath\Clean.vhd" $DisktoUse --skip-unused-sectors FALSE
+mbr init $DisktoUse
+mbr part add $DisktoUse 0xb 1073741824 --start-sector 2048
+mbr part format $DisktoUse 1 EMU68BOOT
+mbr part add $DisktoUse 0x76 58gb --start-sector 2099200
+rdb init $DisktoUse\mbr\2
+rdb filesystem add $DisktoUse\mbr\2 "$FileSystemFolder\pfs3aio" PFS3
+rdb part add "$DisktoUse\mbr\2" DH0 PFS3 1gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable True --boot-priority 1
+rdb part format "$DisktoUse\mbr\2" 1 Workbench
+rdb part add "$DisktoUse\mbr\2" DH1 PFS3 2gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
+rdb part format "$DisktoUse\mbr\2" 2 Work
+rdb part add "$DisktoUse\mbr\2" DH2 PFS3 4gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
+rdb part format "$DisktoUse\mbr\2" 3 Music
+rdb part add "$DisktoUse\mbr\2" DH3 PFS3 4gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
+rdb part format "$DisktoUse\mbr\2" 4 Media
+rdb part add "$DisktoUse\mbr\2" DH4 PFS3 4gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
+rdb part format "$DisktoUse\mbr\2" 5 AGS_Drive
+rdb part add "$DisktoUse\mbr\2" DH5 PFS3 8gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
+rdb part format "$DisktoUse\mbr\2" 6 Games
+rdb part add "$DisktoUse\mbr\2" DH6 PFS3 8gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
+rdb part format "$DisktoUse\mbr\2" 7 Premium
+rdb part add "$DisktoUse\mbr\2" DH7 PFS3 4gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
+rdb part format "$DisktoUse\mbr\2" 8 Emulators1
+rdb part add "$DisktoUse\mbr\2" DH13 PFS3 4gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
+rdb part format "$DisktoUse\mbr\2" 9 WHD_Demos
+rdb part add "$DisktoUse\mbr\2" DH14 PFS3 8gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
+rdb part format "$DisktoUse\mbr\2" 10 WHD_Games
+rdb part add "$DisktoUse\mbr\2" DH15 PFS3 8gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
+rdb part format "$DisktoUse\mbr\2" 11 Emulators2
+fs c "$AGSSourceLocation\Workbench.hdf\rdb\1" "$DisktoUse\MBR\2\rdb\DH0\" -r -md -q
+fs c "$AGSSourceLocation\Work.hdf\rdb\1" "$DisktoUse\MBR\2\rdb\DH1\" -r -md -q
+fs c "$AGSSourceLocation\Music.hdf\rdb\1" "$DisktoUse\MBR\2\rdb\DH2\" -r -md -q
+fs c "$AGSSourceLocation\Media.hdf\rdb\1" "$DisktoUse\MBR\2\rdb\DH3\" -r -md -q
+fs c "$AGSSourceLocation\AGS_Drive.hdf\rdb\1" "$DisktoUse\MBR\2\rdb\DH4\" -r -md -q
+fs c "$AGSSourceLocation\Games.hdf\rdb\1" "$DisktoUse\MBR\2\rdb\DH5\" -r -md -q
+fs c "$AGSSourceLocation\Premium.hdf\rdb\1" "$DisktoUse\MBR\2\rdb\DH6\" -r -md -q
+fs c "$AGSSourceLocation\Emulators.hdf\rdb\1" "$DisktoUse\MBR\2\rdb\DH7\" -r -md -q
+fs c "$AGSSourceLocation\WHD_Demos.hdf\rdb\1" "$DisktoUse\MBR\2\rdb\DH13\" -r -md -q
+fs c "$AGSSourceLocation\WHD_Games.hdf\rdb\1" "$DisktoUse\MBR\2\rdb\DH14\" -r -md -q
+fs c "$AGSSourceLocation\Emulators2.hdf\rdb\1" "$DisktoUse\MBR\2\rdb\DH15\" -r -md -q
+fs c "$FilepathtoKickstartROM" $DisktoUse\MBR\1\kick.rom 
+fs c "$TempFolderPath\FilestoAdd\Emu68Boot" $DisktoUse\MBR\1\ -r -md -q
+fs mkdir $DisktoUse\MBR\1\SHARED\SaveGames
+fs c "$DisktoUse\MBR\2\rdb\DH0\s\startup-sequence" "$DisktoUse\MBR\2\rdb\DH0\s\startup-sequence.bak"
+fs c "$DisktoUse\MBR\2\rdb\DH0\s\user-startup" "$DisktoUse\MBR\2\rdb\DH0\s\user-startup.bak"
+fs c "$DisktoUse\MBR\2\rdb\DH0\s\AGS-Stuff" "$DisktoUse\MBR\2\rdb\DH0\s\AGS-Stuff.bak"
+fs c $DisktoUse\MBR\2\rdb\DH0\c\whdload $DisktoUse\MBR\2\rdb\DH0\c\whdload.ori
+fs c "$TempFolderPath\FilestoAdd\Workbench" $DisktoUse\MBR\2\rdb\DH0 -r -md -q -f
+fs c "$TempFolderPath\FilestoAdd\AGS_Drive" $DisktoUse\MBR\2\rdb\DH4 -r -md -q -f
+fs c "$DisktoUse\MBR\2\rdb\DH0\Devs\monitors\HD720*" "$DisktoUse\MBR\2\rdb\DH0\storage\monitors"
+fs c "$DisktoUse\MBR\2\rdb\DH0\Devs\monitors\HighGFX*" "$DisktoUse\MBR\2\rdb\DH0\storage\monitors"
+fs c "$DisktoUse\MBR\2\rdb\DH0\Devs\monitors\SuperPlus*" "$DisktoUse\MBR\2\rdb\DH0\storage\monitors"
+fs c "$DisktoUse\MBR\2\rdb\DH0\Devs\monitors\Xtreme*" "$DisktoUse\MBR\2\rdb\DH0\storage\monitors"
 "@
+
+If ($HostOS -ne "Windows"){
+    $ScriptContent = $ScriptContent.Replace("\","/")
+}
 
 # 5. Write to File
 $ScriptContent | Out-File -FilePath $ScriptOutputFile -Encoding utf8 -Force
 Write-Host "HST Imager script generated at: $ScriptOutputFile" -ForegroundColor Green
 
+If ($HostOS -ne "Windows"){
+    & chmod 664 "$ScriptOutputFile"
+}
+
 # 6. FINAL CONFIRMATION
 Write-Host "`n====================================================" -ForegroundColor Yellow
 Write-Host "            READY TO WRITE TO DISK" -ForegroundColor Yellow
 Write-Host "====================================================" -ForegroundColor Yellow
-Write-Host "Target Disk:       \disk$DisktoUse" -ForegroundColor Red
+Write-Host "Target Disk:       $DisktoUse" -ForegroundColor Red
 Write-Host "Source Folder:     $AGSSourceLocation"
 Write-Host "Kickstart ROM:     $FilepathtoKickstartROM"
-Write-Host "Command File:      $ScriptOutputFile"
 Write-Host "----------------------------------------------------"
-Write-Host "WARNING: This will ERASE all data on \disk$DisktoUse." -ForegroundColor Red
+Write-Host "WARNING: This will ERASE all data on $DisktoUse." -ForegroundColor Red
 Write-Host "====================================================" -ForegroundColor Yellow
 
 $Confirmation = Read-Host "Type 'YES' to proceed with the write operation"
