@@ -3,6 +3,10 @@ if ($IsWindows -or ($null -eq $IsWindows -and $env:OS -match "Windows")) {
     $HostOS = "Windows"
     $HSTImagerExecutableName = "Hst.imager.exe"
     $HSTImagerURL = "https://github.com/henrikstengaard/hst-imager/releases/download/1.5.541/hst-imager_v1.5.541-90b4b77_console_windows_x64.zip"
+    Add-Type -AssemblyName System.Net.Http
+    $client = [System.Net.Http.HttpClient]::new()
+	$client.DefaultRequestHeaders.UserAgent.ParseAdd("PowerShellHttpClient")
+
 }
 elseif ($IsLinux) {
     $HostOS = "Linux"
@@ -60,6 +64,7 @@ if (-not (Test-Path (Join-Path -Path $BaseDir -ChildPath "..\HSTImager"))){
 }
 
 $FileSystemFolder = (Get-Item (Join-Path -Path $BaseDir -ChildPath "..\FileSystem")).FullName
+$FilestoAddPath = (get-item (Join-Path -Path $BaseDir -ChildPath "..\FilestoAdd")).FullName
 $TempFolderPath   = $Paths["Temp"]
 $HSTProgramFolder = $Paths["HSTImager"]
 $FullHSTImagerPath = Join-Path $HSTProgramFolder -ChildPath $HSTImagerExecutableName
@@ -67,7 +72,36 @@ $FullHSTImagerPath = Join-Path $HSTProgramFolder -ChildPath $HSTImagerExecutable
 if (-not (Test-Path "$HSTProgramFolder\$HSTImagerExecutableName")){
     Write-Host "HST Imager not found. Downloading..." -ForegroundColor Cyan
     $ZipPath = Join-Path $TempFolderPath -ChildPath "HSTImager.zip"
-    Invoke-WebRequest -Uri $HSTImagerURL -OutFile $ZipPath
+    If ($HostOS -eq "Windows"){
+        $response = $client.GetAsync($HSTImagerURL, [System.Net.Http.HttpCompletionOption]::ResponseHeadersRead).Result
+        $response.IsSuccessStatusCode
+
+        $FileLength = $response.Content.Headers.ContentLength
+        $stream = $response.Content.ReadAsStreamAsync().Result
+        $fileStream = [System.IO.File]::OpenWrite($ZipPath )
+        $buffer = New-Object byte[] 65536  # 64 KB
+        $read = 0
+        $totalRead = 0
+        $percentComplete = 0
+        while (($read = $stream.Read($buffer, 0, $buffer.Length)) -gt 0) {
+            $fileStream.Write($buffer, 0, $read)
+            $totalRead += $read
+            $newPercent = [math]::Floor(($totalRead/$FileLength)*100)
+            if ($newPercent -ne $percentComplete) {
+                $percentComplete = $newPercent
+                Write-Progress -Activity "Downloading" -Status "$percentComplete% Complete" -PercentComplete $percentComplete
+            }
+        }
+        Write-Progress -Activity "Downloading" -Completed -Status "Done"
+        if ($fileStream) {
+            $fileStream.Dispose()
+            $fileStream = $null
+        }  
+    }
+    else {
+        Invoke-WebRequest -Uri $HSTImagerURL -OutFile $ZipPath
+    }
+		       
     Expand-Archive -Path $ZipPath -DestinationPath $HSTProgramFolder 
 
     # Fix permissions for Linux/macOS
@@ -180,9 +214,14 @@ $RequiredDir = "SHARED"
 # Validation loop for the AGS Source Folder
 $SourceValid = $false
 while (-not $SourceValid) {
-    $AGSSourceLocation = Read-Host -Prompt "Provide the folder containing your AGS HDF files"
-    $AGSSourceLocation = $AGSSourceLocation.Trim('"')
-    $AGSSourceLocation = $AGSSourceLocation.Trim('"').TrimEnd('\')
+    if ($HostOS -eq "Windows") {
+        $AGSSourceLocation = Read-Host -Prompt "Provide the folder containing your AGS HDF files (e.g. C:\Emulators\AGS\WinUAE\AGS_UAE)"
+    }
+     
+    else {
+        $AGSSourceLocation = Read-Host -Prompt "Provide the folder containing your AGS HDF files (e.g. /home/user/documents/AGS/WinUAE/AGS_UAE). Note this is case-sensitive!"
+    }
+    $AGSSourceLocation = $AGSSourceLocation.Trim("'").Trim('"').TrimEnd('\')
     
     if (Test-Path -Path $AGSSourceLocation -PathType Container) {
         $MissingItems = @()
@@ -218,8 +257,13 @@ while (-not $SourceValid) {
 # 1. Capture Kickstart ROM Path
 $ROMValid = $false
 while (-not $ROMValid) {
-    $FilepathtoKickstartROM = Read-Host -Prompt "Provide the full path to your Kickstart ROM file"
-    $FilepathtoKickstartROM = $FilepathtoKickstartROM.Trim('"')
+    if ($HostOS -eq "Windows"){
+        $FilepathtoKickstartROM = Read-Host -Prompt "Provide the full path to your Kickstart ROM file (e.g. C:\Emulators\AmigaForever\Shared\Rom\Amiga-os-300-a1200.rom). This needs to be unencrypted!"
+    }
+    else {
+        $FilepathtoKickstartROM = Read-Host -Prompt "Provide the full path to your Kickstart ROM file (e.g. /home/user/documents/AmigaForever/Shared/Rom/Amiga-os-300-a1200.rom). This needs to be unencrypted!"
+    }
+    $FilepathtoKickstartROM = $FilepathtoKickstartROM.Trim("'").Trim('"').TrimEnd('\')
 
     if (Test-Path -Path $FilepathtoKickstartROM -PathType Leaf) {
         $ROMValid = $true
@@ -234,6 +278,7 @@ $ScriptOutputFile = Join-Path -Path $TempFolderPath -ChildPath "hst_commands.txt
 # 4. Generate the Text File Content
 # Injected variables: $TempFolderPath, $AGSSourceLocation, $DisktoUse, $FilepathtoKickstartROM
 $ScriptContent = @"
+settings update --cache-type disk
 blank "$TempFolderPath\Clean.vhd" 10mb
 write "$TempFolderPath\Clean.vhd" $DisktoUse --skip-unused-sectors FALSE
 mbr init $DisktoUse
@@ -276,14 +321,14 @@ fs c "$AGSSourceLocation\WHD_Demos.hdf\rdb\1" "$DisktoUse\MBR\2\rdb\DH13\" -r -m
 fs c "$AGSSourceLocation\WHD_Games.hdf\rdb\1" "$DisktoUse\MBR\2\rdb\DH14\" -r -md -q
 fs c "$AGSSourceLocation\Emulators2.hdf\rdb\1" "$DisktoUse\MBR\2\rdb\DH15\" -r -md -q
 fs c "$FilepathtoKickstartROM" $DisktoUse\MBR\1\kick.rom 
-fs c "$TempFolderPath\FilestoAdd\Emu68Boot" $DisktoUse\MBR\1\ -r -md -q
+fs c "$FilestoAddPath\Emu68Boot" $DisktoUse\MBR\1\ -r -md -q
 fs mkdir $DisktoUse\MBR\1\SHARED\SaveGames
 fs c "$DisktoUse\MBR\2\rdb\DH0\s\startup-sequence" "$DisktoUse\MBR\2\rdb\DH0\s\startup-sequence.bak"
 fs c "$DisktoUse\MBR\2\rdb\DH0\s\user-startup" "$DisktoUse\MBR\2\rdb\DH0\s\user-startup.bak"
 fs c "$DisktoUse\MBR\2\rdb\DH0\s\AGS-Stuff" "$DisktoUse\MBR\2\rdb\DH0\s\AGS-Stuff.bak"
-fs c $DisktoUse\MBR\2\rdb\DH0\c\whdload $DisktoUse\MBR\2\rdb\DH0\c\whdload.ori
-fs c "$TempFolderPath\FilestoAdd\Workbench" $DisktoUse\MBR\2\rdb\DH0 -r -md -q -f
-fs c "$TempFolderPath\FilestoAdd\AGS_Drive" $DisktoUse\MBR\2\rdb\DH4 -r -md -q -f
+fs c "$DisktoUse\MBR\2\rdb\DH0\c\whdload" $DisktoUse\MBR\2\rdb\DH0\c\whdload.ori
+fs c "$FilestoAddPath\Workbench" $DisktoUse\MBR\2\rdb\DH0 -r -md -q -f
+fs c "$FilestoAddPath\AGS_Drive" $DisktoUse\MBR\2\rdb\DH4 -r -md -q -f
 fs c "$DisktoUse\MBR\2\rdb\DH0\Devs\monitors\HD720*" "$DisktoUse\MBR\2\rdb\DH0\storage\monitors"
 fs c "$DisktoUse\MBR\2\rdb\DH0\Devs\monitors\HighGFX*" "$DisktoUse\MBR\2\rdb\DH0\storage\monitors"
 fs c "$DisktoUse\MBR\2\rdb\DH0\Devs\monitors\SuperPlus*" "$DisktoUse\MBR\2\rdb\DH0\storage\monitors"
