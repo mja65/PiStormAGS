@@ -1,3 +1,4 @@
+settings update --cache-type disk
 blank "<Folderpath>\Clean.vhd" 10mb
 write "<Folderpath>\Clean.vhd" \diskx --skip-unused-sectors FALSE
 mbr init \diskx
