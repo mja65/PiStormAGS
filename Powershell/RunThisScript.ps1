@@ -73,7 +73,6 @@ if (-not (Test-Path "$HSTProgramFolder\$HSTImagerExecutableName")){
     Write-Host "HST Imager not found. Downloading..." -ForegroundColor Cyan
     $ZipPath = Join-Path $TempFolderPath -ChildPath "HSTImager.zip"
     $response = $client.GetAsync($HSTImagerURL, [System.Net.Http.HttpCompletionOption]::ResponseHeadersRead).Result
-    $response.IsSuccessStatusCode
 
     $FileLength = $response.Content.Headers.ContentLength
     $stream = $response.Content.ReadAsStreamAsync().Result
@@ -249,24 +248,6 @@ while (-not $SourceValid) {
     }
 }
 
-# 1. Capture Kickstart ROM Path
-$ROMValid = $false
-while (-not $ROMValid) {
-    if ($HostOS -eq "Windows"){
-        $FilepathtoKickstartROM = Read-Host -Prompt "Provide the full path to your Kickstart ROM file (e.g. C:\Emulators\AmigaForever\Shared\Rom\Amiga-os-300-a1200.rom). This needs to be unencrypted!"
-    }
-    else {
-        $FilepathtoKickstartROM = Read-Host -Prompt "Provide the full path to your Kickstart ROM file (e.g. /home/user/documents/AmigaForever/Shared/Rom/Amiga-os-300-a1200.rom). This needs to be unencrypted!"
-    }
-    $FilepathtoKickstartROM = $FilepathtoKickstartROM.Trim("'").Trim('"').TrimEnd('\')
-
-    if (Test-Path -Path $FilepathtoKickstartROM -PathType Leaf) {
-        $ROMValid = $true
-    } else {
-        Write-Warning "File not found. Please provide a valid path to the Kickstart ROM."
-    }
-}
-
 # 3. Define Output Script Path
 $ScriptOutputFile = Join-Path -Path $TempFolderPath -ChildPath "hst_commands.txt"
 
@@ -315,7 +296,6 @@ fs c "$AGSSourceLocation\Emulators.hdf\rdb\1" "$DisktoUse\MBR\2\rdb\DH7\" -r -md
 fs c "$AGSSourceLocation\WHD_Demos.hdf\rdb\1" "$DisktoUse\MBR\2\rdb\DH13\" -r -md -q
 fs c "$AGSSourceLocation\WHD_Games.hdf\rdb\1" "$DisktoUse\MBR\2\rdb\DH14\" -r -md -q
 fs c "$AGSSourceLocation\Emulators2.hdf\rdb\1" "$DisktoUse\MBR\2\rdb\DH15\" -r -md -q
-fs c "$FilepathtoKickstartROM" $DisktoUse\MBR\1\kick.rom 
 fs c "$FilestoAddPath\Emu68Boot" $DisktoUse\MBR\1\ -r -md -q
 fs mkdir $DisktoUse\MBR\1\SHARED\SaveGames
 fs c "$DisktoUse\MBR\2\rdb\DH0\s\startup-sequence" "$DisktoUse\MBR\2\rdb\DH0\s\startup-sequence.bak"
@@ -328,6 +308,7 @@ fs c "$DisktoUse\MBR\2\rdb\DH0\Devs\monitors\HD720*" "$DisktoUse\MBR\2\rdb\DH0\s
 fs c "$DisktoUse\MBR\2\rdb\DH0\Devs\monitors\HighGFX*" "$DisktoUse\MBR\2\rdb\DH0\storage\monitors"
 fs c "$DisktoUse\MBR\2\rdb\DH0\Devs\monitors\SuperPlus*" "$DisktoUse\MBR\2\rdb\DH0\storage\monitors"
 fs c "$DisktoUse\MBR\2\rdb\DH0\Devs\monitors\Xtreme*" "$DisktoUse\MBR\2\rdb\DH0\storage\monitors"
+fs c "$DisktoUse\MBR\2\rdb\DH0\Devs\Kickstarts\kick40068.A1200 $DisktoUse\MBR\1\kick.rom"
 "@
 
 If ($HostOS -ne "Windows"){
@@ -348,7 +329,6 @@ Write-Host "            READY TO WRITE TO DISK" -ForegroundColor Yellow
 Write-Host "====================================================" -ForegroundColor Yellow
 Write-Host "Target Disk:       $DisktoUse" -ForegroundColor Red
 Write-Host "Source Folder:     $AGSSourceLocation"
-Write-Host "Kickstart ROM:     $FilepathtoKickstartROM"
 Write-Host "----------------------------------------------------"
 Write-Host "WARNING: This will ERASE all data on $DisktoUse." -ForegroundColor Red
 Write-Host "====================================================" -ForegroundColor Yellow
