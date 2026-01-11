@@ -122,7 +122,10 @@ if (-not $IsAdmin) {
     if ($IsWindows -or ($null -eq $IsWindows -and $env:OS -match "Windows")) {
         Write-Host "Not running as Admin. Attempting to escalate..." -ForegroundColor Yellow
         if ($PSCommandPath) {        
-            $ArgList = "-NoProfile -ExecutionPolicy Bypass -File `"`"$PSCommandPath`"`""
+           # FIX: We must pass the current directory to the new process 
+            # so it doesn't default to C:\Windows\System32
+            $EscalateDir = Get-Location
+            $ArgList = "-NoProfile -ExecutionPolicy Bypass -Command `"Set-Location -LiteralPath '$EscalateDir'; & '$PSCommandPath'`""
             try {
                 Start-Process powershell.exe -ArgumentList $ArgList -Verb RunAs -ErrorAction Stop
                 exit
