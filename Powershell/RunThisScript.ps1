@@ -301,14 +301,14 @@ fs mkdir $DisktoUse\MBR\1\SHARED\SaveGames
 fs c "$DisktoUse\MBR\2\rdb\DH0\s\startup-sequence" "$DisktoUse\MBR\2\rdb\DH0\s\startup-sequence.bak"
 fs c "$DisktoUse\MBR\2\rdb\DH0\s\user-startup" "$DisktoUse\MBR\2\rdb\DH0\s\user-startup.bak"
 fs c "$DisktoUse\MBR\2\rdb\DH0\s\AGS-Stuff" "$DisktoUse\MBR\2\rdb\DH0\s\AGS-Stuff.bak"
-fs c "$DisktoUse\MBR\2\rdb\DH0\c\whdload" $DisktoUse\MBR\2\rdb\DH0\c\whdload.ori
-fs c "$FilestoAddPath\Workbench" $DisktoUse\MBR\2\rdb\DH0 -r -md -q -f
-fs c "$FilestoAddPath\AGS_Drive" $DisktoUse\MBR\2\rdb\DH4 -r -md -q -f
+fs c "$DisktoUse\MBR\2\rdb\DH0\c\whdload" "$DisktoUse\MBR\2\rdb\DH0\c\whdload.ori"
+fs c "$FilestoAddPath\Workbench" "$DisktoUse\MBR\2\rdb\DH0" -r -md -q -f
+fs c "$FilestoAddPath\AGS_Drive" "$DisktoUse\MBR\2\rdb\DH4" -r -md -q -f
 fs c "$DisktoUse\MBR\2\rdb\DH0\Devs\monitors\HD720*" "$DisktoUse\MBR\2\rdb\DH0\storage\monitors"
 fs c "$DisktoUse\MBR\2\rdb\DH0\Devs\monitors\HighGFX*" "$DisktoUse\MBR\2\rdb\DH0\storage\monitors"
 fs c "$DisktoUse\MBR\2\rdb\DH0\Devs\monitors\SuperPlus*" "$DisktoUse\MBR\2\rdb\DH0\storage\monitors"
 fs c "$DisktoUse\MBR\2\rdb\DH0\Devs\monitors\Xtreme*" "$DisktoUse\MBR\2\rdb\DH0\storage\monitors"
-fs c "$DisktoUse\MBR\2\rdb\DH0\Devs\Kickstarts\kick40068.A1200 $DisktoUse\MBR\1\kick.rom"
+fs c "$DisktoUse\MBR\2\rdb\DH0\Devs\Kickstarts\kick40068.A1200" "$DisktoUse\MBR\1\kick.rom"
 "@
 
 If ($HostOS -ne "Windows"){
