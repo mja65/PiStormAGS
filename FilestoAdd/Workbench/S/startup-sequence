@@ -115,6 +115,9 @@ CD AGS_Drive:AGS2/Themes
 Ex T:ThemeChange
 CD AGS_Drive:AGS2/Themes.ags
 Searchreplace FROM AGS_Drive:AGS2/ags2.conf TO AGS_Drive:AGS2/ags2.conf SEARCH $500A1000 REPLACE $501E1000 INPLACE
+Delete >NIL: "AGS_Drive:AGS2/Options.ags/CPU Options.ags" 
+Delete >NIL: "AGS_Drive:AGS2/Options.ags/Emulator Options.run"
+Delete >NIL: "AGS_Drive:AGS2/Options.ags/Emulator Options.txt" 
 Delete >NIL: SYS:Prefs/Env-Archive/FirstBoot
 
 Endif

@@ -3,10 +3,7 @@ if ($IsWindows -or ($null -eq $IsWindows -and $env:OS -match "Windows")) {
     $HostOS = "Windows"
     $HSTImagerExecutableName = "Hst.imager.exe"
     $HSTImagerURL = "https://github.com/henrikstengaard/hst-imager/releases/download/1.5.541/hst-imager_v1.5.541-90b4b77_console_windows_x64.zip"
-    Add-Type -AssemblyName System.Net.Http
-    $client = [System.Net.Http.HttpClient]::new()
-	$client.DefaultRequestHeaders.UserAgent.ParseAdd("PowerShellHttpClient")
-
+    
 }
 elseif ($IsLinux) {
     $HostOS = "Linux"
@@ -27,6 +24,9 @@ else {
 
 Write-host "AGS PiStorm Image Generator"
 Write-Host "Running on $HostOS"
+Add-Type -AssemblyName System.Net.Http
+$client = [System.Net.Http.HttpClient]::new()
+$client.DefaultRequestHeaders.UserAgent.ParseAdd("PowerShellHttpClient")
 
 # If $PSScriptRoot is empty (not running from a file), use the current working directory ($PWD)
 
@@ -72,36 +72,30 @@ $FullHSTImagerPath = Join-Path $HSTProgramFolder -ChildPath $HSTImagerExecutable
 if (-not (Test-Path "$HSTProgramFolder\$HSTImagerExecutableName")){
     Write-Host "HST Imager not found. Downloading..." -ForegroundColor Cyan
     $ZipPath = Join-Path $TempFolderPath -ChildPath "HSTImager.zip"
-    If ($HostOS -eq "Windows"){
-        $response = $client.GetAsync($HSTImagerURL, [System.Net.Http.HttpCompletionOption]::ResponseHeadersRead).Result
-        $response.IsSuccessStatusCode
+    $response = $client.GetAsync($HSTImagerURL, [System.Net.Http.HttpCompletionOption]::ResponseHeadersRead).Result
 
-        $FileLength = $response.Content.Headers.ContentLength
-        $stream = $response.Content.ReadAsStreamAsync().Result
-        $fileStream = [System.IO.File]::OpenWrite($ZipPath )
-        $buffer = New-Object byte[] 65536  # 64 KB
-        $read = 0
-        $totalRead = 0
-        $percentComplete = 0
-        while (($read = $stream.Read($buffer, 0, $buffer.Length)) -gt 0) {
-            $fileStream.Write($buffer, 0, $read)
-            $totalRead += $read
-            $newPercent = [math]::Floor(($totalRead/$FileLength)*100)
-            if ($newPercent -ne $percentComplete) {
-                $percentComplete = $newPercent
-                Write-Progress -Activity "Downloading" -Status "$percentComplete% Complete" -PercentComplete $percentComplete
-            }
+    $FileLength = $response.Content.Headers.ContentLength
+    $stream = $response.Content.ReadAsStreamAsync().Result
+    $fileStream = [System.IO.File]::OpenWrite($ZipPath )
+    $buffer = New-Object byte[] 65536  # 64 KB
+    $read = 0
+    $totalRead = 0
+    $percentComplete = 0
+    while (($read = $stream.Read($buffer, 0, $buffer.Length)) -gt 0) {
+        $fileStream.Write($buffer, 0, $read)
+        $totalRead += $read
+        $newPercent = [math]::Floor(($totalRead/$FileLength)*100)
+        if ($newPercent -ne $percentComplete) {
+            $percentComplete = $newPercent
+            Write-Progress -Activity "Downloading" -Status "$percentComplete% Complete" -PercentComplete $percentComplete
         }
-        Write-Progress -Activity "Downloading" -Completed -Status "Done"
-        if ($fileStream) {
-            $fileStream.Dispose()
-            $fileStream = $null
-        }  
     }
-    else {
-        Invoke-WebRequest -Uri $HSTImagerURL -OutFile $ZipPath
-    }
-		       
+    Write-Progress -Activity "Downloading" -Completed -Status "Done"
+    if ($fileStream) {
+        $fileStream.Dispose()
+        $fileStream = $null
+    }  
+    
     Expand-Archive -Path $ZipPath -DestinationPath $HSTProgramFolder 
 
     # Fix permissions for Linux/macOS
@@ -128,7 +122,10 @@ if (-not $IsAdmin) {
     if ($IsWindows -or ($null -eq $IsWindows -and $env:OS -match "Windows")) {
         Write-Host "Not running as Admin. Attempting to escalate..." -ForegroundColor Yellow
         if ($PSCommandPath) {        
-            $ArgList = "-NoProfile -ExecutionPolicy Bypass -File `"`"$PSCommandPath`"`""
+           # FIX: We must pass the current directory to the new process 
+            # so it doesn't default to C:\Windows\System32
+            $EscalateDir = Get-Location
+            $ArgList = "-NoProfile -ExecutionPolicy Bypass -Command `"Set-Location -LiteralPath '$EscalateDir'; & '$PSCommandPath'`""
             try {
                 Start-Process powershell.exe -ArgumentList $ArgList -Verb RunAs -ErrorAction Stop
                 exit
@@ -254,24 +251,6 @@ while (-not $SourceValid) {
     }
 }
 
-# 1. Capture Kickstart ROM Path
-$ROMValid = $false
-while (-not $ROMValid) {
-    if ($HostOS -eq "Windows"){
-        $FilepathtoKickstartROM = Read-Host -Prompt "Provide the full path to your Kickstart ROM file (e.g. C:\Emulators\AmigaForever\Shared\Rom\Amiga-os-300-a1200.rom). This needs to be unencrypted!"
-    }
-    else {
-        $FilepathtoKickstartROM = Read-Host -Prompt "Provide the full path to your Kickstart ROM file (e.g. /home/user/documents/AmigaForever/Shared/Rom/Amiga-os-300-a1200.rom). This needs to be unencrypted!"
-    }
-    $FilepathtoKickstartROM = $FilepathtoKickstartROM.Trim("'").Trim('"').TrimEnd('\')
-
-    if (Test-Path -Path $FilepathtoKickstartROM -PathType Leaf) {
-        $ROMValid = $true
-    } else {
-        Write-Warning "File not found. Please provide a valid path to the Kickstart ROM."
-    }
-}
-
 # 3. Define Output Script Path
 $ScriptOutputFile = Join-Path -Path $TempFolderPath -ChildPath "hst_commands.txt"
 
@@ -320,19 +299,19 @@ fs c "$AGSSourceLocation\Emulators.hdf\rdb\1" "$DisktoUse\MBR\2\rdb\DH7\" -r -md
 fs c "$AGSSourceLocation\WHD_Demos.hdf\rdb\1" "$DisktoUse\MBR\2\rdb\DH13\" -r -md -q
 fs c "$AGSSourceLocation\WHD_Games.hdf\rdb\1" "$DisktoUse\MBR\2\rdb\DH14\" -r -md -q
 fs c "$AGSSourceLocation\Emulators2.hdf\rdb\1" "$DisktoUse\MBR\2\rdb\DH15\" -r -md -q
-fs c "$FilepathtoKickstartROM" $DisktoUse\MBR\1\kick.rom 
 fs c "$FilestoAddPath\Emu68Boot" $DisktoUse\MBR\1\ -r -md -q
 fs mkdir $DisktoUse\MBR\1\SHARED\SaveGames
 fs c "$DisktoUse\MBR\2\rdb\DH0\s\startup-sequence" "$DisktoUse\MBR\2\rdb\DH0\s\startup-sequence.bak"
 fs c "$DisktoUse\MBR\2\rdb\DH0\s\user-startup" "$DisktoUse\MBR\2\rdb\DH0\s\user-startup.bak"
 fs c "$DisktoUse\MBR\2\rdb\DH0\s\AGS-Stuff" "$DisktoUse\MBR\2\rdb\DH0\s\AGS-Stuff.bak"
-fs c "$DisktoUse\MBR\2\rdb\DH0\c\whdload" $DisktoUse\MBR\2\rdb\DH0\c\whdload.ori
-fs c "$FilestoAddPath\Workbench" $DisktoUse\MBR\2\rdb\DH0 -r -md -q -f
-fs c "$FilestoAddPath\AGS_Drive" $DisktoUse\MBR\2\rdb\DH4 -r -md -q -f
+fs c "$DisktoUse\MBR\2\rdb\DH0\c\whdload" "$DisktoUse\MBR\2\rdb\DH0\c\whdload.ori"
+fs c "$FilestoAddPath\Workbench" "$DisktoUse\MBR\2\rdb\DH0" -r -md -q -f
+fs c "$FilestoAddPath\AGS_Drive" "$DisktoUse\MBR\2\rdb\DH4" -r -md -q -f
 fs c "$DisktoUse\MBR\2\rdb\DH0\Devs\monitors\HD720*" "$DisktoUse\MBR\2\rdb\DH0\storage\monitors"
 fs c "$DisktoUse\MBR\2\rdb\DH0\Devs\monitors\HighGFX*" "$DisktoUse\MBR\2\rdb\DH0\storage\monitors"
 fs c "$DisktoUse\MBR\2\rdb\DH0\Devs\monitors\SuperPlus*" "$DisktoUse\MBR\2\rdb\DH0\storage\monitors"
 fs c "$DisktoUse\MBR\2\rdb\DH0\Devs\monitors\Xtreme*" "$DisktoUse\MBR\2\rdb\DH0\storage\monitors"
+fs c "$DisktoUse\MBR\2\rdb\DH0\Devs\Kickstarts\kick40068.A1200" "$DisktoUse\MBR\1\kick.rom"
 "@
 
 If ($HostOS -ne "Windows"){
@@ -353,7 +332,6 @@ Write-Host "            READY TO WRITE TO DISK" -ForegroundColor Yellow
 Write-Host "====================================================" -ForegroundColor Yellow
 Write-Host "Target Disk:       $DisktoUse" -ForegroundColor Red
 Write-Host "Source Folder:     $AGSSourceLocation"
-Write-Host "Kickstart ROM:     $FilepathtoKickstartROM"
 Write-Host "----------------------------------------------------"
 Write-Host "WARNING: This will ERASE all data on $DisktoUse." -ForegroundColor Red
 Write-Host "====================================================" -ForegroundColor Yellow
