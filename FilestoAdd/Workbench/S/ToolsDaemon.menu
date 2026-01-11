@@ -72,9 +72,9 @@ TITLE Documents
 	(CLI) 4096 System:Utilities/MultiView AGS:Texts/AGS.Guide
 	ITEMBAR
 	ITEM Games Database
-	(CLI) 4096 System:Utilities/MultiView AGS:Search.ags/WHDLoad_Game_List.guide
+	(CLI) 4096 System:Utilities/MultiView AGS:Menu/Search.ags/WHDLoad_Game_List.guide
 	ITEM Demos Database
-	(CLI) 4096 System:Utilities/MultiView AGS:Search.ags/WHDLoad_Demo_List.guide
+	(CLI) 4096 System:Utilities/MultiView AGS:Menu/Search.ags/WHDLoad_Demo_List.guide
 	ITEMBAR
 	ITEM Extra Games
 	(CLI) 4096 System:Utilities/MultiView AGS:Texts/ExtraGames.txt
