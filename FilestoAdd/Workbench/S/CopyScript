@@ -131,7 +131,7 @@ list all files AGS: PAT=(+#?.run) LFORMAT="copy *"%P%M.txt*" *"AGS:ProgramText/+
 Echo "Script creation complete"
 Echo "Filtering script to clean up commands"
 date
-rx AGSBackup:AmmendCopyScript.rexx T:CopyCommandstoFilter T:FixCopyCommands
+rx SYS:S/AmendCopyScript.rexx T:CopyCommandstoFilter T:FixCopyCommands
 Echo "Creating script to modify AGS themes"
 list all files AGS: PAT=(#?.conf) LFORMAT="echo *"menu_folder = AGS:Menu/*" >> *"%p%N*"*necho *"screenshot_dir = AGS:Screenshots/*" >> *"%p%N*"*necho *"exclude_central_location = Emulators*" >> *"%p%N*"*necho *"text_dir = AGS:ProgramText/*" >> *"%p%N*"*necho *"non_central_picture_suffix = _AGARTG_*" >> *"%p%N*"" >> T:CopyCommands2
 list AGS: PAT=(#?.ags) Lformat="copy *"%P%N*" *"AGS:Menu/%N*" ALL *ncopy *"%p%m.txt*" *"AGS:Menu/*" *ndelete *"%P%M.txt*" QUIET FORCE ALL >NIL:*ndelete *"%P%N*" QUIET FORCE ALL >NIL:" >> T:CopyCommands3
