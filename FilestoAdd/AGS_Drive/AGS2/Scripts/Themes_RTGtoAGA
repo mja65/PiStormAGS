@@ -15,7 +15,7 @@ If $Pistorm EQ "1"
 Else
  Searchreplace FROM ags:ags2.conf TO ags:ags2.conf SEARCH $500A1000 REPLACE $00029004 INPLACE
 Endif
-CD AGS:Themes.ags
+CD AGS:Menu/Themes.ags
 Rename "- Use RTG Screen -.rub" TO "- Use RTG Screen -.run"
 Rename "- Use AGA Screen -.run" TO "- Use AGA Screen -.rub"
 Echo ""

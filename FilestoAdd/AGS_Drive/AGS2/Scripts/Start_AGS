@@ -76,7 +76,7 @@ If NOT EXISTS s:AGS-Stuff
  
  SetENV Portable 1
  
- CD AGS:Options.ags
+ CD AGS:Menu/Options.ags
  
  If EXISTS "Boot Options.ags"
   Rename "Boot Options.ags" "Boot Options.agz"
@@ -99,7 +99,7 @@ Else
 
  SetENV Portable 0
 
- CD AGS:Options.ags
+ cd AGS:Menu/Options.ags
  
  If EXISTS "Boot Options.agz"
   Rename "Boot Options.agz" "Boot Options.ags"
@@ -157,7 +157,7 @@ If $EXPERTPERM NOT EQ 1
  SetEnv Expert 0
  
  Failat 21
- CD "AGS:Options.ags"
+ CD "AGS:Menu/Options.ags"
  
  If EXISTS "Expert Mode Enabled.run"
   Rename >NIL: "Expert Mode Enabled.run" "Expert Mode Enabled.rub"
@@ -192,7 +192,7 @@ Endif
 ; Set Lists based on hardware variable
 
 If $HW EQ "Real"
- CD AGS:Options.ags
+ cd AGS:Menu/Options.ags
  
  If Exists "Degrader Options.agz"
   Rename >NIL: "Degrader Options.agz" TO "Degrader Options.ags"
@@ -206,7 +206,7 @@ Endif
 
 
 If $HW NOT EQ "Real"
- CD AGS:Options.ags
+ cd AGS:Menu/Options.ags
  
  If Exists "Degrader Options.ags"
   Rename >NIL: "Degrader Options.ags" TO "Degrader Options.agz"

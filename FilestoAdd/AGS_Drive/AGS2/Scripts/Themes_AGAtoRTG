@@ -16,7 +16,7 @@ Else
  Searchreplace FROM ags:ags2.conf TO ags:ags2.conf SEARCH $00029004 REPLACE $500A1000 INPLACE
 Endif
 Echo ""
-CD AGS:Themes.ags
+CD AGS:Menu/Themes.ags
 Rename "- Use RTG Screen -.run" TO "- Use RTG Screen -.rub"
 Rename "- Use AGA Screen -.rub" TO "- Use AGA Screen -.run"
 Echo "Process complete!"

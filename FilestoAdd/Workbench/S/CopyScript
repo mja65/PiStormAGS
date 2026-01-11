@@ -1,0 +1,165 @@
+failat 21
+Echo "Creating script to modify AGS install"
+date
+Echo "Failat 21" > T:CopyCommands1
+Echo "Failat 21" > T:FinalCommands2
+Echo "Echo *"Running Part 1*"" >> T:CopyCommands1
+Echo "Echo *"Running Part 3*"" > T:CopyCommands2
+Echo "Echo *"Running Part 4*"" > T:CopyCommands3
+Echo "Echo *"Running Part 5*"" >> T:FinalCommands2
+Echo "Echo *"Running Part 2*"" > T:CopyCommandstoFilter
+Echo "Makedir *"AGS:Menu*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ProgramText*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ScreenShots*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ProgramText/0*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ProgramText/1*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ProgramText/2*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ProgramText/3*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ProgramText/4*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ProgramText/5*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ProgramText/6*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ProgramText/7*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ProgramText/8*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ProgramText/9*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ProgramText/a*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ProgramText/b*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ProgramText/c*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ProgramText/d*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ProgramText/e*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ProgramText/f*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ProgramText/g*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ProgramText/h*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ProgramText/I*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ProgramText/j*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ProgramText/k*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ProgramText/l*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ProgramText/m*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ProgramText/n*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ProgramText/o*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ProgramText/p*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ProgramText/q*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ProgramText/r*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ProgramText/s*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ProgramText/t*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ProgramText/u*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ProgramText/v*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ProgramText/w*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ProgramText/x*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ProgramText/y*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ProgramText/z*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ProgramText/[*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ProgramText/-*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ProgramText/+*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ScreenShots/0*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ScreenShots/1*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ScreenShots/2*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ScreenShots/3*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ScreenShots/4*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ScreenShots/5*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ScreenShots/6*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ScreenShots/7*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ScreenShots/8*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ScreenShots/9*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ScreenShots/a*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ScreenShots/b*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ScreenShots/c*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ScreenShots/d*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ScreenShots/e*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ScreenShots/f*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ScreenShots/g*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ScreenShots/h*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ScreenShots/I*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ScreenShots/j*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ScreenShots/k*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ScreenShots/l*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ScreenShots/m*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ScreenShots/n*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ScreenShots/o*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ScreenShots/p*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ScreenShots/q*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ScreenShots/r*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ScreenShots/s*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ScreenShots/t*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ScreenShots/u*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ScreenShots/v*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ScreenShots/w*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ScreenShots/x*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ScreenShots/y*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ScreenShots/z*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ScreenShots/[*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ScreenShots/-*"" >> T:CopyCommands1
+Echo "Makedir *"AGS:ScreenShots/+*"" >> T:CopyCommands1
+list all files AGS: PAT=(0#?.run) LFORMAT="copy *"%P%M.txt*" *"AGS:ProgramText/0/*" QUIET >NIL: *ndelete *"%P%M.txt*" QUIET >NIL: *ncopy *"%P%M#?.iff*" *"AGS:Screenshots/0/*" QUIET >NIL: *ndelete *"%P%M#?.iff*" QUIET >NIL:" >> T:CopyCommandstoFilter
+list all files AGS: PAT=(1#?.run) LFORMAT="copy *"%P%M.txt*" *"AGS:ProgramText/1/*" QUIET >NIL: *ndelete *"%P%M.txt*" QUIET >NIL: *ncopy *"%P%M#?.iff*" *"AGS:Screenshots/1/*" QUIET >NIL: *ndelete *"%P%M#?.iff*" QUIET >NIL:" >> T:CopyCommandstoFilter
+list all files AGS: PAT=(2#?.run) LFORMAT="copy *"%P%M.txt*" *"AGS:ProgramText/2/*" QUIET >NIL: *ndelete *"%P%M.txt*" QUIET >NIL: *ncopy *"%P%M#?.iff*" *"AGS:Screenshots/2/*" QUIET >NIL: *ndelete *"%P%M#?.iff*" QUIET >NIL:" >> T:CopyCommandstoFilter
+list all files AGS: PAT=(3#?.run) LFORMAT="copy *"%P%M.txt*" *"AGS:ProgramText/3/*" QUIET >NIL: *ndelete *"%P%M.txt*" QUIET >NIL: *ncopy *"%P%M#?.iff*" *"AGS:Screenshots/3/*" QUIET >NIL: *ndelete *"%P%M#?.iff*" QUIET >NIL:" >> T:CopyCommandstoFilter
+list all files AGS: PAT=(4#?.run) LFORMAT="copy *"%P%M.txt*" *"AGS:ProgramText/4/*" QUIET >NIL: *ndelete *"%P%M.txt*" QUIET >NIL: *ncopy *"%P%M#?.iff*" *"AGS:Screenshots/4/*" QUIET >NIL: *ndelete *"%P%M#?.iff*" QUIET >NIL:" >> T:CopyCommandstoFilter
+list all files AGS: PAT=(5#?.run) LFORMAT="copy *"%P%M.txt*" *"AGS:ProgramText/5/*" QUIET >NIL: *ndelete *"%P%M.txt*" QUIET >NIL: *ncopy *"%P%M#?.iff*" *"AGS:Screenshots/5/*" QUIET >NIL: *ndelete *"%P%M#?.iff*" QUIET >NIL:" >> T:CopyCommandstoFilter
+list all files AGS: PAT=(6#?.run) LFORMAT="copy *"%P%M.txt*" *"AGS:ProgramText/6/*" QUIET >NIL: *ndelete *"%P%M.txt*" QUIET >NIL: *ncopy *"%P%M#?.iff*" *"AGS:Screenshots/6/*" QUIET >NIL: *ndelete *"%P%M#?.iff*" QUIET >NIL:" >> T:CopyCommandstoFilter
+list all files AGS: PAT=(7#?.run) LFORMAT="copy *"%P%M.txt*" *"AGS:ProgramText/7/*" QUIET >NIL: *ndelete *"%P%M.txt*" QUIET >NIL: *ncopy *"%P%M#?.iff*" *"AGS:Screenshots/7/*" QUIET >NIL: *ndelete *"%P%M#?.iff*" QUIET >NIL:" >> T:CopyCommandstoFilter
+list all files AGS: PAT=(8#?.run) LFORMAT="copy *"%P%M.txt*" *"AGS:ProgramText/8/*" QUIET >NIL: *ndelete *"%P%M.txt*" QUIET >NIL: *ncopy *"%P%M#?.iff*" *"AGS:Screenshots/8/*" QUIET >NIL: *ndelete *"%P%M#?.iff*" QUIET >NIL:" >> T:CopyCommandstoFilter
+list all files AGS: PAT=(9#?.run) LFORMAT="copy *"%P%M.txt*" *"AGS:ProgramText/9/*" QUIET >NIL: *ndelete *"%P%M.txt*" QUIET >NIL: *ncopy *"%P%M#?.iff*" *"AGS:Screenshots/9/*" QUIET >NIL: *ndelete *"%P%M#?.iff*" QUIET >NIL:" >> T:CopyCommandstoFilter
+list all files AGS: PAT=(a#?.run) LFORMAT="copy *"%P%M.txt*" *"AGS:ProgramText/a/*" QUIET >NIL: *ndelete *"%P%M.txt*" QUIET >NIL: *ncopy *"%P%M#?.iff*" *"AGS:Screenshots/a/*" QUIET >NIL: *ndelete *"%P%M#?.iff*" QUIET >NIL:" >> T:CopyCommandstoFilter
+list all files AGS: PAT=(b#?.run) LFORMAT="copy *"%P%M.txt*" *"AGS:ProgramText/b/*" QUIET >NIL: *ndelete *"%P%M.txt*" QUIET >NIL: *ncopy *"%P%M#?.iff*" *"AGS:Screenshots/b/*" QUIET >NIL: *ndelete *"%P%M#?.iff*" QUIET >NIL:" >> T:CopyCommandstoFilter
+list all files AGS: PAT=(c#?.run) LFORMAT="copy *"%P%M.txt*" *"AGS:ProgramText/c/*" QUIET >NIL: *ndelete *"%P%M.txt*" QUIET >NIL: *ncopy *"%P%M#?.iff*" *"AGS:Screenshots/c/*" QUIET >NIL: *ndelete *"%P%M#?.iff*" QUIET >NIL:" >> T:CopyCommandstoFilter
+list all files AGS: PAT=(d#?.run) LFORMAT="copy *"%P%M.txt*" *"AGS:ProgramText/d/*" QUIET >NIL: *ndelete *"%P%M.txt*" QUIET >NIL: *ncopy *"%P%M#?.iff*" *"AGS:Screenshots/d/*" QUIET >NIL: *ndelete *"%P%M#?.iff*" QUIET >NIL:" >> T:CopyCommandstoFilter
+list all files AGS: PAT=(e#?.run) LFORMAT="copy *"%P%M.txt*" *"AGS:ProgramText/e/*" QUIET >NIL: *ndelete *"%P%M.txt*" QUIET >NIL: *ncopy *"%P%M#?.iff*" *"AGS:Screenshots/e/*" QUIET >NIL: *ndelete *"%P%M#?.iff*" QUIET >NIL:" >> T:CopyCommandstoFilter
+list all files AGS: PAT=(f#?.run) LFORMAT="copy *"%P%M.txt*" *"AGS:ProgramText/f/*" QUIET >NIL: *ndelete *"%P%M.txt*" QUIET >NIL: *ncopy *"%P%M#?.iff*" *"AGS:Screenshots/f/*" QUIET >NIL: *ndelete *"%P%M#?.iff*" QUIET >NIL:" >> T:CopyCommandstoFilter
+list all files AGS: PAT=(g#?.run) LFORMAT="copy *"%P%M.txt*" *"AGS:ProgramText/g/*" QUIET >NIL: *ndelete *"%P%M.txt*" QUIET >NIL: *ncopy *"%P%M#?.iff*" *"AGS:Screenshots/g/*" QUIET >NIL: *ndelete *"%P%M#?.iff*" QUIET >NIL:" >> T:CopyCommandstoFilter
+list all files AGS: PAT=(h#?.run) LFORMAT="copy *"%P%M.txt*" *"AGS:ProgramText/h/*" QUIET >NIL: *ndelete *"%P%M.txt*" QUIET >NIL: *ncopy *"%P%M#?.iff*" *"AGS:Screenshots/h/*" QUIET >NIL: *ndelete *"%P%M#?.iff*" QUIET >NIL:" >> T:CopyCommandstoFilter
+list all files AGS: PAT=(I#?.run) LFORMAT="copy *"%P%M.txt*" *"AGS:ProgramText/I/*" QUIET >NIL: *ndelete *"%P%M.txt*" QUIET >NIL: *ncopy *"%P%M#?.iff*" *"AGS:Screenshots/I/*" QUIET >NIL: *ndelete *"%P%M#?.iff*" QUIET >NIL:" >> T:CopyCommandstoFilter
+list all files AGS: PAT=(j#?.run) LFORMAT="copy *"%P%M.txt*" *"AGS:ProgramText/j/*" QUIET >NIL: *ndelete *"%P%M.txt*" QUIET >NIL: *ncopy *"%P%M#?.iff*" *"AGS:Screenshots/j/*" QUIET >NIL: *ndelete *"%P%M#?.iff*" QUIET >NIL:" >> T:CopyCommandstoFilter
+list all files AGS: PAT=(k#?.run) LFORMAT="copy *"%P%M.txt*" *"AGS:ProgramText/k/*" QUIET >NIL: *ndelete *"%P%M.txt*" QUIET >NIL: *ncopy *"%P%M#?.iff*" *"AGS:Screenshots/k/*" QUIET >NIL: *ndelete *"%P%M#?.iff*" QUIET >NIL:" >> T:CopyCommandstoFilter
+list all files AGS: PAT=(l#?.run) LFORMAT="copy *"%P%M.txt*" *"AGS:ProgramText/l/*" QUIET >NIL: *ndelete *"%P%M.txt*" QUIET >NIL: *ncopy *"%P%M#?.iff*" *"AGS:Screenshots/l/*" QUIET >NIL: *ndelete *"%P%M#?.iff*" QUIET >NIL:" >> T:CopyCommandstoFilter
+list all files AGS: PAT=(m#?.run) LFORMAT="copy *"%P%M.txt*" *"AGS:ProgramText/m/*" QUIET >NIL: *ndelete *"%P%M.txt*" QUIET >NIL: *ncopy *"%P%M#?.iff*" *"AGS:Screenshots/m/*" QUIET >NIL: *ndelete *"%P%M#?.iff*" QUIET >NIL:" >> T:CopyCommandstoFilter
+list all files AGS: PAT=(n#?.run) LFORMAT="copy *"%P%M.txt*" *"AGS:ProgramText/n/*" QUIET >NIL: *ndelete *"%P%M.txt*" QUIET >NIL: *ncopy *"%P%M#?.iff*" *"AGS:Screenshots/n/*" QUIET >NIL: *ndelete *"%P%M#?.iff*" QUIET >NIL:" >> T:CopyCommandstoFilter
+list all files AGS: PAT=(o#?.run) LFORMAT="copy *"%P%M.txt*" *"AGS:ProgramText/o/*" QUIET >NIL: *ndelete *"%P%M.txt*" QUIET >NIL: *ncopy *"%P%M#?.iff*" *"AGS:Screenshots/o/*" QUIET >NIL: *ndelete *"%P%M#?.iff*" QUIET >NIL:" >> T:CopyCommandstoFilter
+list all files AGS: PAT=(p#?.run) LFORMAT="copy *"%P%M.txt*" *"AGS:ProgramText/p/*" QUIET >NIL: *ndelete *"%P%M.txt*" QUIET >NIL: *ncopy *"%P%M#?.iff*" *"AGS:Screenshots/p/*" QUIET >NIL: *ndelete *"%P%M#?.iff*" QUIET >NIL:" >> T:CopyCommandstoFilter
+list all files AGS: PAT=(q#?.run) LFORMAT="copy *"%P%M.txt*" *"AGS:ProgramText/q/*" QUIET >NIL: *ndelete *"%P%M.txt*" QUIET >NIL: *ncopy *"%P%M#?.iff*" *"AGS:Screenshots/q/*" QUIET >NIL: *ndelete *"%P%M#?.iff*" QUIET >NIL:" >> T:CopyCommandstoFilter
+list all files AGS: PAT=(r#?.run) LFORMAT="copy *"%P%M.txt*" *"AGS:ProgramText/r/*" QUIET >NIL: *ndelete *"%P%M.txt*" QUIET >NIL: *ncopy *"%P%M#?.iff*" *"AGS:Screenshots/r/*" QUIET >NIL: *ndelete *"%P%M#?.iff*" QUIET >NIL:" >> T:CopyCommandstoFilter
+list all files AGS: PAT=(s#?.run) LFORMAT="copy *"%P%M.txt*" *"AGS:ProgramText/s/*" QUIET >NIL: *ndelete *"%P%M.txt*" QUIET >NIL: *ncopy *"%P%M#?.iff*" *"AGS:Screenshots/s/*" QUIET >NIL: *ndelete *"%P%M#?.iff*" QUIET >NIL:" >> T:CopyCommandstoFilter
+list all files AGS: PAT=(t#?.run) LFORMAT="copy *"%P%M.txt*" *"AGS:ProgramText/t/*" QUIET >NIL: *ndelete *"%P%M.txt*" QUIET >NIL: *ncopy *"%P%M#?.iff*" *"AGS:Screenshots/t/*" QUIET >NIL: *ndelete *"%P%M#?.iff*" QUIET >NIL:" >> T:CopyCommandstoFilter
+list all files AGS: PAT=(u#?.run) LFORMAT="copy *"%P%M.txt*" *"AGS:ProgramText/u/*" QUIET >NIL: *ndelete *"%P%M.txt*" QUIET >NIL: *ncopy *"%P%M#?.iff*" *"AGS:Screenshots/u/*" QUIET >NIL: *ndelete *"%P%M#?.iff*" QUIET >NIL:" >> T:CopyCommandstoFilter
+list all files AGS: PAT=(v#?.run) LFORMAT="copy *"%P%M.txt*" *"AGS:ProgramText/v/*" QUIET >NIL: *ndelete *"%P%M.txt*" QUIET >NIL: *ncopy *"%P%M#?.iff*" *"AGS:Screenshots/v/*" QUIET >NIL: *ndelete *"%P%M#?.iff*" QUIET >NIL:" >> T:CopyCommandstoFilter
+list all files AGS: PAT=(w#?.run) LFORMAT="copy *"%P%M.txt*" *"AGS:ProgramText/w/*" QUIET >NIL: *ndelete *"%P%M.txt*" QUIET >NIL: *ncopy *"%P%M#?.iff*" *"AGS:Screenshots/w/*" QUIET >NIL: *ndelete *"%P%M#?.iff*" QUIET >NIL:" >> T:CopyCommandstoFilter
+list all files AGS: PAT=(x#?.run) LFORMAT="copy *"%P%M.txt*" *"AGS:ProgramText/x/*" QUIET >NIL: *ndelete *"%P%M.txt*" QUIET >NIL: *ncopy *"%P%M#?.iff*" *"AGS:Screenshots/x/*" QUIET >NIL: *ndelete *"%P%M#?.iff*" QUIET >NIL:" >> T:CopyCommandstoFilter
+list all files AGS: PAT=(y#?.run) LFORMAT="copy *"%P%M.txt*" *"AGS:ProgramText/y/*" QUIET >NIL: *ndelete *"%P%M.txt*" QUIET >NIL: *ncopy *"%P%M#?.iff*" *"AGS:Screenshots/y/*" QUIET >NIL: *ndelete *"%P%M#?.iff*" QUIET >NIL:" >> T:CopyCommandstoFilter
+list all files AGS: PAT=(z#?.run) LFORMAT="copy *"%P%M.txt*" *"AGS:ProgramText/z/*" QUIET >NIL: *ndelete *"%P%M.txt*" QUIET >NIL: *ncopy *"%P%M#?.iff*" *"AGS:Screenshots/z/*" QUIET >NIL: *ndelete *"%P%M#?.iff*" QUIET >NIL:" >> T:CopyCommandstoFilter
+list all files AGS: PAT=([#?.run) LFORMAT="copy *"%P%M.txt*" *"AGS:ProgramText/[/*" QUIET >NIL: *ndelete *"%P%M.txt*" QUIET >NIL: *ncopy *"%P%M#?.iff*" *"AGS:Screenshots/[/*" QUIET >NIL: *ndelete *"%P%M#?.iff*" QUIET >NIL:" >> T:CopyCommandstoFilter
+list all files AGS: PAT=(-#?.run) LFORMAT="copy *"%P%M.txt*" *"AGS:ProgramText/-/*" QUIET >NIL: *ndelete *"%P%M.txt*" QUIET >NIL: *ncopy *"%P%M#?.iff*" *"AGS:Screenshots/-/*" QUIET >NIL: *ndelete *"%P%M#?.iff*" QUIET >NIL:" >> T:CopyCommandstoFilter
+list all files AGS: PAT=(+#?.run) LFORMAT="copy *"%P%M.txt*" *"AGS:ProgramText/+/*" QUIET >NIL: *ndelete *"%P%M.txt*" QUIET >NIL: *ncopy *"%P%M#?.iff*" *"AGS:Screenshots/+/*" QUIET >NIL: *ndelete *"%P%M#?.iff*" QUIET >NIL:" >> T:CopyCommandstoFilter
+Echo "Script creation complete"
+Echo "Filtering script to clean up commands"
+date
+rx AGSBackup:AmmendCopyScript.rexx T:CopyCommandstoFilter T:FixCopyCommands
+Echo "Creating script to modify AGS themes"
+list all files AGS: PAT=(#?.conf) LFORMAT="echo *"menu_folder = AGS:Menu/*" >> *"%p%N*"*necho *"screenshot_dir = AGS:Screenshots/*" >> *"%p%N*"*necho *"exclude_central_location = Emulators*" >> *"%p%N*"*necho *"text_dir = AGS:ProgramText/*" >> *"%p%N*"*necho *"non_central_picture_suffix = _AGARTG_*" >> *"%p%N*"" >> T:CopyCommands2
+list AGS: PAT=(#?.ags) Lformat="copy *"%P%N*" *"AGS:Menu/%N*" ALL *ncopy *"%p%m.txt*" *"AGS:Menu/*" *ndelete *"%P%M.txt*" QUIET FORCE ALL >NIL:*ndelete *"%P%N*" QUIET FORCE ALL >NIL:" >> T:CopyCommands3
+list AGS: PAT=(#?.agz) Lformat="copy *"%P%N*" *"AGS:Menu/%N*" ALL *ncopy *"%p%m.txt*" *"AGS:Menu/*" *ndelete *"%P%M.txt*" QUIET FORCE ALL >NIL: *ndelete *"%P%N*" QUIET FORCE ALL >NIL:" >> T:CopyCommands3
+list AGS: PAT=(#?.run) Lformat="copy *"%P%N*" *"AGS:Menu/%N*" ALL *ncopy *"%p%n*" *"AGS:Menu/*" *ndelete *"%P%N*" QUIET FORCE ALL >NIL: " >> T:CopyCommands3
+Echo "Failat 10" >> T:CopyCommands3
+JOIN T:CopyCommands1 T:FixCopyCommands T:CopyCommands2 T:CopyCommands3 as T:FinalCommands1
+date
+Echo "Running Commands to modify AGS install"
+execute T:FinalCommands1
+Echo "Creating script to rename screenshotsRunning Commands to modify AGS install"
+list all files "AGS:Menu/" PAT=(#?.iff) LFORMAT="rename *"%P%N*" to *"%P%m_AGARTG_.iff*"" >> T:FinalCommands2
+date
+Echo "Renaming screenshots"
+execute T:FinalCommands2
+date
+Echo "Creating script to change script references from AGS: to AGS:Menu "
+Echo "Searchreplace FROM AGS_Drive:AGS2/Scripts/Random_Demo to AGS_Drive:AGS2/Scripts/Random_Demo SEARCH  REPLACE AGS:Menu/ INPLACE" >> T:FinalCommands3
+Echo "Searchreplace FROM AGS_Drive:AGS2/Scripts/Random_Theme to AGS_Drive:AGS2/Scripts/Random_Theme SEARCH  REPLACE AGS:Menu/ INPLACE" >> T:FinalCommands3
+Echo "Searchreplace FROM AGS_Drive:AGS2/Scripts/Random_Game to AGS_Drive:AGS2/Scripts/Random_Game SEARCH  REPLACE AGS:Menu/ INPLACE" >> T:FinalCommands3
+Echo "Searchreplace FROM AGS_Drive:AGS2/Scripts/Check_Drives to AGS_Drive:AGS2/Scripts/Check_Drives SEARCH  REPLACE AGS:Menu/ INPLACE" >> T:FinalCommands3
+Echo "Searchreplace FROM AGS_Drive:AGS2/Scripts/Expert_DisableExpert_Fave_DelExpert_Fave_DelExpert_Fave_DelExpert_Fave_DelExpert_Fave_DelExpert_Fave_DelExpert_Fave_Del" >> T:FinalCommands3
+Echo "Searchreplace FROM AGS_Drive:AGS2/Scripts/Expert_Fave_AddExpert_Fave_DelExpert_Fave_DelExpert_Fave_DelExpert_Fave_DelExpert_Fave_DelExpert_Fave_DelExpert_Fave_Del" >> T:FinalCommands3
+Echo "Searchreplace FROM AGS_Drive:AGS2/Scripts/Expert_Fave_DelExpert_Fave_DelExpert_Fave_DelExpert_Fave_DelExpert_Fave_DelExpert_Fave_DelExpert_Fave_DelExpert_Fave_Del" >> T:FinalCommands3
+Echo "Searchreplace FROM AGS_Drive:AGS2/Scripts/Expert_InfoExpert_Fave_DelExpert_Fave_DelExpert_Fave_DelExpert_Fave_DelExpert_Fave_DelExpert_Fave_DelExpert_Fave_Del" >> T:FinalCommands3
+Echo "Searchreplace FROM AGS_Drive:AGS2/Scripts/My_Program_AddExpert_Fave_DelExpert_Fave_DelExpert_Fave_DelExpert_Fave_DelExpert_Fave_DelExpert_Fave_DelExpert_Fave_Del" >> T:FinalCommands3
+date
+Echo "Changing script references"
+execute T:FinalCommands2
+Echo "Finished!"
+date
