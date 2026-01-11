@@ -6,40 +6,18 @@ mbr part add \diskx 0xb 1073741824 --start-sector 2048
 mbr part format \diskx 1 EMU68BOOT
 mbr part add \diskx 0x76 58gb --start-sector 2099200
 rdb init \diskx\mbr\2
-rdb filesystem add \diskx\mbr\2 "<Folderpath>\FileSystem\pfs3aio" PFS3
-rdb part add "\diskx\mbr\2" DH0 PFS3 1gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable True --boot-priority 1
-rdb part format "\diskx\mbr\2" 1 Workbench
-rdb part add "\diskx\mbr\2" DH1 PFS3 2gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
-rdb part format "\diskx\mbr\2" 2 Work
-rdb part add "\diskx\mbr\2" DH2 PFS3 4gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
-rdb part format "\diskx\mbr\2" 3 Music
-rdb part add "\diskx\mbr\2" DH3 PFS3 4gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
-rdb part format "\diskx\mbr\2" 4 Media
-rdb part add "\diskx\mbr\2" DH4 PFS3 4gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
-rdb part format "\diskx\mbr\2" 5 AGS_Drive
-rdb part add "\diskx\mbr\2" DH5 PFS3 8gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
-rdb part format "\diskx\mbr\2" 6 Games
-rdb part add "\diskx\mbr\2" DH6 PFS3 8gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
-rdb part format "\diskx\mbr\2" 7 Premium
-rdb part add "\diskx\mbr\2" DH7 PFS3 4gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
-rdb part format "\diskx\mbr\2" 8 Emulators1
-rdb part add "\diskx\mbr\2" DH13 PFS3 4gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
-rdb part format "\diskx\mbr\2" 9 WHD_Demos
-rdb part add "\diskx\mbr\2" DH14 PFS3 8gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
-rdb part format "\diskx\mbr\2" 10 WHD_Games
-rdb part add "\diskx\mbr\2" DH15 PFS3 8gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
-rdb part format "\diskx\mbr\2" 11 Emulators2
-fs c "<FolderpathtoAGSDrives>\Workbench.hdf\rdb\1" "\diskx\MBR\2\rdb\DH0\" -r -md -q
-fs c "<FolderpathtoAGSDrives>\Work.hdf\rdb\1" "\diskx\MBR\2\rdb\DH1\" -r -md -q
-fs c "<FolderpathtoAGSDrives>\Music.hdf\rdb\1" "\diskx\MBR\2\rdb\DH2\" -r -md -q
-fs c "<FolderpathtoAGSDrives>\Media.hdf\rdb\1" "\diskx\MBR\2\rdb\DH3\" -r -md -q
-fs c "<FolderpathtoAGSDrives>\AGS_Drive.hdf\rdb\1" "\diskx\MBR\2\rdb\DH4\" -r -md -q
-fs c "<FolderpathtoAGSDrives>\Games.hdf\rdb\1" "\diskx\MBR\2\rdb\DH5\" -r -md -q
-fs c "<FolderpathtoAGSDrives>\Premium.hdf\rdb\1" "\diskx\MBR\2\rdb\DH6\" -r -md -q
-fs c "<FolderpathtoAGSDrives>\Emulators.hdf\rdb\1" "\diskx\MBR\2\rdb\DH7\" -r -md -q
-fs c "<FolderpathtoAGSDrives>\WHD_Demos.hdf\rdb\1" "\diskx\MBR\2\rdb\DH13\" -r -md -q
-fs c "<FolderpathtoAGSDrives>\WHD_Games.hdf\rdb\1" "\diskx\MBR\2\rdb\DH14\" -r -md -q
-fs c "<FolderpathtoAGSDrives>\Emulators2.hdf\rdb\1" "\diskx\MBR\2\rdb\DH15\" -r -md -q
+rdb filesystem add \diskx\mbr\2 "<Folderpath>\FileSystem\pfs3aio" PDS3
+rdb part copy "<FolderpathtoAGSDrives>\Workbench.hdf" 1 "\diskx\mbr\2" --name DH0
+rdb part copy "<FolderpathtoAGSDrives>\Work.hdf" 1 "\diskx\MBR\2" --name DH1
+rdb part copy "<FolderpathtoAGSDrives>\Music.hdf" 1 "\diskx\MBR\2" --name DH2
+rdb part copy "<FolderpathtoAGSDrives>\Media.hdf" 1 "\diskx\MBR\2" --name DH3
+rdb part copy "<FolderpathtoAGSDrives>\AGS_Drive.hdf" 1 "\diskx\MBR\2" --name DH4
+rdb part copy "<FolderpathtoAGSDrives>\Games.hdf" 1 "\diskx\MBR\2" --name DH5
+rdb part copy "<FolderpathtoAGSDrives>\Premium.hdf" 1 "\diskx\MBR\2" --name DH6
+rdb part copy "<FolderpathtoAGSDrives>\Emulators.hdf" 1 "\diskx\MBR\2" --name DH7
+rdb part copy "<FolderpathtoAGSDrives>\WHD_Demos.hdf" 1 "\diskx\MBR\2" --name DH13
+rdb part copy "<FolderpathtoAGSDrives>\WHD_Games.hdf" 1 "\diskx\MBR\2" --name DH14
+rdb part copy "<FolderpathtoAGSDrives>\Emulators2.hdf" 1 "\diskx\MBR\2" --name DH15
 fs c "\diskx\MBR\2\rdb\DH0\Devs\Kickstarts\kick40068.A1200" \diskx\MBR\1\kick.rom 
 fs c "<Folderpath>\FilestoAdd\Emu68Boot" \diskx\MBR\1\ -r -md -q
 fs mkdir \diskx\MBR\1\SHARED\SaveGames
