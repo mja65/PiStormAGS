@@ -1,0 +1,173 @@
+TITLE Utilities
+	ITEM Directory Opus
+	(WB) "System:Utilities/DirOpus4/DirectoryOpus" []
+	ITEM New Shell
+	(WB) "System:System/Shell" []
+	ITEMBAR
+	ITEM ButtonMenu
+	(WB) "Workbench:Utilities/ButtonMenu/ButtonMenu" []
+	ITEM Icon Replacer
+	(WB) "System:Tools/AppReplaceIcon" []
+	ITEMBAR
+	ITEM SnoopDOS
+	(WB) "System:Tools/SnoopDos" []
+	ITEM SysInfo
+	(WB) "System:Utilities/SysInfo/SysInfo" []
+	ITEM Scout
+	(WB) "System:Utilities/Scout/Scout.os3" []
+	ITEM Voodoo-X
+	(WB) "System:Utilities/Voodoo-X/Voodoo-X" []
+	ITEMBAR
+	ITEM Multiview
+	(WB) "System:Utilities/MultiView" []
+	ITEM Redit 2.0
+	(WB) "Workbench:Utilities/Redit2.0/Redit" []
+	ITEM PDF Viewer
+	(WB) "Workbench:Utilities/RNOPDF/RNOPDF" []
+	ITEMBAR
+	ITEM Insert ADF
+	(WB) "Scripts:Insert_ADF" []
+	ITEM Remove ADF
+	(WB) "Scripts:Remove_ADF" []
+	ITEM Create ADF
+	(WB) "System:Utilities/EmptyADF/EmptyADF" []
+	(CLI) 4096 "C:Uae-Configuration floppy0 ."
+	(CLI) 4096 "C:Uae-Configuration floppy1 ."
+TITLE Settings
+	ITEM AGA Mode
+	(WB) "Scripts:AGA_Mode" []
+	ITEM RTG Mode
+	(WB) "Scripts:RTG_Mode" []
+	ITEM Refresh Icons
+	(CLI) 4096 "C:RefreshIcons" []
+	ITEMBAR
+	ITEM Boot Settings
+		SUB Boot To AGS
+		(WB) Scripts:Boot_AGS
+		SUB Boot To WB
+		(WB) Scripts:Boot_WB
+	ITEM WB Preference
+		SUB Fonts
+		(WB) "System:Prefs/Font"
+		SUB Input
+		(WB) "System:Prefs/Input"
+		SUB Palette
+		(WB) "System:Prefs/Palette"
+		SUB ScreenMode
+		(WB) "System:Prefs/ScreenMode"	
+		SUB WBPattern 
+		(WB) "System:Prefs/WBPattern"	
+		SUB Set Time
+		(WB) "System:Prefs/Time"
+	ITEMBAR
+	ITEM Reboot
+	(CLI) 4096 c:Reboot
+	ITEMBAR
+	ITEM Quit to OS
+	(CLI) 4096 c:uae-configuration SPC_QUIT 1
+	(CLI) 4096 System:C/openurl www.amigagameselector.co.uk
+TITLE Documents
+	ITEMBAR
+	ITEM AGS Guide
+	(CLI) 4096 System:Utilities/MultiView AGS:Texts/AGS.Guide
+	ITEMBAR
+	ITEM Games Database
+	(CLI) 4096 System:Utilities/MultiView AGS:Search.ags/WHDLoad_Game_List.guide
+	ITEM Demos Database
+	(CLI) 4096 System:Utilities/MultiView AGS:Search.ags/WHDLoad_Demo_List.guide
+	ITEMBAR
+	ITEM Extra Games
+	(CLI) 4096 System:Utilities/MultiView AGS:Texts/ExtraGames.txt
+	ITEM Premium Games
+	(CLI) 4096 System:Utilities/MultiView AGS:Texts/PremiumGames.txt
+	ITEM Workbench Games
+	(CLI) 4096 System:Utilities/MultiView AGS:Texts/WBGames.txt
+	ITEMBAR
+	ITEM Help Guides
+		SUB Using ADF files
+		(CLI) 4096 System:Utilities/MultiView AGS:Texts/ADF.txt
+		SUB Installing Software
+		(CLI) 4096 System:Utilities/MultiView AGS:Texts/Installing_Software.txt
+		SUB Customizing Workbench
+		(CLI) 4096 System:Utilities/MultiView AGS:Texts/Customizing_Workbench.txt
+		SUB Using a 2nd controller
+		(CLI) 4096 Execute Scripts:2ndController
+TITLE Work
+	ITEM DPaint V
+	(WB) "Work:Paint/Deluxe Paint/DPaintV/DPaint" []
+	ITEM PhotoGenics 5
+	(WB) "Work:Paint/Photogenics/Photogenics" []
+	ITEM ADPro
+	(WB) "Work:Paint/ADPro/ADPro" []
+	ITEM Visage
+	(WB) "Workbench:Utilities/Visage/Visage" []
+	ITEM Riva
+	(WB) "Workbench:Utilities/RiVA/RivaGUI" []
+	ITEMBAR
+	ITEM AmiBlitz 3
+	(WB) "Work:Programming/AmiBlitz3/Amiblitz3" []
+	ITEM Amos Pro
+	(WB) "Work:Programming/AMOS Collection/AMOSPro/AMOSPro" []
+	ITEMBAR
+	ITEM Final Writer
+	(WB) "Work:Office/FinalWriter/FinalWriter" []
+TITLE Music
+	ITEM OctaMed 4
+	(WB) "Music:Octamed4/OctaMED" []
+	ITEM OctaMed SS
+	(WB) "Music:OctamedSS/OctaMEDSS" []
+	ITEMBAR
+	ITEM Protracker 2.3
+	(WB) "Music:Protracker23F/PT2.3F" []
+	ITEM Protracker 3.15
+	(WB) "Music:Protracker3.15/PT315" []
+	ITEM Protracker 3.62
+	(CLI) 8192 "Music:Protracker3.62/Protracker" []
+	ITEMBAR
+	ITEM Bars & Pipes
+	(WB) "Music:BarsnPipes/BarsnPipes" []
+	ITEM Audio Master
+	(WB) "Music:AudioMaster/AUDIO-MASTER" []
+	ITEMBAR
+	ITEM PT-1210
+	(WB) "Music:PT-1210/Start_PT-1210" []
+TITLE Emulators
+	ITEM ABeeb
+	(WB) "Emulators1:ABeeb/Start" []
+	ITEM AmiCPC
+	(WB) "Emulators1:Ami-CPC/Start" []
+	ITEM AmiGameBoy
+	(WB) "Emulators1:AmiGameBoy/AmiGameBoy" []
+	ITEM AmiMasterGear
+	(WB) "Emulators1:AmiMasterGear/AmiMasterGear" []
+	ITEM AmiMSX
+	(WB) "Emulators1:AmiMSX/AmiMSX" []
+	ITEM ANESPro
+	(WB) "Emulators1:ANesPro/ANESPRO" []
+	ITEM DGen
+	(WB) "Emulators1:DGen/Start" []
+	ITEM DOSBox
+	(WB) "Emulators1:DOSBox/DOSBox_RTG/DOSBox" []
+	ITEM E-UAE
+	(WB) "Emulators1:E-UAE/uae" []
+	ITEM EmuCPC
+	(WB) "Emulators1:EmuCPC/Start" []
+	ITEM Hatari
+	(WB) "Emulators1:Hatari/hatari" []
+	ITEM Magic64
+	(WB) "Emulators1:MagiC64/MagiC64" []
+	ITEM PC-Task
+	(WB) "Emulators1:PC-Task/PC-Task_Dynamic" []
+	ITEM ShapeShifter
+	(WB) "Emulators1:ShapeShifter/ShapeShifter" []
+	ITEM ZX-Live
+	(WB) "Emulators1:ZX-Live/ZX-Live" []
+	ITEMBAR
+	ITEM ScummVM RTG
+	(WB) "ScummVM:ScummVM_RTG/ScummVM" []
+	ITEM ScummVM AGA
+	(WB) "ScummVM:ScummVM_AGA/ScummVM" []
+	ITEMBAR
+	ITEM Mame
+	(WB) "Mame:Mame106" []
+END
