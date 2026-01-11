@@ -265,40 +265,18 @@ mbr part add $DisktoUse 0xb 1073741824 --start-sector 2048
 mbr part format $DisktoUse 1 EMU68BOOT
 mbr part add $DisktoUse 0x76 58gb --start-sector 2099200
 rdb init $DisktoUse\mbr\2
-rdb filesystem add $DisktoUse\mbr\2 "$FileSystemFolder\pfs3aio" PFS3
-rdb part add "$DisktoUse\mbr\2" DH0 PFS3 1gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable True --boot-priority 1
-rdb part format "$DisktoUse\mbr\2" 1 Workbench
-rdb part add "$DisktoUse\mbr\2" DH1 PFS3 2gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
-rdb part format "$DisktoUse\mbr\2" 2 Work
-rdb part add "$DisktoUse\mbr\2" DH2 PFS3 4gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
-rdb part format "$DisktoUse\mbr\2" 3 Music
-rdb part add "$DisktoUse\mbr\2" DH3 PFS3 4gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
-rdb part format "$DisktoUse\mbr\2" 4 Media
-rdb part add "$DisktoUse\mbr\2" DH4 PFS3 4gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
-rdb part format "$DisktoUse\mbr\2" 5 AGS_Drive
-rdb part add "$DisktoUse\mbr\2" DH5 PFS3 8gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
-rdb part format "$DisktoUse\mbr\2" 6 Games
-rdb part add "$DisktoUse\mbr\2" DH6 PFS3 8gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
-rdb part format "$DisktoUse\mbr\2" 7 Premium
-rdb part add "$DisktoUse\mbr\2" DH7 PFS3 4gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
-rdb part format "$DisktoUse\mbr\2" 8 Emulators1
-rdb part add "$DisktoUse\mbr\2" DH13 PFS3 4gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
-rdb part format "$DisktoUse\mbr\2" 9 WHD_Demos
-rdb part add "$DisktoUse\mbr\2" DH14 PFS3 8gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
-rdb part format "$DisktoUse\mbr\2" 10 WHD_Games
-rdb part add "$DisktoUse\mbr\2" DH15 PFS3 8gb --buffers 300 --max-transfer 0xffffff --mask 0x7ffffffe --no-mount False --bootable False --boot-priority 99
-rdb part format "$DisktoUse\mbr\2" 11 Emulators2
-fs c "$AGSSourceLocation\Workbench.hdf\rdb\1" "$DisktoUse\MBR\2\rdb\DH0\" -r -md -q
-fs c "$AGSSourceLocation\Work.hdf\rdb\1" "$DisktoUse\MBR\2\rdb\DH1\" -r -md -q
-fs c "$AGSSourceLocation\Music.hdf\rdb\1" "$DisktoUse\MBR\2\rdb\DH2\" -r -md -q
-fs c "$AGSSourceLocation\Media.hdf\rdb\1" "$DisktoUse\MBR\2\rdb\DH3\" -r -md -q
-fs c "$AGSSourceLocation\AGS_Drive.hdf\rdb\1" "$DisktoUse\MBR\2\rdb\DH4\" -r -md -q
-fs c "$AGSSourceLocation\Games.hdf\rdb\1" "$DisktoUse\MBR\2\rdb\DH5\" -r -md -q
-fs c "$AGSSourceLocation\Premium.hdf\rdb\1" "$DisktoUse\MBR\2\rdb\DH6\" -r -md -q
-fs c "$AGSSourceLocation\Emulators.hdf\rdb\1" "$DisktoUse\MBR\2\rdb\DH7\" -r -md -q
-fs c "$AGSSourceLocation\WHD_Demos.hdf\rdb\1" "$DisktoUse\MBR\2\rdb\DH13\" -r -md -q
-fs c "$AGSSourceLocation\WHD_Games.hdf\rdb\1" "$DisktoUse\MBR\2\rdb\DH14\" -r -md -q
-fs c "$AGSSourceLocation\Emulators2.hdf\rdb\1" "$DisktoUse\MBR\2\rdb\DH15\" -r -md -q
+rdb filesystem add $DisktoUse\mbr\2 "$FileSystemFolder\pfs3aio" PDS3
+rdb part copy "$AGSSourceLocation\Workbench.hdf" 1 "$DisktoUse\mbr\2" --name DH0
+rdb part copy "$AGSSourceLocation\Work.hdf" 1 "$DisktoUse\MBR\2" --name DH1
+rdb part copy "$AGSSourceLocation\Music.hdf" 1 "$DisktoUse\MBR\2" --name DH2
+rdb part copy "$AGSSourceLocation\Media.hdf" 1 "$DisktoUse\MBR\2" --name DH3
+rdb part copy "$AGSSourceLocation\AGS_Drive.hdf" 1 "$DisktoUse\MBR\2" --name DH4
+rdb part copy "$AGSSourceLocation\Games.hdf" 1 "$DisktoUse\MBR\2" --name DH5
+rdb part copy "$AGSSourceLocation\Premium.hdf" 1 "$DisktoUse\MBR\2" --name DH6
+rdb part copy "$AGSSourceLocation\Emulators.hdf" 1 "$DisktoUse\MBR\2" --name DH7
+rdb part copy "$AGSSourceLocation\WHD_Demos.hdf" 1 "$DisktoUse\MBR\2" --name DH13
+rdb part copy "$AGSSourceLocation\WHD_Games.hdf" 1 "$DisktoUse\MBR\2" --name DH14
+rdb part copy "$AGSSourceLocation\Emulators2.hdf" 1 "$DisktoUse\MBR\2" --name DH15
 fs c "$FilestoAddPath\Emu68Boot" $DisktoUse\MBR\1\ -r -md -q
 fs mkdir $DisktoUse\MBR\1\SHARED\SaveGames
 fs c "$DisktoUse\MBR\2\rdb\DH0\s\startup-sequence" "$DisktoUse\MBR\2\rdb\DH0\s\startup-sequence.bak"
