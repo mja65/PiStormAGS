@@ -1,0 +1,105 @@
+TITLE Utilities
+	ITEM Directory Opus
+	(WB) "System:Utilities/DirOpus4/DirectoryOpus" []
+	ITEM New Shell
+	(WB) "System:System/Shell" []
+	ITEMBAR
+	ITEM ButtonMenu
+	(WB) "Workbench:Utilities/ButtonMenu/ButtonMenu" []
+	ITEM Icon Replacer
+	(WB) "System:Tools/AppReplaceIcon" []
+	ITEMBAR
+	ITEM SnoopDOS
+	(WB) "System:Tools/SnoopDos" []
+	ITEM SysInfo
+	(WB) "System:Utilities/SysInfo/SysInfo" []
+	ITEM Scout
+	(WB) "System:Utilities/Scout/Scout.os3" []
+	ITEM Voodoo-X
+	(WB) "System:Utilities/Voodoo-X/Voodoo-X" []
+	ITEMBAR
+	ITEM Multiview
+	(WB) "System:Utilities/MultiView" []
+	ITEM Redit 2.0
+	(WB) "Workbench:Utilities/Redit2.0/Redit" []
+	ITEM PDF Viewer
+	(WB) "Workbench:Utilities/RNOPDF/RNOPDF" []
+TITLE Settings
+	ITEM AGA Mode
+	(WB) "Scripts:AGA_Mode" []
+	ITEM RTG Mode
+	(WB) "Scripts:RTG_Mode" []
+	ITEM Refresh Icons
+	(CLI) 4096 "C:RefreshIcons" []
+	ITEMBAR
+	ITEM Emulator Settings
+	(CLI) 4096 uae-configuration SPC_ENTERGUI 1
+	ITEM Boot Settings
+		SUB Boot To AGS
+		(WB) Scripts:Boot_AGS
+		SUB Boot To WB
+		(WB) Scripts:Boot_WB
+	ITEM WB Preference
+		SUB Fonts
+		(WB) "System:Prefs/Font"
+		SUB Input
+		(WB) "System:Prefs/Input"
+		SUB Palette
+		(WB) "System:Prefs/Palette"
+		SUB ScreenMode
+		(WB) "System:Prefs/ScreenMode"	
+		SUB WBPattern 
+		(WB) "System:Prefs/WBPattern"	
+		SUB Set Time
+		(WB) "System:Prefs/Time"
+	ITEMBAR
+	ITEM Reboot
+	(CLI) 4096 c:Reboot
+	ITEMBAR
+TITLE Documents
+    ITEM AGS WebSite
+	(CLI) 4096 System:C/openurl www.amigagameselector.co.uk
+	ITEMBAR
+	ITEM AGS Guide
+	(CLI) 4096 System:Utilities/MultiView AGS:Texts/AGS.Guide
+	ITEMBAR
+	ITEM Games Database
+	(CLI) 4096 System:Utilities/MultiView AGS:Search.ags/WHDLoad_Game_List.guide
+	ITEM Demos Database
+	(CLI) 4096 System:Utilities/MultiView AGS:Search.ags/WHDLoad_Demo_List.guide
+	ITEMBAR
+	ITEM Extra Games
+	(CLI) 4096 System:Utilities/MultiView AGS:Texts/ExtraGames.txt
+	ITEM Premium Games
+	(CLI) 4096 System:Utilities/MultiView AGS:Texts/PremiumGames.txt
+	ITEM Workbench Games
+	(CLI) 4096 System:Utilities/MultiView AGS:Texts/WBGames.txt
+	ITEMBAR
+	ITEM Help Guides
+		SUB Using ADF files
+		(CLI) 4096 System:Utilities/MultiView AGS:Texts/ADF.txt
+		SUB Installing Software
+		(CLI) 4096 System:Utilities/MultiView AGS:Texts/Installing_Software.txt
+		SUB Customizing Workbench
+		(CLI) 4096 System:Utilities/MultiView AGS:Texts/Customizing_Workbench.txt
+		SUB Using a 2nd controller
+		(CLI) 4096 Execute Scripts:2ndController
+TITLE Work
+	ITEM DPaint V
+	(WB) "Work:Paint/Deluxe Paint/DPaintV/DPaint" []
+	ITEM PhotoGenics 5
+	(WB) "Work:Paint/Photogenics/Photogenics" []
+	ITEM ADPro
+	(WB) "Work:Paint/ADPro/ADPro" []
+	ITEM Visage
+	(WB) "Workbench:Utilities/Visage/Visage" []
+	ITEM Riva
+	(WB) "Workbench:Utilities/RiVA/RivaGUI" []
+	ITEMBAR
+	ITEM AmiBlitz 3
+	(WB) "Work:Programming/AmiBlitz3/Amiblitz3" []
+	ITEM Amos Pro
+	(WB) "Work:Programming/AMOS Collection/AMOSPro/AMOSPro" []
+	ITEMBAR
+	ITEM Final Writer
+	(WB) "Work:Office/FinalWriter/FinalWriter" []
