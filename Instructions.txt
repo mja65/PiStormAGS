@@ -4,13 +4,17 @@ You must have the UAE version of AGS downloaded and extracted. If you have done 
 
 <Path of Extraction>\AGS_UAE_v30\WinUAE\AGS_UAE. This would be the <FolderpathtoAGSDrives> mentioned below. 
 
+Automated Instructions:
+
+Run the RunThisScript.ps1 shortcut. This will open Powershell which will lead you through the information and download HST Imager.
+
 Manual Instructions:
 
 Download HST Imager (console version) from the Github and install:
 
 https://github.com/henrikstengaard/hst-imager/releases
 
-Use the latest released version for your hardware. At the time of writing Henrik has made some commits to speed up writing files to disk but this is not part of an actual release. If you want to take advantage of this you will need to compile your own version of HST Imager. If you don't know how to do that, you shouldn't try and just use a release version! However, for advanced users it both might be quicker and it might help Henrik track down any bugs. 
+Use the latest released version for your hardware. 
 
 The following are instructions for Windows but this should work on Linux and Mac with the file paths corrected for Linux and Mac (and obviously run from a terminal window rather than a Windows Command Prompt) but this has not been tested
 
@@ -23,13 +27,9 @@ Do a search and replace and replace all instances of in the script of "\diskx" s
 
 Do a search and replace for <Folderpath> so that this string represents the root folder for where this text file you are reading resides
 Do a search and replace for <FolderpathtoAGSDrives> so that this string represents the folder for where the .HDF files for the UAE version of AGS resides
-Do a search and replace for <FilepathtoKickstartROM> so that this string represents the file for the A1200 3.1 Kickstart ROM to use for PiStorm
 
 Run the command HST.imager.exe script <FilepathtoAGSHSTImagerScript.txt> where <FilepathtoAGSHSTImagerScript.txt> is the file path to the script file you have been editing
 
-Automated Instructions:
-
-Run the RunThisScript.ps1 shortcut. This will open Powershell which will lead you through the information and download HST Imager.
 
 Wait a long time! This is because each .HDF file for AGS is set up as a separate Hard Drive Image. There are 11 of these but there can only be a maximum of 3 on Pistorm due to limitations in the MBR disk structure. There are also limitations with the Amiga RDB structure meaning you can not easily copy at a partition level. This means the data for each of the partitions needs to be copied at a file level.
 

@@ -40,7 +40,7 @@ fs c "<FolderpathtoAGSDrives>\Emulators.hdf\rdb\1" "\diskx\MBR\2\rdb\DH7\" -r -m
 fs c "<FolderpathtoAGSDrives>\WHD_Demos.hdf\rdb\1" "\diskx\MBR\2\rdb\DH13\" -r -md -q
 fs c "<FolderpathtoAGSDrives>\WHD_Games.hdf\rdb\1" "\diskx\MBR\2\rdb\DH14\" -r -md -q
 fs c "<FolderpathtoAGSDrives>\Emulators2.hdf\rdb\1" "\diskx\MBR\2\rdb\DH15\" -r -md -q
-fs c "<FilepathtoKickstartROM>" \diskx\MBR\1\kick.rom 
+fs c "\diskx\MBR\2\rdb\DH0\Devs\Kickstarts\kick40068.A1200" \diskx\MBR\1\kick.rom 
 fs c "<Folderpath>\FilestoAdd\Emu68Boot" \diskx\MBR\1\ -r -md -q
 fs mkdir \diskx\MBR\1\SHARED\SaveGames
 fs c "\diskx\MBR\2\rdb\DH0\s\startup-sequence" "\diskx\MBR\2\rdb\DH0\s\startup-sequence.bak"
