@@ -110,13 +110,15 @@ Delete >NIL: Devs:Monitors/SuperPlus
 Delete >NIL: Devs:Monitors/Xtreme
 
 AGS_Drive:AGS2
-List >T:ThemeChange themes PAT #?.conf LFORMAT "searchreplace FROM %N TO %N SEARCH $500A1000 REPLACE $501E1000 INPLACE"
+List >T:ThemeChange themes PAT #?.conf LFORMAT "searchreplace FROM %N TO %N SEARCH $00029004 REPLACE $501E1000 INPLACE"
 CD AGS_Drive:AGS2/Themes
 Ex T:ThemeChange
 CD AGS_Drive:AGS2/Themes.ags
 Searchreplace FROM AGS_Drive:AGS2/ags2.conf TO AGS_Drive:AGS2/ags2.conf SEARCH $500A1000 REPLACE $501E1000 INPLACE
+Searchreplace FROM AGS_Drive:AGS2/ags2.conf TO AGS_Drive:AGS2/ags2.conf SEARCH $00029004 REPLACE $501E1000 INPLACE
+Rename >NIL: "- Use RTG Screen -.run" to "- Use RTG Screen -.rub"
+Rename >NIL: "- Use AGA Screen -.rub" to "- Use AGA Screen -.run"
 Delete >NIL: SYS:Prefs/Env-Archive/FirstBoot
-
 Endif
 
  DevEx >NIL brcm-emmc.device
