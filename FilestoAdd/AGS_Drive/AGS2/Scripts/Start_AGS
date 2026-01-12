@@ -204,20 +204,37 @@ If $HW EQ "Real"
  
 Endif
 
-
-If $HW NOT EQ "Real"
+If $HW EQ "PiStorm"
  CD AGS:Options.ags
  
- If Exists "Degrader Options.ags"
-  Rename >NIL: "Degrader Options.ags" TO "Degrader Options.agz"
+ If Exists "Degrader Options.agz"
+  Rename >NIL: "Degrader Options.agz" TO "Degrader Options.ags"
  Endif
- 
- If Exists "CPU Options.agz"
-  Rename >NIL: "CPU Options.agz" TO "CPU Options.agz"
+ If Exists "Emulator Options.run"
+  rename >NIL: "Emulator Options.run" ""Emulator Options.rub"
  Endif
- 
+ If Exists "[Quit to OS].run"
+  nrename >NIL: "[Quit to OS].run" "Quit to OS].rub"
+ Endif
+ If Exists "CPU Options.ags"
+  Rename >NIL: "CPU Options.ags" TO "CPU Options.agz"
+ Endif
 Endif
 
+If $HW NOT EQ "Real"
+ If $HW NOT EQ "PiStorm"
+  CD AGS:Options.ags
+  
+  If Exists "Degrader Options.ags"
+   Rename >NIL: "Degrader Options.ags" TO "Degrader Options.agz"
+  Endif
+ 
+  If Exists "CPU Options.agz"
+   Rename >NIL: "CPU Options.agz" TO "CPU Options.ags"
+  Endif
+ 
+ Endif
+Endif
 
 ; Change to AGS drawer
 
