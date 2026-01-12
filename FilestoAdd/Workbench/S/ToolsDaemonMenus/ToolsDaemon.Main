@@ -24,6 +24,13 @@ TITLE Utilities
 	(WB) "Workbench:Utilities/Redit2.0/Redit" []
 	ITEM PDF Viewer
 	(WB) "Workbench:Utilities/RNOPDF/RNOPDF" []
+	ITEMBAR
+	ITEM Insert ADF
+	(WB) "Scripts:Insert_ADF" []
+	ITEM Remove ADF
+	(WB) "Scripts:Remove_ADF" []
+	ITEM Create ADF
+	(WB) "System:Utilities/EmptyADF/EmptyADF" []
 TITLE Settings
 	ITEM AGA Mode
 	(WB) "Scripts:AGA_Mode" []
@@ -32,8 +39,6 @@ TITLE Settings
 	ITEM Refresh Icons
 	(CLI) 4096 "C:RefreshIcons" []
 	ITEMBAR
-	ITEM Emulator Settings
-	(CLI) 4096 uae-configuration SPC_ENTERGUI 1
 	ITEM Boot Settings
 		SUB Boot To AGS
 		(WB) Scripts:Boot_AGS
@@ -55,7 +60,6 @@ TITLE Settings
 	ITEMBAR
 	ITEM Reboot
 	(CLI) 4096 c:Reboot
-	ITEMBAR
 TITLE Documents
     ITEM AGS WebSite
 	(CLI) 4096 System:C/openurl www.amigagameselector.co.uk
