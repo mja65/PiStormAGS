@@ -92,33 +92,34 @@ BindDrivers
 If $PiStorm EQ "1"
 
 If $FirstBoot EQ "1"
+ failat 21
+ Delete >NIL: Libs:680x0.library 
+ Delete >NIL: Libs:68020.library 
+ Delete >NIL: Libs:68030.library 
+ Delete >NIL: Libs:68040.library 
+ Delete >NIL: Libs:68060.library 
+ Delete >NIL: Devs:Monitors/uaegfx
+ Delete >NIL: Devs:Monitors/uaegfx.info
+ Delete >NIL: Devs:Monitors/HD720.info
+ Delete >NIL: Devs:Monitors/HighGFX.info
+ Delete >NIL: Devs:Monitors/SuperPlus.info
+ Delete >NIL: Devs:Monitors/Xtreme.info
+ Delete >NIL: Devs:Monitors/HD720
+ Delete >NIL: Devs:Monitors/HighGFX
+ Delete >NIL: Devs:Monitors/SuperPlus
+ Delete >NIL: Devs:Monitors/Xtreme
 
-Delete >NIL: Libs:680x0.library 
-Delete >NIL: Libs:68020.library 
-Delete >NIL: Libs:68030.library 
-Delete >NIL: Libs:68040.library 
-Delete >NIL: Libs:68060.library 
-Delete >NIL: Devs:Monitors/uaegfx
-Delete >NIL: Devs:Monitors/uaegfx.info
-Delete >NIL: Devs:Monitors/HD720.info
-Delete >NIL: Devs:Monitors/HighGFX.info
-Delete >NIL: Devs:Monitors/SuperPlus.info
-Delete >NIL: Devs:Monitors/Xtreme.info
-Delete >NIL: Devs:Monitors/HD720
-Delete >NIL: Devs:Monitors/HighGFX
-Delete >NIL: Devs:Monitors/SuperPlus
-Delete >NIL: Devs:Monitors/Xtreme
-
-cd AGS_Drive:AGS2
-Searchreplace FROM AGS_Drive:AGS2/ags2.conf TO AGS_Drive:AGS2/ags2.conf SEARCH $00029004 REPLACE $501E1000 INPLACE
-Searchreplace from ags2.conf TO ags2.conf SEARCH $500A1000 REPLACE $501E1000 INPLACE
-CD Themes
-List >T:ThemeChange PAT #?.conf LFORMAT "searchreplace FROM %N TO %N SEARCH $00029004 REPLACE $501E1000 INPLACE"
-Ex T:ThemeChange
-CD AGS_Drive:AGS2/Themes.ags
-Rename >NIL: "- Use RTG Screen -.run" to "- Use RTG Screen -.rub"
-Rename >NIL: "- Use AGA Screen -.rub" to "- Use AGA Screen -.run"
-Delete >NIL: SYS:Prefs/Env-Archive/FirstBoot
+ cd AGS_Drive:AGS2
+ Searchreplace FROM AGS_Drive:AGS2/ags2.conf TO AGS_Drive:AGS2/ags2.conf SEARCH $00029004 REPLACE $501E1000 INPLACE
+ Searchreplace from ags2.conf TO ags2.conf SEARCH $500A1000 REPLACE $501E1000 INPLACE
+ CD Themes
+ List >T:ThemeChange PAT #?.conf LFORMAT "searchreplace FROM %N TO %N SEARCH $00029004 REPLACE $501E1000 INPLACE"
+ Ex T:ThemeChange
+ CD AGS_Drive:AGS2/Themes.ags
+ Rename >NIL: "- Use RTG Screen -.run" to "- Use RTG Screen -.rub"
+ Rename >NIL: "- Use AGA Screen -.rub" to "- Use AGA Screen -.run"
+ Delete >NIL: SYS:Prefs/Env-Archive/FirstBoot
+ failat 10
 Endif
 
  DevEx >NIL brcm-emmc.device

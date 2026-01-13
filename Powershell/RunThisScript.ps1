@@ -22,7 +22,8 @@ else {
     exit
 }
 
-Write-host "AGS PiStorm Image Generator"
+Write-host "AGS PiStorm Image Generator v0.1"
+Write-Host "This tool will write an image to a SD card suitable for use in your PiStorm"
 Write-Host "Running on $HostOS"
 Add-Type -AssemblyName System.Net.Http
 $client = [System.Net.Http.HttpClient]::new()
@@ -51,16 +52,6 @@ foreach ($key in $FolderMapping.Keys) {
     }
     # Resolve the full absolute path now that we are sure it exists
     $Paths[$key] = (Get-Item $Target).FullName
-}
-
-# Creates a 'temp' folder in the script's current directory
-if (-not (Test-Path (Join-Path -Path $BaseDir -ChildPath "..\Temp"))){
-    $null = New-Item -Path (Join-Path -Path $BaseDir -ChildPath "..\Temp") -ItemType Directory
-}
-
-# Creates a 'temp' folder in the script's current directory
-if (-not (Test-Path (Join-Path -Path $BaseDir -ChildPath "..\HSTImager"))){
-    $null = New-Item -Path (Join-Path -Path $BaseDir -ChildPath "..\HSTImager") -ItemType Directory
 }
 
 $FileSystemFolder = (Get-Item (Join-Path -Path $BaseDir -ChildPath "..\FileSystem")).FullName
@@ -148,6 +139,21 @@ if (-not $IsAdmin) {
     }
 }
 
+
+$AGSVersion = ""
+while ($AGSVersion -notin @("WinUAE", "AGA")) {
+    Write-Host ""
+    Write-Host "Select AGS Installation Version:" -ForegroundColor Cyan
+    Write-Host ""    
+    Write-Host "1. WinUAE - this will install the WinUAE version of AGS. You will need a 64Gib card"
+    Write-Host "2. AGA (A1200 only) - this will install the AGA version of AGS. You will need a 32GiB card"
+    $Selection = Read-Host "Enter choice (1 or 2)"
+    if ($Selection -eq "1") { $AGSVersion = "WinUAE" }
+    elseif ($Selection -eq "2") { $AGSVersion = "AGA" }
+    else { Write-Warning "Invalid selection. Please enter 1 or 2." }
+}
+Write-Host "Selected Version: $AGSVersion`n" -ForegroundColor Green
+
 Write-Host "`nListing disks via $HSTImagerExecutableName..." -ForegroundColor Green
 Write-Host "Identify the disk you wish to use to write the image. Note this disk will be erased!"
 
@@ -200,55 +206,77 @@ while (-not $DiskValid) {
     }
 }
 
-# Define the list of required files/folders for the AGS Image source
-$RequiredFiles = @(
-    "AGS_Drive.hdf", "Emulators.hdf", "Emulators2.hdf", "Games.hdf", 
-    "Media.hdf", "Music.hdf", "Premium.hdf", "WHD_Demos.hdf", 
-    "WHD_Games.hdf", "Work.hdf", "Workbench.hdf"
-)
-$RequiredDir = "SHARED"
+If ($AGSVersion -eq "WinUAE"){
+    # Define the list of required files/folders for the AGS Image source
+    $RequiredFiles = @(
+        "AGS_Drive.hdf", "Emulators.hdf", "Emulators2.hdf", "Games.hdf", 
+        "Media.hdf", "Music.hdf", "Premium.hdf", "WHD_Demos.hdf", 
+        "WHD_Games.hdf", "Work.hdf", "Workbench.hdf"
+    )
+    $RequiredDir = "SHARED"
+}
+else {
+        $RequiredFiles = @(
+        "AGS_Classic_AGA_KickstartFix_v30.img"
+    )
+}
 
 # Validation loop for the AGS Source Folder
 $SourceValid = $false
 while (-not $SourceValid) {
+    # Determine the specific terminology based on version
+    $FileTypeLabel = if ($AGSVersion -eq "WinUAE") { "AGS .hdf files" } else { "AGS_Classic_AGA_KickstartFix_v30.img" }
+    
     if ($HostOS -eq "Windows") {
-        $AGSSourceLocation = Read-Host -Prompt "Provide the folder containing your AGS HDF files (e.g. C:\Emulators\AGS\WinUAE\AGS_UAE)"
+        $ExamplePath = if ($AGSVersion -eq "WinUAE") { "C:\Emulators\AGS\WinUAE\AGS_UAE" } else { "C:\Emulators\AGS\AGS_Classic" }
+        $AGSSourceLocation = Read-Host -Prompt "Provide the folder containing your $FileTypeLabel (e.g. $ExamplePath)"
     }
-     
     else {
-        $AGSSourceLocation = Read-Host -Prompt "Provide the folder containing your AGS HDF files (e.g. /home/user/documents/AGS/WinUAE/AGS_UAE). Note this is case-sensitive!"
+        # Linux/MacOS Example
+        $ExamplePath = if ($AGSVersion -eq "WinUAE") { "/home/user/documents/AGS/WinUAE/AGS_UAE" } else { "/home/user/documents/AGS/AGS_Classic" }
+        $AGSSourceLocation = Read-Host -Prompt "Provide the folder containing your $FileTypeLabel (e.g. $ExamplePath). Note this is case-sensitive!"
     }
-    $AGSSourceLocation = $AGSSourceLocation.Trim("'").Trim('"').TrimEnd('\')
+    
+    $AGSSourceLocation = $AGSSourceLocation.Trim("'").Trim('"').TrimEnd('\').TrimEnd('/')
     
     if (Test-Path -Path $AGSSourceLocation -PathType Container) {
         $MissingItems = @()
-
-        # Check for HDF files
-        foreach ($File in $RequiredFiles) {
-            $FilePath = Join-Path -Path $AGSSourceLocation -ChildPath $File
-            if (-not (Test-Path -Path $FilePath -PathType Leaf)) {
-                $MissingItems += $File
+        if ($AGSVersion -eq "WinUAE") {
+            # Check for HDF files
+            foreach ($File in $RequiredFiles) {
+                $FilePath = Join-Path -Path $AGSSourceLocation -ChildPath $File
+                if (-not (Test-Path -Path $FilePath -PathType Leaf)) {
+                    $MissingItems += $File
+                }
+            }        
+            # Check for SHARED directory
+            $DirPath = Join-Path -Path $AGSSourceLocation -ChildPath $RequiredDir
+            if (-not (Test-Path -Path $DirPath -PathType Container)) {
+                $MissingItems += "$RequiredDir (Directory)"
             }
         }
-
-        # Check for SHARED directory
-        $DirPath = Join-Path -Path $AGSSourceLocation -ChildPath $RequiredDir
-        if (-not (Test-Path -Path $DirPath -PathType Container)) {
-            $MissingItems += "$RequiredDir (Directory)"
+        else {
+            # AGA Logic: Check for the single file stored in $RequiredFiles
+            $FilePath = Join-Path -Path $AGSSourceLocation -ChildPath $RequiredFiles[0]
+            if (-not (Test-Path -Path $FilePath -PathType Leaf)) {
+                $MissingItems += $RequiredFiles[0]
+            }
         }
-
+    
         if ($MissingItems.Count -eq 0) {
             $SourceValid = $true
-            Write-Host "Success: All required files and folders found in $AGSSourceLocation" -ForegroundColor Green
+            Write-Host "Success: All required components for $AGSVersion found in $AGSSourceLocation" -ForegroundColor Green
         }
         else {
-            Write-Warning "The folder is missing the following required components:"
+            Write-Warning "The folder is missing the following required components for ${AGSVersion}:"
             $MissingItems | ForEach-Object { Write-Host " - $_" -ForegroundColor Red }
         }
     }
+
     else {
         Write-Warning "The directory '$AGSSourceLocation' does not exist."
     }
+
 }
 
 # 3. Define Output Script Path
@@ -256,6 +284,9 @@ $ScriptOutputFile = Join-Path -Path $TempFolderPath -ChildPath "hst_commands.txt
 
 # 4. Generate the Text File Content
 # Injected variables: $TempFolderPath, $AGSSourceLocation, $DisktoUse, $FilepathtoKickstartROM
+
+if ($AGSVersion -eq "WinUAE") {
+
 $ScriptContent = @"
 settings update --cache-type disk
 blank "$TempFolderPath\Clean.vhd" 10mb
@@ -283,14 +314,40 @@ fs c "$DisktoUse\MBR\2\rdb\DH0\s\startup-sequence" "$DisktoUse\MBR\2\rdb\DH0\s\s
 fs c "$DisktoUse\MBR\2\rdb\DH0\s\user-startup" "$DisktoUse\MBR\2\rdb\DH0\s\user-startup.bak"
 fs c "$DisktoUse\MBR\2\rdb\DH0\s\AGS-Stuff" "$DisktoUse\MBR\2\rdb\DH0\s\AGS-Stuff.bak"
 fs c "$DisktoUse\MBR\2\rdb\DH0\c\whdload" "$DisktoUse\MBR\2\rdb\DH0\c\whdload.ori"
-fs c "$FilestoAddPath\Workbench" "$DisktoUse\MBR\2\rdb\DH0" -r -md -q -f
-fs c "$FilestoAddPath\AGS_Drive" "$DisktoUse\MBR\2\rdb\DH4" -r -md -q -f
+fs c "$FilestoAddPath\WinUAE\Workbench" "$DisktoUse\MBR\2\rdb\DH0" -r -md -q -f
+fs c "$FilestoAddPath\WinUAE\AGS_Drive" "$DisktoUse\MBR\2\rdb\DH4" -r -md -q -f
 fs c "$DisktoUse\MBR\2\rdb\DH0\Devs\monitors\HD720*" "$DisktoUse\MBR\2\rdb\DH0\storage\monitors"
 fs c "$DisktoUse\MBR\2\rdb\DH0\Devs\monitors\HighGFX*" "$DisktoUse\MBR\2\rdb\DH0\storage\monitors"
 fs c "$DisktoUse\MBR\2\rdb\DH0\Devs\monitors\SuperPlus*" "$DisktoUse\MBR\2\rdb\DH0\storage\monitors"
 fs c "$DisktoUse\MBR\2\rdb\DH0\Devs\monitors\Xtreme*" "$DisktoUse\MBR\2\rdb\DH0\storage\monitors"
 fs c "$DisktoUse\MBR\2\rdb\DH0\Devs\Kickstarts\kick40068.A1200" "$DisktoUse\MBR\1\kick.rom"
 "@
+}
+
+else {
+   If ($HostOS -eq "Windows"){
+       $AGAImageFile = "$AGSSourceLocation\$($RequiredFiles[0])"
+   }
+   else {
+       $AGAImageFile = "$AGSSourceLocation/$($RequiredFiles[0])"
+   }
+
+   $ScriptContent = @"
+settings update --cache-type disk
+blank "$TempFolderPath\Clean.vhd" 10mb
+write "$TempFolderPath\Clean.vhd" $DisktoUse --skip-unused-sectors FALSE
+mbr init $DisktoUse
+mbr part add $DisktoUse 0xb 250mb --start-sector 2048
+mbr part format $DisktoUse 1 EMU68BOOT
+mbr part add $DisktoUse 0x76 30601641984
+write "$AGAImageFile" "$DisktoUse\mbr\2"
+fs c "$DisktoUse\MBR\2\rdb\DH0\Devs\Kickstarts\kick40068.A1200" "$DisktoUse\MBR\1\kick.rom"
+fs c "$FilestoAddPath\Emu68Boot" $DisktoUse\MBR\1\ -r -md -q
+fs mkdir $DisktoUse\MBR\1\SHARED\SaveGames
+fs c "$DisktoUse\MBR\2\rdb\DH0\c\whdload" "$DisktoUse\MBR\2\rdb\DH0\c\whdload.ori"
+fs c "$FilestoAddPath\AGA\Workbench" "$DisktoUse\MBR\2\rdb\DH0" -r -md -q -f
+"@   
+}
 
 If ($HostOS -ne "Windows"){
     $ScriptContent = $ScriptContent.Replace("\","/")
@@ -308,8 +365,9 @@ If ($HostOS -ne "Windows"){
 Write-Host "`n====================================================" -ForegroundColor Yellow
 Write-Host "            READY TO WRITE TO DISK" -ForegroundColor Yellow
 Write-Host "====================================================" -ForegroundColor Yellow
-Write-Host "Target Disk:       $DisktoUse" -ForegroundColor Red
-Write-Host "Source Folder:     $AGSSourceLocation"
+Write-Host "Target Disk:          $DisktoUse" -ForegroundColor Red
+Write-Host "Selected AGS Version: $AGSVersion"
+Write-Host "Source Folder:        $AGSSourceLocation"
 Write-Host "----------------------------------------------------"
 Write-Host "WARNING: This will ERASE all data on $DisktoUse." -ForegroundColor Red
 Write-Host "====================================================" -ForegroundColor Yellow

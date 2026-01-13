@@ -1,0 +1,134 @@
+Short:    P96/CGFX v1.2 graphics benchmark program
+Author:   Jens Langner <htw10895@informatik.htw-dresden.de>
+Uploader: Jens Langner <htw10895@informatik.htw-dresden.de>
+Type:     gfx/board
+Version:  1.2
+
+Description:
+~~~~~~~~~~~
+
+P96Speed is a graphics benchmark program.
+
+It will test standard graphics routines of graphics and intuition library.
+
+It is absolutly independent and should work with any known graphics system
+like Picasso96/CyberGraphX or simply on standard AGA screens.
+
+You can also compare different systems with P96Speed.
+
+Please report any problem or suggestion directly to me.
+
+Jens Langner....
+htw10895@informatik.htw-dresden.de
+http://p96speed.home.pages.de/
+
+Requirements:
+~~~~~~~~~~~~
+- Kickstart and Workbench 2.0 (V36+)
+- Motorola MC68020 processor or better,
+- gtlayout.library v16+     (Olaf Barthel)
+- identify.library v8+      (Richard Koerber)
+
+P96Speed is EMailware. This means, if you are using this program you have to
+write a email to me (htw10895@informatik.htw-dresden.de).
+
+
+Short history:
+~~~~~~~~~~~~~
+  1.2 (February 10, 1999)
+    February 10, 1999
+      - after a long night I removed a mungwall hit which was caused by a bad
+        initialized timer.device. This hit corrupted the memlist which often
+        ends up in random crashes. (Jens Tröger)
+    February 09, 1999
+      - found/removed a enforcer hit which happened on using the menu shortcuts.
+    February 08, 1999
+      - added french localization. (Pascal Chiozzi)
+      - added russian localization. (Russian Amiga Translation Organization)
+      - found/removed bug in the locale initialization which caused weird pointers
+        that sometimes hung the system.
+      - found/removed ugly bug in the load IFF routines where I didn`t terminated
+        strings correctly.
+    February 06, 1999
+      - found/removed bug which caused recoverable alerts on "reload database"
+        (Rene. W. Olsen)
+    February 04, 1999
+      - reordered the shortcuts(Hotkeys) for the testroutines to be more simple
+        (Niels Knoop)
+      - hopefully removed the ugly GUI bug when switching the Pagegroups, the
+        standard buttons got corrupt. (Niels Knoop)
+      - fixed the installscript to work correctly with the new installer
+        (SaVInstaller) (Jens Tröger)
+    February 02, 1999
+      - reordered the testroutines in the "compare machine" register and also
+        added the forgotten difference field.
+        (Niels Knoop)
+
+  1.1 (January 30, 1999)
+    January 28, 1999
+      - removed the requirement of the identify.library introduced with the
+        v1.0 version. Now you can also use P96Speed without this library, but
+        a warningrequester will pop up. (Tobias Abt)
+    January 27, 1999
+      - implemented new testroutine Draw() Hor/Ver, that tests the speed of
+        drawing horizontal and vertical Lines. (Niels Knoop)
+    December, 1998
+      - disabled multitasking for ScrollRaster() routines.
+      - doublechecked all drawroutines again to be sure to NOT draw outside the
+        RastPort which caused crashes with WritePixelLine8().
+      - modified the way that all tests are run. Now the screen will not close
+        and open everytime if you running "Run all tests."
+      - The Draw() testroutine will now draw a circle to test the speed. This way
+        of testing Draw() is more "standard" ;)
+      - WritePixel() will now draw all pixel on random colors.
+      - included some more error-checks
+      - added a requester to tell the user that he/she is trying to load an
+        incompatible version of a database.
+      - removed bug on the autoselection of the screenmode.
+      - changed the BuildEasyRequesters to act as v2.0+ EasyRequest requesters.
+        (Jens Tröger)
+      - using my best friends tools lib "savage.lib" with many useful functions.
+        (Jens Tröger)
+      - removed a ugly bug in the list/node handling (Jens Tröger)
+
+  1.0 (December 8, 1998)
+    November, 1998
+      - bumped version up to v1.00 because P96Speed is final now. All known bugs
+        should be removed.
+        Please report any bugs who are left directly to:
+        htw10895@informatik.htw-dresden.de
+      - recompiled P96Speed with StormC v3.0
+        all future versions of P96Speed will be compiled with StormC
+
+  0.18ß (internal release)
+    October, 1998
+      - added feature to also select the source machine for the comparsion.
+      - added feature to select the comparsion machine directly from the
+        comparsion page.
+      - added long awaited locale support. Now every guy can tune his own
+        translation (P96Speed.cd included)
+      - fixed bug in the ScreenTitle allocation.
+      - forgot to free some memory in the list/node routines
+      - added more information to the database like Owner, E-mail etc.
+      - removed ugly bug in the TAB_KIND notification with the AutoPageID feature
+        of gtlayout. (Olaf Barthel)
+      - rewritten the IFFParse routines completly from scratch. Implemented it in
+        a way that future versions of P96Speed will stay compatible in the file
+        format. Earlier versions ( < 0.18ß) are now incompatible with the file
+        format of the compare datas. Iam sorry for that but this change was
+        needed to keep the format compatible in future versions.
+      - added feature to sort the entries in the database (Top/Up/Down/Bottom).
+      - Now you can directly choose a screenmode if the programm requests you for
+        one.
+      - Changed the way the save button will be handled. It will change its name
+        in the different pagegroups.
+      - Changed the layout of the GUI a little bit to solve problems with long
+        strings
+      - again optimzed the timing routine that calculates the executed operations
+        per second.
+      - now P96Speed uses GetSysTime() instead of requesting Time with
+        TR_GETSYSTIME this should make the tests more accurate.
+      - removed bug in the WritePixelLine8() routine. The lines were drawn
+        outside the rastport what results in some crashes on PAL Screens.
+
+... more history in .guide file ...

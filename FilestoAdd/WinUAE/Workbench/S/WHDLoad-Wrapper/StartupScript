@@ -1,0 +1,472 @@
+.key SLAVE/A,HDLOAD/K,EMU68/S,VAMP/S,UAE/S,NOJIT/S,ECS/S,SLOW/S,CYCLE/S,NOCACHE/S,WNC/S,WEC/S,NOTURBO/S,NFC/S,SC/S,NBW/S,SCS/K,ICNT/K,CCRD/K,MHZ/K,DM/K,FM/K,SS/K,TU/K,ZO/K,ZV/K,ZH/K,WHD/K,WHDARGS/F
+.bra {
+.ket }
+
+;------------------------------------------------------------------------------
+; $VER: WHDLoad-Wrapper 0.7 (18.2.2024)
+;------------------------------------------------------------------------------
+; WHDLOAD Options:
+;---------
+; SLAVE/A   : WHD Slave file name (Mandatory)
+; WNC/S     : WHDLoad NOCACHE option (Switch)
+; WEC/S     : WHDLoad EXPCHIP option (Switch)
+; WHD="xxx" : Additional WHDLoad options you need
+;
+; EMU68 Specific Options:
+;-------
+; EMU68/S   : Are we running under EMU68 option (Switch)
+; NOTURBO/S : Emu68Info SetTurbo=0 option (Switch)
+; NFC/S     : EmuControl NOCACHE option (Switch)
+; SC/S      : EmuControl SLOWDOWNCHIP (SC) option (Switch)
+; SCS/N     : EmuControl SLOWCHIPSPACING (SCS) option (Number) Default=1 
+; NBW/S     : EmuControl NOBLITTERWAIT (NBW) option (Switch)
+; ICNT/N    : EmuControl ICNT option (Number) default=2
+; CCRD/N    : EmuControl CCRD option (Number) default=0
+; MHZ/N     : Emu68Info CLOCKRATE option (Number) or Emu68Downclocker if < 600
+;
+; VAMPIRE Specific Options:
+;---------
+; VAMP/S    : Are we running under VAMPIRE option (Switch)
+; DM/N      : ApolloControl DISPLAYMODE Display mode. 0=NTSC, 1=PAL
+; FM/N      : ApolloControl FORCEMODE Graphic mode (0=AGA, 1=OCS)
+; SS/N      : ApolloControl SUPERSCALAR SuperScalar mode. 0=Off, 1=On
+; TU/N      : ApolloControl TURTLE Turtle mode. 0=Off, 1=A500, 2=A1200
+; ZO/N      : ApolloControl ZOOM Zoom mode. 0=Off, 1=320x200, 2=320x240, 3=320x256, V4(+)
+; ZV/N      : ApolloControl ZOOMVERTICAL Zoom VERTICAL SHIFT value. 0 to 126, V4(+)
+; ZH/N      : ApolloControl ZOOMHORIZONTAL Zoom HORIZONTAL SHIFT value. 0 to 62, V4(+)
+;
+; UAE Specific Options:
+;-----
+; UAE/S     : Are we running under UAE option (Switch)
+; NOJIT/S   : UAE-Configuration cachesize 0
+; ECS/S     : UAE-Configuration chipset ecs
+; SLOW/S    : UAE-Configuration cpu_speed real
+; CYCLE/S   : UAE-Configuration cpu_cycle_exact true
+;
+; MISC Options:
+;------
+; HDLOAD/K  : Do not run WHDLoad, instead use HDLoad parameter to run custom command
+; NOCACHE/S : CPU nocache
+;------------------------------------------------------------------------------
+
+FAILAT 200
+
+;------------------------------------------------------------------------------
+; Run WHDLoad and Slave Updater
+;------------------------------------------------------------------------------
+
+S:WHDLoad-Wrapper/Updater/WHDUpdate "{SLAVE}"
+
+IF EXISTS RAM:WHDWrapperUpdate/WHDLoadWrapper/Installer
+
+    ;ECHO "WHDLoadWrapper UPDATE exists"
+
+    CD RAM:WHDWrapperUpdate/WHDLoadWrapper/
+    S:WHDLoad-Wrapper/Updater/Installer Installer APPNAME=WHDLoadWrapper MINUSER=average DEFUSER=average >NIL:
+    SKIP EndOfScript
+ENDIF
+
+IF "$DATABASEUPDATED" NOT EQ ""
+    ;ECHO "WRAPPER DATABASE UPDATED. EXITING..."
+    SKIP EndOfScript
+ENDIF
+
+;------------------------------------------------------------------------------
+; Install Bplcon3Hack if running on Emu68
+;------------------------------------------------------------------------------
+
+IF {EMU68}
+    Version C:WHDLoad.ori Version 20 >NIL:
+    IF WARN
+        c:Bplcon3Hack INSTALL QUIET
+    ENDIF
+ENDIF
+
+;------------------------------------------------------------------------------
+; Options for EmuControl
+;------------------------------------------------------------------------------
+
+SET OPTIONS1 ""
+
+IF {EMU68}
+    IF {NFC}
+        SET OPTIONS1 $OPTIONS1 NOCACHE
+    ENDIF
+
+    IF {SC}
+        SET OPTIONS1 $OPTIONS1 SC
+    ENDIF
+
+    IF {NBW}
+        SET OPTIONS1 $OPTIONS1 NBW
+    ELSE
+        SET OPTIONS1 $OPTIONS1 BW
+    ENDIF
+
+    IF {SCS}
+        IF {SC}
+            SET OPTIONS1 $OPTIONS1 SCS {SCS}
+        ELSE
+            SET OPTIONS1 $OPTIONS1 SC SCS {SCS}
+        ENDIF
+    ENDIF
+
+    IF {ICNT}
+        SET OPTIONS1 $OPTIONS1 ICNT {ICNT}
+    ELSE
+        SET OPTIONS1 $OPTIONS1 ICNT=2
+    ENDIF 
+
+    IF {CCRD}
+        SET OPTIONS1 $OPTIONS1 CCRD {CCRD}
+    ELSE
+        SET OPTIONS1 $OPTIONS1 CCRD=0
+    ENDIF 
+
+ENDIF
+
+;------------------------------------------------------------------------------
+; Options for Emu68Info and Emu68Downclocker
+;------------------------------------------------------------------------------
+
+SET OPTIONS2I ""
+SET OPTIONS2D ""
+
+IF {EMU68}
+    IF {MHZ} VAL GT 0
+        IF {MHZ} VAL GT 600
+            SET OPTIONS2I $OPTIONS2I SETCLOCKRATE {MHZ}
+        ELSE    
+            SET OPTIONS2D $OPTIONS2D CLOCKRATE {MHZ}
+        ENDIF
+    ENDIF
+
+    IF {NOTURBO}
+        SET OPTIONS2I $OPTIONS2I SetTurbo=0
+    ENDIF
+
+ENDIF
+
+;------------------------------------------------------------------------------
+; Options for Vampire
+;------------------------------------------------------------------------------
+
+SET OPTIONSV ""
+
+IF {VAMP}
+
+    IF {DM}
+        SET OPTIONSV $OPTIONSV DM={DM}
+    ENDIF
+
+    IF {FM}
+        SET OPTIONSV $OPTIONSV FM={FM}
+    ENDIF
+
+    IF {SS}
+        SET OPTIONSV $OPTIONSV SS={SS}
+    ENDIF
+
+    IF {TU}
+        SET OPTIONSV $OPTIONSV TU={TU}
+    ENDIF
+
+    IF {ZO}
+        SET OPTIONSV $OPTIONSV ZO={ZO}
+    ENDIF
+
+    IF {ZV}
+        SET OPTIONSV $OPTIONSV ZV={ZV}
+    ENDIF
+
+    IF {ZH}
+        SET OPTIONSV $OPTIONSV ZH={ZH}
+    ENDIF
+
+ENDIF
+
+;------------------------------------------------------------------------------
+; Generic Options
+;------------------------------------------------------------------------------
+
+SET OPTIONSU2 ""
+
+IF {NOCACHE}
+    SET OPTIONSU2 $OPTIONSU2 nocache
+ENDIF
+
+;------------------------------------------------------------------------------
+; Options for UAE
+;------------------------------------------------------------------------------
+
+SET OPTIONSU ""
+
+IF {UAE}
+
+    IF {NOJIT}
+        SET OPTIONSU $OPTIONSU cachesize 0
+        uae-configuration cachesize > ENV:UAECACHESIZE
+    ENDIF
+    IF {ECS}
+        checkagatest
+        IF $RC EQ 0
+            SET AGAMode 1
+            SET OPTIONSU $OPTIONSU chipset ecs
+            uae-configuration chipset > ENV:UAECHIPSET
+        ELSE
+            SET AGAMode 0
+        ENDIF
+    ENDIF
+    IF {SLOW}
+        SET OPTIONSU $OPTIONSU cpu_speed real
+        uae-configuration cpu_speed > ENV:UAECPUSPEED
+    ENDIF
+    IF {CYCLE}
+        SET OPTIONSU $OPTIONSU cpu_cycle_exact true
+        uae-configuration cpu_cycle_exact > ENV:UAECYCLE
+    ENDIF
+
+ENDIF
+
+;------------------------------------------------------------------------------
+; Options for WHDLoad
+;------------------------------------------------------------------------------
+
+SET WHDTurtle "" 
+SET WHDA ""
+
+SET OPTIONS3 "{WHD}"
+;GET OPTIONS3 
+
+IF "$OPTIONS3" NOT EQ ""
+    SET WHDTurtle "$WHDTurtle $OPTIONS3"
+ENDIF 
+
+SET >NIL: WHDA {WHDARGS} 
+
+IF {WNC}
+    SET OPTIONS3 "$OPTIONS3 NOCACHE"
+    SET WHDTurtle "$WHDTurtle NOCACHE" 
+ENDIF
+
+IF {WEC}
+    SET OPTIONS3 "$OPTIONS3 EXPCHIP"
+    SET WHDTurtle "$WHDTurtle EXPCHIP" 
+ENDIF
+
+IF "$WHDTurtle" NOT EQ ""
+    SET WHDTurtle "WHDLoad$WHDTurtle"
+ENDIF 
+
+;------------------------------------------------------------------------------
+; Display TURTLE
+;------------------------------------------------------------------------------
+ 
+SET EmuControlTurtle ""
+IF "$OPTIONS1" NOT EQ ""
+    SET EmuControlTurtle "EmuControl $OPTIONS1 "
+ENDIF
+
+SET MhzTurtle ""
+IF {MHZ} VAL GT 0
+    SET MhzTurtle "Clock {MHZ} Mhz "
+ENDIF
+
+SET TurboTurtle ""
+IF {NOTURBO}
+    SET TurboTurtle "Turbo Disabled "
+ENDIF
+
+SET VampireTurtle ""
+IF "$OPTIONSV" NOT EQ ""
+    SET VampireTurtle "ApolloControl $OPTIONSV "
+ENDIF
+
+SET UAETurtle ""
+IF "$OPTIONSU" NOT EQ ""
+    SET UAETurtle "UAE"
+    IF {NOJIT}
+        SET UAETurtle "$UAETurtle NOJIT"
+    ENDIF
+    IF {ECS}
+        IF $AGAMode VAL EQ 1
+            SET UAETurtle "$UAETurtle ECS"
+        ENDIF
+    ENDIF
+    IF {SLOW}
+        SET UAETurtle "$UAETurtle SLOW"
+    ENDIF
+    IF {CYCLE}
+        SET UAETurtle "$UAETurtle CYCLE EXACT"
+    ENDIF
+    IF {NOCACHE}
+        SET UAETurtle "$UAETurtle CPU NOCACHE"
+    ENDIF
+    SET UAETurtle "$UAETurtle "
+ELSE
+    IF {NOCACHE}
+        SET UAETurtle "CPU NOCACHE "
+    ENDIF
+ENDIF
+
+SET TTEXT "  $UAETurtle$VampireTurtle$EmuControlTurtle$MhzTurtle$TurboTurtle$WHDTurtle"
+;run >NIL: screenturtle "$TTEXT" Position B DIST 0 D=4 T CC0000 F FFFF00 SS 0
+run >NIL: screentext "$TTEXT" Position B D=4 FONT Helvetica/18 T 000000 SS 0
+
+; Display Turtle for HD Load
+IF "{HDLOAD}" NOT EQ ""
+  run >nil: screentext "Loading Using HD Loader" Position C DIST 0 FONT Helvetica/18 T 000000 SS 0
+  WAIT 4
+ENDIF
+
+;------------------------------------------------------------------------------
+; Execute Programs
+;------------------------------------------------------------------------------
+
+IF {EMU68}
+
+;    ECHO "EmuControl $OPTIONS1 DBF S"
+    EmuControl $OPTIONS1 DBF S
+
+    IF "$OPTIONS2I" NOT EQ ""
+;        ECHO "Emu68Info $OPTIONS2I >NIL:"
+        Emu68Info $OPTIONS2I >NIL:
+    ENDIF
+
+    IF "$OPTIONS2D" NOT EQ ""
+;        ECHO "Emu68Downclocker $OPTIONS2D >NIL:"
+        Emu68Downclocker $OPTIONS2D >NIL:
+    ENDIF
+
+    SET WHDA "$WHDA NOAUTOVEC"
+
+ENDIF
+
+IF {VAMP}
+
+    IF "$OPTIONSV" NOT EQ ""
+;        ECHO "ApolloControl >NIL: $OPTIONSV"
+        ApolloControl >NIL: $OPTIONSV
+    ENDIF
+    
+ENDIF
+
+IF {UAE}
+
+    IF "$OPTIONSU" NOT EQ ""
+        IF {ECS}
+            IF $AGAMode VAL EQ 1
+                tude chipset=ecs >NIL:
+                remakedisplay
+            ENDIF
+        ENDIF
+
+;        ECHO "UAE-Configuration $OPTIONSU >NIL:"
+        UAE-Configuration $OPTIONSU >NIL:
+    ENDIF
+
+ENDIF
+
+IF "$OPTIONSU2" NOT EQ ""
+;    ECHO "CPU $OPTIONSU2 >NIL:"
+    CPU $OPTIONSU2 >NIL:
+ENDIF
+  
+;------------------------------------------------------------------------------
+; Launch WHDLoad or HD Game
+;------------------------------------------------------------------------------
+
+IF "{HDLOAD}" NOT EQ ""
+    ;ECHO {HDLOAD}
+    SET HDLOADTEST {HDLOAD}
+    $HDLOADTEST 
+ELSE
+    ;ECHO WHDLoad.ori "{SLAVE}" $OPTIONS3 $WHDA
+    WHDLoad.ori "{SLAVE}" $OPTIONS3 $WHDA
+
+    IF ERROR
+        IF "$WHDSLAVEUPDATED" NOT EQ ""
+            S:WHDLoad-Wrapper/Updater/WHDRevert
+            SETENV WHDSLAVEUPDATED ""
+            WHDLoad.ori {SLAVE} $OPTIONS3 $WHDA
+        ENDIF
+    ENDIF
+
+ENDIF
+
+;------------------------------------------------------------------------------
+; Restore default values
+;------------------------------------------------------------------------------
+
+IF {EMU68}
+    IF "$OPTIONS2D" NOT EQ ""
+;        ECHO "Emu68Downclocker CLOCKRATE 0 >NIL:"
+        Emu68Downclocker CLOCKRATE 0 >NIL:
+    ENDIF
+
+    IF "$OPTIONS2I" NOT EQ ""
+;        ECHO "Emu68Info SetTurbo 1 >NIL:"
+        Emu68Info SetTurbo 1 >NIL:
+    ENDIF
+
+    IF "$OPTIONS1" NOT EQ ""
+;        ECHO "EmuControl ICNT=256 CACHE NSC SCS=1 CCRD=20 NBW S"
+        EmuControl ICNT=256 CACHE NSC SCS=1 CCRD=20 NBW S
+    ENDIF
+    
+    Version C:WHDLoad.ori Version 20 >NIL:
+    IF WARN
+        c:Bplcon3Hack REMOVE QUIET
+    ENDIF
+    
+ENDIF
+
+IF {VAMP}
+
+    IF "$OPTIONSV" NOT EQ ""
+;        ECHO "ApolloControl >NIL: TU=0 SS=1 ZO=0 DM=0 ZV=0 FM=0"
+        ApolloControl >NIL: TU=0 SS=1 ZO=0 DM=0 ZV=0 FM=0
+    ENDIF
+    
+ENDIF
+
+IF {UAE}
+
+    IF "$OPTIONSU" NOT EQ ""
+
+        IF {CYCLE}
+;            ECHO "UAE-Configuration cpu_cycle_exact $UAECYCLE >NIL:"
+            UAE-Configuration cpu_cycle_exact $UAECYCLE >NIL:
+        ENDIF
+        IF {SLOW}
+;            ECHO "UAE-Configuration cpu_speed $UAECPUSPEED >NIL:"
+            UAE-Configuration cpu_speed $UAECPUSPEED >NIL:
+        ENDIF
+        IF {ECS}
+            IF $AGAMode VAL EQ 1
+               tude chipset=aga >NIL:
+;               ECHO "UAE-Configuration chipset $UAECHIPSET >NIL:"
+               UAE-Configuration chipset $UAECHIPSET >NIL:
+               remakedisplay
+            ENDIF
+        ENDIF
+        IF {NOJIT}
+;            ECHO "UAE-Configuration cachesize $UAECACHESIZE >NIL:"
+            UAE-Configuration cachesize $UAECACHESIZE >NIL:
+        ENDIF
+
+    ENDIF
+
+ENDIF
+
+IF "$OPTIONSU2" NOT EQ ""
+;    ECHO "CPU cache >NIL:"
+    CPU cache >NIL:
+ENDIF
+    
+;------------------------------------------------------------------------------
+; End of script
+;------------------------------------------------------------------------------
+
+
+LAB EndOfScript

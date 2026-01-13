@@ -1,0 +1,30 @@
+;------------------------------------
+;  DATABASE file for WHDLoadWrapper
+;------------------------------------
+;        WinUAE Database
+;------------------------------------
+; WNC     : WHDLoad NOCACHE option (Switch)
+; WEC     : WHDLoad EXPCHIP option (Switch)
+; WHD="x" : Additional WHDLoad options you need 
+; NOJIT   : Disable JIT
+; ECS     : Enable ECS mode
+; SLOW    : Real CPU speed
+; CYCLE   : Cycle Exact mode
+; NOCACHE : CPU NOCACHE option
+;------------------------------------
+Default;WNC NOJIT
+;---------------
+; WHDLoad GAMES
+;---------------
+TFXAGA;
+;
+; Generic slaves used in games
+;
+CastlevaniaAGA_Generic;WNC
+;---------------
+; WHDLoad DEMOS
+;---------------
+Blast_Monopoly;
+;---------------
+; WHDLoad INTROS
+;---------------
