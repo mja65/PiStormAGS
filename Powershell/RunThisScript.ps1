@@ -315,6 +315,7 @@ fs c "$DisktoUse\MBR\2\rdb\DH0\s\user-startup" "$DisktoUse\MBR\2\rdb\DH0\s\user-
 fs c "$DisktoUse\MBR\2\rdb\DH0\s\AGS-Stuff" "$DisktoUse\MBR\2\rdb\DH0\s\AGS-Stuff.bak"
 fs c "$DisktoUse\MBR\2\rdb\DH0\c\whdload" "$DisktoUse\MBR\2\rdb\DH0\c\whdload.ori"
 fs c "$FilestoAddPath\WinUAE\Workbench" "$DisktoUse\MBR\2\rdb\DH0" -r -md -q -f
+fs c "$FilestoAddPath\WinUAE\Work" "$DisktoUse\MBR\2\rdb\DH1" -r -md -q -f
 fs c "$FilestoAddPath\WinUAE\AGS_Drive" "$DisktoUse\MBR\2\rdb\DH4" -r -md -q -f
 fs c "$DisktoUse\MBR\2\rdb\DH0\Devs\monitors\HD720*" "$DisktoUse\MBR\2\rdb\DH0\storage\monitors"
 fs c "$DisktoUse\MBR\2\rdb\DH0\Devs\monitors\HighGFX*" "$DisktoUse\MBR\2\rdb\DH0\storage\monitors"
