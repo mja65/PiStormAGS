@@ -1,7 +1,10 @@
 unset wirelessmanagerPID
 set wirelessmanagerPID `status com=wirelessmanager`
 if VAL $wirelessmanagerPID GT 0
- echo $wirelessmanagerPID
  echo "Quiting Wireless Manager"
  BREAK $wirelessmanagerPID
+else
+ echo "Wireless Manager not running"
 ENDIF
+
+unset wirelessmanagerPID
