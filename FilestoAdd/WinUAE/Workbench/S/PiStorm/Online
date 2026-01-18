@@ -1,0 +1,22 @@
+failat 21
+IF NOT EXISTS SYS:Prefs/Env-Archive/sys/wireless.prefs
+ echo "Cannot connect to Wifi! No Wireless.prefs file found! You need to create a wireless.prefs file at *"SYS:Prefs/Env-Archive/sys*""
+ skip end
+ENDIF
+unset wirelessmanagerPID
+set wirelessmanagerPID `status com=wirelessmanager`
+if VAL $wirelessmanagerPID GT 0
+ echo $wirelessmanagerPID
+ echo "Quiting Wireless Manager"
+ BREAK $wirelessmanagerPID
+ENDIF
+echo "Connecting to Wireless. This may take a few moments......."
+run >NIL: wirelessmanager device=wifipi.device VERBOSE >RAM:wirelessmanagerlog.txt
+waituntilconnected device=wifipi.device Unit=0 delay=100
+if not warn
+ echo "Connected to Wireless"
+else
+ echo "Could not connect to Wireless! Log is stored in RAM:wirelessmanagerlog.txt"
+endif
+Lab end
+failat 10
