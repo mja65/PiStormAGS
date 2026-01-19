@@ -7,11 +7,13 @@ if ($IsWindows -or ($null -eq $IsWindows -and $env:OS -match "Windows")) {
 }
 elseif ($IsLinux) {
     $HostOS = "Linux"
+    $LoggedInUser = $env:SUDO_USER
     $HSTImagerExecutableName = "hst.imager"
     $HSTImagerURL = "https://github.com/henrikstengaard/hst-imager/releases/download/1.5.541/hst-imager_v1.5.541-90b4b77_console_linux_x64.zip"
 }
 elseif ($IsMacOS) {
     $HostOS = "MacOS"
+    $LoggedInUser = $env:SUDO_USER
     $HSTImagerExecutableName = "hst.imager"
     $HSTImagerURL = "https://github.com/henrikstengaard/hst-imager/releases/download/1.5.541/hst-imager_v1.5.541-90b4b77_console_macos_x64.zip"
 }
@@ -25,6 +27,7 @@ else {
 Write-host "AGS PiStorm Image Generator v0.1"
 Write-Host "This tool will write an image to a SD card suitable for use in your PiStorm"
 Write-Host "Running on $HostOS"
+
 Add-Type -AssemblyName System.Net.Http
 $client = [System.Net.Http.HttpClient]::new()
 $client.DefaultRequestHeaders.UserAgent.ParseAdd("PowerShellHttpClient")
@@ -90,9 +93,21 @@ if (-not (Test-Path "$HSTProgramFolder\$HSTImagerExecutableName")){
     Expand-Archive -Path $ZipPath -DestinationPath $HSTProgramFolder 
 
     # Fix permissions for Linux/macOS
-    if ($HostOS -ne "Windows") {
+   
+    If ($HostOS -ne "Windows"){
+        Write-Host "Cleaning up permissions and ownership of HST Imager Files"
+        $dirArgs = @($HSTProgramFolder, "-type", "d", "-exec", "chmod", "755", "{}", "+")
+        $fileArgs = @($HSTProgramFolder, "-type", "f", "-exec", "chmod", "644", "{}", "+")
+        $ownerArgs = @("-R", "$($LoggedInUser):$($LoggedInUser)", $HSTProgramFolder)
+        
+        # Set default Directory permissions to 755
+        & /usr/bin/find -- $dirArgs
+        # Set default File permissions to 644
+        & /usr/bin/find -- $fileArgs
+        & chown $ownerArgs        
         # Using /usr/bin/chmod for reliability on Unix systems
         & chmod +x "$FullHSTImagerPath"
+        
     }
 
 }
@@ -381,9 +396,40 @@ if ($Confirmation -eq "YES") {
     # Run the hst.imager with the script argument
     # On Windows: & "path\to\Hst.imager.exe" script "path\to\hst_commands.txt"
     # On Linux/Mac: & "path/to/Hst.imager" script "path/to/hst_commands.txt"
+    if ($HostOS -eq "Windows") {
+        & $FullHSTImagerPath script $ScriptOutputFile
+    }
+    else {
+        
+        # Modified behavior for Linux/MacOS: Run each line separately
+        # We filter out empty lines or comments to ensure clean execution
+        $Commands = Get-Content -Path $ScriptOutputFile
+        foreach ($Line in $Commands) {
+            if (-not [string]::IsNullOrWhiteSpace($Line)) {               
+                Write-Host "Executing: $Line" -ForegroundColor Gray
+                # Split the line into arguments to ensure correct parsing by the executable
+                $ArgList = [System.Management.Automation.PsParser]::Tokenize($Line, [ref]$null) | Select-Object -ExpandProperty Content
+                & $FullHSTImagerPath @ArgList    
+                # Wait 1 second before the next iteration
+                Start-Sleep -Seconds 1
+            }
+        }    
+    }
     
-    & $FullHSTImagerPath script $ScriptOutputFile
-    
+    If ($HostOS -ne "Windows"){
+        Write-Host "Cleaning up permissions and ownership of temporary files"
+        $dirArgs = @($TempFolderPath, "-type", "d", "-exec", "chmod", "755", "{}", "+")
+        $fileArgs = @($TempFolderPath, "-type", "f", "-exec", "chmod", "644", "{}", "+")
+        $ownerArgs = @("-R", "$($LoggedInUser):$($LoggedInUser)", $TempFolderPath)
+        
+        # Set default Directory permissions to 755
+        & /usr/bin/find -- $dirArgs
+        # Set default File permissions to 644
+        & /usr/bin/find -- $fileArgs
+        & chown $ownerArgs        
+       
+    }
+  
     Write-Host "`nOperation completed." -ForegroundColor Green
 }
 else {
