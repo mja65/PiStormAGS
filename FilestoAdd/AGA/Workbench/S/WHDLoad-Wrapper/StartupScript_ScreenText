@@ -1,11 +1,10 @@
-;----------------------------------------------------------
-; CaffeineOS_Storm/UAE
-; $VER: WHDLoadWrapper-StartupScript 1.8 (17.10.2024) 
-;----------------------------------------------------------
-.key SLAVE/A,HDLOAD/K,EMU68/S,UAE/S,NOJIT/S,ECS/S,SLOW/S,CYCLE/S,NOCACHE/S,WNC/S,WEC/S,NOTURBO/S,NFC/S,SC/S,NBW/S,SCS/K,ICNT/K,CCRD/K,MHZ/K,WHD/K,WHDARGS/F
+.key SLAVE/A,HDLOAD/K,EMU68/S,VAMP/S,UAE/S,NOJIT/S,ECS/S,SLOW/S,CYCLE/S,NOCACHE/S,WNC/S,WEC/S,NOTURBO/S,NFC/S,SC/S,NBW/S,SCS/K,ICNT/K,CCRD/K,MHZ/K,DM/K,FM/K,SS/K,TU/K,ZO/K,ZV/K,ZH/K,WHD/K,WHDARGS/F
 .bra {
 .ket }
 
+;------------------------------------------------------------------------------
+; $VER: WHDLoad-Wrapper 0.7 (18.2.2024)
+;------------------------------------------------------------------------------
 ; WHDLOAD Options:
 ;---------
 ; SLAVE/A   : WHD Slave file name (Mandatory)
@@ -24,6 +23,17 @@
 ; ICNT/N    : EmuControl ICNT option (Number) default=2
 ; CCRD/N    : EmuControl CCRD option (Number) default=0
 ; MHZ/N     : Emu68Info CLOCKRATE option (Number) or Emu68Downclocker if < 600
+;
+; VAMPIRE Specific Options:
+;---------
+; VAMP/S    : Are we running under VAMPIRE option (Switch)
+; DM/N      : ApolloControl DISPLAYMODE Display mode. 0=NTSC, 1=PAL
+; FM/N      : ApolloControl FORCEMODE Graphic mode (0=AGA, 1=OCS)
+; SS/N      : ApolloControl SUPERSCALAR SuperScalar mode. 0=Off, 1=On
+; TU/N      : ApolloControl TURTLE Turtle mode. 0=Off, 1=A500, 2=A1200
+; ZO/N      : ApolloControl ZOOM Zoom mode. 0=Off, 1=320x200, 2=320x240, 3=320x256, V4(+)
+; ZV/N      : ApolloControl ZOOMVERTICAL Zoom VERTICAL SHIFT value. 0 to 126, V4(+)
+; ZH/N      : ApolloControl ZOOMHORIZONTAL Zoom HORIZONTAL SHIFT value. 0 to 62, V4(+)
 ;
 ; UAE Specific Options:
 ;-----
@@ -51,7 +61,7 @@ IF EXISTS RAM:WHDWrapperUpdate/WHDLoadWrapper/Installer
 
     ;ECHO "WHDLoadWrapper UPDATE exists"
 
-    CD RAM:WHDWrapperUpdate/WHDLoadWrapper/ NOTITLE
+    CD RAM:WHDWrapperUpdate/WHDLoadWrapper/
     S:WHDLoad-Wrapper/Updater/Installer Installer APPNAME=WHDLoadWrapper MINUSER=average DEFUSER=average >NIL:
     SKIP EndOfScript
 ENDIF
@@ -138,6 +148,44 @@ IF {EMU68}
 ENDIF
 
 ;------------------------------------------------------------------------------
+; Options for Vampire
+;------------------------------------------------------------------------------
+
+SET OPTIONSV ""
+
+IF {VAMP}
+
+    IF {DM}
+        SET OPTIONSV $OPTIONSV DM={DM}
+    ENDIF
+
+    IF {FM}
+        SET OPTIONSV $OPTIONSV FM={FM}
+    ENDIF
+
+    IF {SS}
+        SET OPTIONSV $OPTIONSV SS={SS}
+    ENDIF
+
+    IF {TU}
+        SET OPTIONSV $OPTIONSV TU={TU}
+    ENDIF
+
+    IF {ZO}
+        SET OPTIONSV $OPTIONSV ZO={ZO}
+    ENDIF
+
+    IF {ZV}
+        SET OPTIONSV $OPTIONSV ZV={ZV}
+    ENDIF
+
+    IF {ZH}
+        SET OPTIONSV $OPTIONSV ZH={ZH}
+    ENDIF
+
+ENDIF
+
+;------------------------------------------------------------------------------
 ; Generic Options
 ;------------------------------------------------------------------------------
 
@@ -207,7 +255,7 @@ IF {WEC}
 ENDIF
 
 IF "$WHDTurtle" NOT EQ ""
-    SET WHDTurtle "WHDLoad->$WHDTurtle"
+    SET WHDTurtle "WHDLoad$WHDTurtle"
 ENDIF 
 
 ;------------------------------------------------------------------------------
@@ -216,17 +264,22 @@ ENDIF
  
 SET EmuControlTurtle ""
 IF "$OPTIONS1" NOT EQ ""
-    SET EmuControlTurtle "Turtle_JIT-> $OPTIONS1 "
+    SET EmuControlTurtle "EmuControl $OPTIONS1 "
 ENDIF
 
 SET MhzTurtle ""
 IF {MHZ} VAL GT 0
-    SET MhzTurtle "| RpiClock-> {MHZ} Mhz "
+    SET MhzTurtle "Clock {MHZ} Mhz "
 ENDIF
 
 SET TurboTurtle ""
 IF {NOTURBO}
-    SET TurboTurtle " | Turtle_RPI-> Turbo OFF "
+    SET TurboTurtle "Turbo Disabled "
+ENDIF
+
+SET VampireTurtle ""
+IF "$OPTIONSV" NOT EQ ""
+    SET VampireTurtle "ApolloControl $OPTIONSV "
 ENDIF
 
 SET UAETurtle ""
@@ -256,23 +309,13 @@ ELSE
     ENDIF
 ENDIF
 
-SET TTEXT "  $UAETurtle$EmuControlTurtle$MhzTurtle$TurboTurtle| $WHDTurtle"
-If $FHD Not EQ "1"
- IF $KARMA NOT EQ "biggunhr"
- Run <NIL: >NIL: c:ScreenTurtle "$TTEXT"  Position  800/2000  FONT newtopaz/8 -1  T ffff00  F cc0000  SS 0
-Else
-IF $KARMA EQ "biggunhr"
- Run <NIL: >NIL: c:ScreenTurtle "$TTEXT"  Position 200/2000  FONT ThinCondensed/7 -1  T ffff00  F cc0000  SS 0
- ENDIF
-  EndIF
-EndIF
+SET TTEXT "  $UAETurtle$VampireTurtle$EmuControlTurtle$MhzTurtle$TurboTurtle$WHDTurtle"
+;run >NIL: screenturtle "$TTEXT" Position B DIST 0 D=4 T CC0000 F FFFF00 SS 0
+run >NIL: screentext "$TTEXT" Position B D=4 FONT Helvetica/18 T 000000 SS 0
 
- If $FHD EQ "1"
- Run <NIL: >NIL: c:ScreenTurtle "$TTEXT"  Position  1100/2000  FONT newtopaz/8 -1  T ffff00  F cc0000  SS 0
-EndIF
 ; Display Turtle for HD Load
 IF "{HDLOAD}" NOT EQ ""
-  Run <NIL: >NIL: c:ScreenTurtle "Loading Using HD Loader"  Position  800/2000  FONT newtopaz/8 -1  T ffff00  F cc0000  SS 0
+  run >nil: screentext "Loading Using HD Loader" Position C DIST 0 FONT Helvetica/18 T 000000 SS 0
   WAIT 4
 ENDIF
 
@@ -297,6 +340,15 @@ IF {EMU68}
 
     SET WHDA $WHDA NOAUTOVEC
 
+ENDIF
+
+IF {VAMP}
+
+    IF "$OPTIONSV" NOT EQ ""
+;        ECHO "ApolloControl >NIL: $OPTIONSV"
+        ApolloControl >NIL: $OPTIONSV
+    ENDIF
+    
 ENDIF
 
 IF {UAE}
@@ -329,14 +381,14 @@ IF "{HDLOAD}" NOT EQ ""
     SET HDLOADTEST {HDLOAD}
     $HDLOADTEST 
 ELSE
-    ;ECHO WHDLoad.ori "{SLAVE}" $OPTIONS3 $WHDA 
+    ;ECHO WHDLoad.ori "{SLAVE}" $OPTIONS3 $WHDA
     WHDLoad.ori "{SLAVE}" $OPTIONS3 $WHDA
 
     IF ERROR
         IF "$WHDSLAVEUPDATED" NOT EQ ""
             S:WHDLoad-Wrapper/Updater/WHDRevert
             SETENV WHDSLAVEUPDATED ""
-            WHDLoad.ori "{SLAVE}" $OPTIONS3 $WHDA
+            WHDLoad.ori {SLAVE} $OPTIONS3 $WHDA
         ENDIF
     ENDIF
 
@@ -365,6 +417,15 @@ IF {EMU68}
     Version C:WHDLoad.ori Version 20 >NIL:
     IF WARN
         c:Bplcon3Hack REMOVE QUIET
+    ENDIF
+    
+ENDIF
+
+IF {VAMP}
+
+    IF "$OPTIONSV" NOT EQ ""
+;        ECHO "ApolloControl >NIL: TU=0 SS=1 ZO=0 DM=0 ZV=0 FM=0"
+        ApolloControl >NIL: TU=0 SS=1 ZO=0 DM=0 ZV=0 FM=0
     ENDIF
     
 ENDIF
@@ -402,8 +463,7 @@ IF "$OPTIONSU2" NOT EQ ""
 ;    ECHO "CPU cache >NIL:"
     CPU cache >NIL:
 ENDIF
-
-
+    
 ;------------------------------------------------------------------------------
 ; End of script
 ;------------------------------------------------------------------------------

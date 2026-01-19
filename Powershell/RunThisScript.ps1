@@ -22,7 +22,7 @@ else {
     exit
 }
 
-Write-host "AGS PiStorm Image Generator v0.1"
+Write-host "AGS PiStorm Image Generator v0.2"
 Write-Host "This tool will write an image to a SD card suitable for use in your PiStorm"
 Write-Host "Running on $HostOS"
 Add-Type -AssemblyName System.Net.Http

@@ -282,7 +282,7 @@ IF {WEC}
 ENDIF
 
 IF {EMU68}
-    SET WHDA "$WHDA NOAUTOVEC"
+    SET WHDA $WHDA NOAUTOVEC
 ENDIF
 
 ;------------------------------------------------------------------------------
