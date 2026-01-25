@@ -17,7 +17,7 @@ if ($IsWindows -or ($null -eq $IsWindows -and $env:OS -match "Windows")) {
     exit
 }
 
-Write-host "AGS PiStorm Image Generator v0.3"
+Write-host "AGS Image Generator v0.3"
 
 Add-Type -AssemblyName System.Net.Http
 $client = [System.Net.Http.HttpClient]::new()
@@ -67,8 +67,20 @@ if (-not (Test-Path $FullHSTImagerPath)) {
     $fileStream.Dispose()
     $stream.Dispose()
     Expand-Archive -Path $ZipPath -DestinationPath $HSTProgramFolder -Force
-    if ($HostOS -ne "Windows") {
+    If ($HostOS -ne "Windows"){
+        Write-Host "Cleaning up permissions and ownership of HST Imager Files"
+        $dirArgs = @($HSTProgramFolder, "-type", "d", "-exec", "chmod", "755", "{}", "+")
+        $fileArgs = @($HSTProgramFolder, "-type", "f", "-exec", "chmod", "644", "{}", "+")
+        $ownerArgs = @("-R", "$($LoggedInUser):$($LoggedInUser)", $HSTProgramFolder)
+        
+        # Set default Directory permissions to 755
+        & /usr/bin/find -- $dirArgs
+        # Set default File permissions to 644
+        & /usr/bin/find -- $fileArgs
+        & chown $ownerArgs        
+        # Using /usr/bin/chmod for reliability on Unix systems
         & chmod +x "$FullHSTImagerPath"
+        
     }
 }
 
@@ -90,9 +102,14 @@ if (-not $IsAdmin) {
     }
 }
 
-Write-Host "This tool will write an image to a SD card suitable for use in your PiStorm"
-Write-Host "It should be considered beta software and is used at your own risk!"
+Write-Host "-------------------------------------------------------------------" 
+Write-Host "This tool will generate an image based on the default AGS files    " 
+write-host "and in the case of PiStorm write that image to a SD card with the  "
+Write-Host "required files in order to run in your Amiga. It should be         "
+Write-Host "considered beta software and is used at your own risk!             "
+Write-Host "-------------------------------------------------------------------"
 Write-Host "Running on $HostOS"
+Write-Host ""
 Pause
 
 # --- 5. MENU STATE ---
@@ -129,9 +146,12 @@ while ($running) {
         "Main" {
             Write-Host "Select an option and press ENTER:" -ForegroundColor Gray
             Write-Host "1. Type of Install     [$InstallType]" -ForegroundColor Cyan
+            Write-Host "   - Sets the type of install you want to perform" 
+            Write-Host "   - Default is PiStorm install based on WinUAE version"                                               
             Write-Host "2. Location to Install [$InstallLocation]" -ForegroundColor Cyan
+            Write-Host "   - Sets the location of where the install will be made"        
             Write-Host "3. Source Location     [$SourceLocation]" -ForegroundColor Cyan
-            
+            Write-Host "   - Sets the location for the source file(s)"                    
             if ($InstallType -eq "PiStorm - Portable Install") {
                 $enabled = ($DriveStatus.Keys | Where-Object { $DriveStatus[$_].status -eq "Enabled" })
                 $currentTotalBytes = 0
@@ -149,10 +169,12 @@ while ($running) {
                 $summary = if ($visibleEnabled.Count -eq ($DriveStatus.Keys | Where-Object {$DriveStatus[$_].Visible}).Count) { "ALL" } else { $visibleEnabled -join ", " }
                 
                 Write-Host "4. Drives to Install   [$summary] ($currentTotalGB GB / Avail: $availText)" -ForegroundColor Cyan
-                Write-Host "5. Write image"
+                Write-Host "   - Allows you to disable to enable different drives if you"
+                Write-Host "     do not want to install the full set of drives"    
+                Write-Host "5. Write image" -ForegroundColor Cyan
             } 
             else {
-                Write-Host "4. Write image"
+                Write-Host "4. Write image" -ForegroundColor Cyan
             }
             
             Write-Host "`n-------------------------------"
@@ -241,12 +263,15 @@ while ($running) {
 
     if ($InstallType -eq "General - Combined") {
         # OS-specific path examples
-        $PathExample = if ($HostOS -eq "Windows") { "C:\Amiga\MyCombinedDisk.hdf" } 
-                       elseif ($HostOS -eq "MacOS") { "/Users/$LoggedInUser/Documents/MyCombinedDisk.hdf" }
-                       else { "/home/$LoggedInUser/documents/MyCombinedDisk.hdf" }
+        $PathExample = if ($HostOS -eq "Windows") { "C:\Amiga\Combined.hdf" } 
+                       elseif ($HostOS -eq "MacOS") { "/Users/$LoggedInUser/Documents/Combined.hdf" }
+                       else { "/home/$LoggedInUser/Documents/Combined.hdf" }
 
         Write-Host "Provide the full path for the new destination .hdf file" -ForegroundColor Gray
         Write-Host "e.g., $PathExample" -ForegroundColor Gray
+        if ($HostOS -ne "Windows"){
+            Write-Host "Remember this is case sensitive!" -ForegroundColor Gray
+        }
         Write-Host "-------------------------------"
         Write-Host "B. BACK TO MAIN MENU" -ForegroundColor Red
         
@@ -398,7 +423,7 @@ while ($running) {
    "Source Location" {
             
             if (($InstallType -eq "PiStorm - WinUAE") -or ($InstallType -eq "General - Combined")) {
-                $PathExample = if ($HostOS -eq "Windows") { "C:\Emulators\AGS\WinUAE\AGS_UAE" } else { "/home/$LoggedInUser/documents/AGS/WinUAE/AGS_UAE" }
+                $PathExample = if ($HostOS -eq "Windows") { "C:\Emulators\AGS\WinUAE\AGS_UAE" } else { "/home/$LoggedInUser/Documents/AGS/WinUAE/AGS_UAE" }
                 $FileTypeLabel = "folder containing your AGS .hdf files (e.g. $PathExample)"
                 $RequiredFiles = @("AGS_Drive.hdf", "Emulators.hdf", "Emulators2.hdf", "Games.hdf", "Media.hdf", "Music.hdf", "Premium.hdf", "WHD_Demos.hdf", "WHD_Games.hdf", "Work.hdf", "Workbench.hdf")
             } 
@@ -414,6 +439,10 @@ while ($running) {
             }
             
             Write-Host "Provide the $FileTypeLabel" -ForegroundColor Gray
+            if ($HostOS -ne "Windows"){
+                Write-Host "Remember this is case sensitive!" -ForegroundColor Gray
+            }
+         
             Write-Host "B. BACK TO MAIN MENU" -ForegroundColor Red
             
             $RawInput = Read-Host "`nPath"
@@ -587,7 +616,7 @@ while ($running) {
                 }
             } 
             else {
-                Write-Host "NOTICE: This will create/overwrite the file at $InstallLocation." -ForegroundColor Yellow
+                Write-Host "NOTE: This will create/overwrite the file at $InstallLocation" -ForegroundColor Yellow
             }
 
             Write-Host "====================================================" -ForegroundColor Yellow
@@ -740,7 +769,7 @@ $DriveCopyCommands
 "@                
             
             }
-            elseif  ($InstallType -eq "AGS") {
+            elseif  ($InstallType -eq "PiStorm - AGA") {
                 $AGAImageFile = if($HostOS -eq "Windows"){"$SourceLocation\AGS_Classic_AGA_KickstartFix_v30.img"}{"$SourceLocation/AGS_Classic_AGA_KickstartFix_v30.img"}
 $ScriptContent = @"
 settings update --cache-type disk
@@ -776,8 +805,28 @@ fs c "$FilestoAddPath\AGA\Workbench" "$InstallLocation\MBR\2\rdb\DH0" -r -md -q 
                             Start-Sleep -Seconds 1
                         }
                     }
+
+                    If ($HostOS -ne "Windows"){
+                        Write-Host "Cleaning up permissions and ownership of temporary files" -ForegroundColor Cyan
+                        Write-Host "so not restricted to Root access" -ForegroundColor Cyan
+                        $dirArgs = @($TempFolderPath, "-type", "d", "-exec", "chmod", "755", "{}", "+")
+                        $fileArgs = @($TempFolderPath, "-type", "f", "-exec", "chmod", "644", "{}", "+")
+                        $ownerArgs = @("-R", "$($LoggedInUser):$($LoggedInUser)", $TempFolderPath)
+                        
+                        # Set default Directory permissions to 755
+                        & /usr/bin/find -- $dirArgs
+                        # Set default File permissions to 644
+                        & /usr/bin/find -- $fileArgs
+                        & chown $ownerArgs        
+                        if ($InstallType -eq "General - Combined"){
+                            Write-Host "Applying ownership and permissions to destination .hdf file" -ForegroundColor Cyan
+                            Write-Host "so not restricted to root access" -ForegroundColor Cyan
+                            & chown "$($LoggedInUser):$($LoggedInUser)" "$InstallLocation"
+                            & chmod 644 "$InstallLocation"
+                        }
+                    }                    
+                    
                 }
-#                Write-Host "Execution skipped (Debug Mode)." -ForegroundColor Cyan
                 Write-Host "Process Complete. Press enter to exit" -ForegroundColor Green
                 $running = $false
                 return
