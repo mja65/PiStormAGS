@@ -18,7 +18,7 @@ if VAL $wirelessmanagerPID GT 0
 ENDIF
 
 echo "Connecting to Wireless. This may take a few moments......."
-run >NIL: wirelessmanager device=Sys:Devs/Networks/wifipi.device VERBOSE >RAM:wirelessmanagerlog.txt
+run >NIL: wirelessmanager device=Sys:Devs/Networks/wifipi.device CONFIG=sys:Prefs/Env-Archive/sys/wireless.prefs VERBOSE >RAM:wirelessmanagerlog.txt
 waituntilconnected device=Sys:Devs/Networks/wifipi.device Unit=0 delay=100
 if not warn
  echo "Connected to Wireless"
@@ -29,7 +29,7 @@ endif
 
 Lab end
 unset Action
-If Error EQ "1"
+If $Error EQ "1"
  unset wirelessmanagerPID
  set wirelessmanagerPID `status com=wirelessmanager`
  if VAL $wirelessmanagerPID GT 0
