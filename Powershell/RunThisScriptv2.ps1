@@ -1,0 +1,788 @@
+if ($IsWindows -or ($null -eq $IsWindows -and $env:OS -match "Windows")) {
+    $HostOS = "Windows"
+    $HSTImagerExecutableName = "Hst.imager.exe"
+    $HSTImagerURL = "https://github.com/henrikstengaard/hst-imager/releases/download/1.5.541/hst-imager_v1.5.541-90b4b77_console_windows_x64.zip"
+} elseif ($IsLinux) {
+    $HostOS = "Linux"
+    $LoggedInUser = $env:SUDO_USER
+    $HSTImagerExecutableName = "hst.imager"
+    $HSTImagerURL = "https://github.com/henrikstengaard/hst-imager/releases/download/1.5.541/hst-imager_v1.5.541-90b4b77_console_linux_x64.zip"
+} elseif ($IsMacOS) {
+    $HostOS = "MacOS"
+    $LoggedInUser = $env:SUDO_USER
+    $HSTImagerExecutableName = "hst.imager"
+    $HSTImagerURL = "https://github.com/henrikstengaard/hst-imager/releases/download/1.5.541/hst-imager_v1.5.541-90b4b77_console_macos_x64.zip"
+} else {
+    Write-Error "Unsupported OS for automatic download."
+    exit
+}
+
+Write-host "AGS PiStorm Image Generator v0.3"
+
+Add-Type -AssemblyName System.Net.Http
+$client = [System.Net.Http.HttpClient]::new()
+$client.DefaultRequestHeaders.UserAgent.ParseAdd("PowerShellHttpClient")
+
+# --- 2. BASE DIRECTORY & FOLDER SETUP ---
+if ($PSScriptRoot) {
+    $BaseDir = (Get-item $PSScriptRoot).FullName   
+} else { 
+    $BaseDir = (Get-Item (Join-Path -Path $PWD -ChildPath "Powershell")).FullName
+}
+
+$FolderMapping = @{ 
+    "Temp" = "..\Temp"; 
+    "HSTImager" = "..\HSTImager" 
+}
+
+$Paths = @{}
+foreach ($key in $FolderMapping.Keys) {
+    $Target = Join-Path -Path $BaseDir -ChildPath $FolderMapping[$key]
+    if (-not (Test-Path $Target)) { 
+        $null = New-Item -Path $Target -ItemType Directory -Force 
+    }
+    $Paths[$key] = (Get-Item $Target).FullName
+}
+
+$FileSystemFolder = (Get-Item (Join-Path -Path $BaseDir -ChildPath "..\FileSystem")).FullName
+$FilestoAddPath = (get-item (Join-Path -Path $BaseDir -ChildPath "..\FilestoAdd")).FullName
+$TempFolderPath   = $Paths["Temp"]
+$HSTProgramFolder = $Paths["HSTImager"]
+$FullHSTImagerPath = Join-Path $HSTProgramFolder -ChildPath $HSTImagerExecutableName
+
+# --- 3. DOWNLOAD HST IMAGER ---
+if (-not (Test-Path $FullHSTImagerPath)) {
+    Write-Host "HST Imager not found. Downloading..." -ForegroundColor Cyan
+    $ZipPath = Join-Path $TempFolderPath -ChildPath "HSTImager.zip"
+    $response = $client.GetAsync($HSTImagerURL, [System.Net.Http.HttpCompletionOption]::ResponseHeadersRead).Result
+    $FileLength = $response.Content.Headers.ContentLength
+    $stream = $response.Content.ReadAsStreamAsync().Result
+    $fileStream = [System.IO.File]::OpenWrite($ZipPath)
+    $buffer = New-Object byte[] 65536
+    while (($read = $stream.Read($buffer, 0, $buffer.Length)) -gt 0) {
+        $fileStream.Write($buffer, 0, $read)
+        $totalRead += $read
+        Write-Progress -Activity "Downloading" -Status "$([math]::Floor(($totalRead/$FileLength)*100))% Complete" -PercentComplete ([math]::Floor(($totalRead/$FileLength)*100))
+    }
+    $fileStream.Dispose()
+    $stream.Dispose()
+    Expand-Archive -Path $ZipPath -DestinationPath $HSTProgramFolder -Force
+    if ($HostOS -ne "Windows") {
+        & chmod +x "$FullHSTImagerPath"
+    }
+}
+
+# --- 4. PRIVILEGE CHECK ---
+$IsAdmin = if ($HostOS -eq "Windows") {
+    ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+} else { 
+    ($(id -u) -eq 0) 
+}
+
+if (-not $IsAdmin) {
+    if ($HostOS -eq "Windows") {
+        $EscalateDir = Get-Location
+        $ArgList = "-NoProfile -ExecutionPolicy Bypass -Command `"Set-Location -LiteralPath '$EscalateDir'; & '$PSCommandPath'`""
+        try { Start-Process powershell.exe -ArgumentList $ArgList -Verb RunAs; exit } catch { exit }
+    } else {
+        Write-Host "ERROR: Root privileges required. Use sudo." -ForegroundColor Red
+        exit
+    }
+}
+
+Write-Host "This tool will write an image to a SD card suitable for use in your PiStorm"
+Write-Host "It should be considered beta software and is used at your own risk!"
+Write-Host "Running on $HostOS"
+Pause
+
+# --- 5. MENU STATE ---
+$menuStack = @("Main")
+$running = $true
+$InstallType = "PiStorm - WinUAE"
+$InstallLocation = "None Selected"
+$SourceLocation  = "None Selected"
+$FreeBytes = 0
+
+$DriveStatus = [ordered]@{
+    "Workbench"      = [pscustomobject]@{ status = "Enabled"; visible = $false; size = 1019805696}
+    "Work"           = [pscustomobject]@{ status = "Enabled"; visible = $false; size = 2039611392}
+    "AGS_Drive"      = [pscustomobject]@{ status = "Enabled"; visible = $false; size = 4079738880}
+    "Media"          = [pscustomobject]@{ status = "Enabled"; visible = $false; size = 4079738880}
+    "Music"          = [pscustomobject]@{ status = "Enabled"; visible = $false; size = 4079738880}
+    "Emulators"      = [pscustomobject]@{ status = "Enabled"; visible = $true;size = 4079738880}
+    "Emulators2"     = [pscustomobject]@{ status = "Enabled"; visible = $true;size = 8159993856}
+    "WHD_Games"      = [pscustomobject]@{ status = "Enabled"; visible = $true;size = 8159993856}
+    "WHD_Demos"      = [pscustomobject]@{ status = "Enabled"; visible = $true;size = 4079738880}
+    "Games"          = [pscustomobject]@{ status = "Enabled"; visible = $true;size = 8159993856}
+    "Premium"        = [pscustomobject]@{ status = "Enabled"; visible = $true;size = 8159993856}
+}
+
+
+# --- 6. MAIN LOOP ---
+while ($running) {
+    Clear-Host
+    Write-Host "AGS Image Generator v0.3" -ForegroundColor Yellow
+    Write-Host "Menu: $($menuStack -join " > ")" -ForegroundColor Gray
+    Write-Host "-------------------------------"
+
+    switch ($menuStack[-1]) {
+        "Main" {
+            Write-Host "Select an option and press ENTER:" -ForegroundColor Gray
+            Write-Host "1. Type of Install     [$InstallType]" -ForegroundColor Cyan
+            Write-Host "2. Location to Install [$InstallLocation]" -ForegroundColor Cyan
+            Write-Host "3. Source Location     [$SourceLocation]" -ForegroundColor Cyan
+            
+            if ($InstallType -eq "PiStorm - Portable Install") {
+                $enabled = ($DriveStatus.Keys | Where-Object { $DriveStatus[$_].status -eq "Enabled" })
+                $currentTotalBytes = 0
+                foreach($e in $enabled) { $currentTotalBytes += $DriveStatus[$e].size }
+                $currentTotalGB = [math]::Round($currentTotalBytes / 1GB, 2)
+                
+                # Logic for Available Space
+                $availText = if ($InstallLocation -ne "None Selected" -and $FreeBytes -gt 0) { 
+                    "$([math]::Round($FreeBytes / 1GB, 2)) GB" 
+                } else { 
+                    "N/A" 
+                }                
+
+                $visibleEnabled = $enabled | Where-Object { $DriveStatus[$_].Visible -eq $true }
+                $summary = if ($visibleEnabled.Count -eq ($DriveStatus.Keys | Where-Object {$DriveStatus[$_].Visible}).Count) { "ALL" } else { $visibleEnabled -join ", " }
+                
+                Write-Host "4. Drives to Install   [$summary] ($currentTotalGB GB / Avail: $availText)" -ForegroundColor Cyan
+                Write-Host "5. Write image"
+            } 
+            else {
+                Write-Host "4. Write image"
+            }
+            
+            Write-Host "`n-------------------------------"
+            Write-Host "X. Exit AGS Image Generator" -ForegroundColor Red
+            
+            $choice = (Read-Host "`nSelection").ToUpper()
+            if ($choice -eq '1') { $menuStack += "Type of Install" }
+            elseif ($choice -eq '2') { $menuStack += "Location to Install" }
+            elseif ($choice -eq '3') { $menuStack += "Source Location" }
+            elseif ($choice -eq 'X') { $running = $false }
+            elseif ($InstallType -eq "PiStorm - Portable Install") {
+                if ($choice -eq '4') { $menuStack += "Drives to Install" }
+                elseif ($choice -eq '5') { $menuStack += "Run Command" }
+            } else {
+                if ($choice -eq '4') { $menuStack += "Run Command" }
+            }
+        }
+
+        "Type of Install" {
+            Write-Host "Select your installation profile:`n" -ForegroundColor Gray
+            Write-Host "1. PiStorm - WinUAE Version" -ForegroundColor Cyan
+            Write-Host "   - Converts WinUAE AGS for PiStorm (RTG)"
+            Write-Host "   - Should work on both PiStorm and PiStorm32lite (AGA software requires an A1200)"
+            Write-Host "   - Required: HDMI monitor connected to Pi`n"
+            Write-Host "2. PiStorm - AGA Version" -ForegroundColor Cyan
+            Write-Host "   - Uses native Amiga video output"
+            Write-Host "   - Requires an Amiga 1200 and PiStorm32lite"
+            Write-Host "   - Note: Includes a smaller software range than WinUAE`n"
+            Write-Host "3. PiStorm - Portable Install" -ForegroundColor Cyan
+            Write-Host "   - Adds AGS launcher and drives to an existing install"
+            Write-Host "   - Sufficient space and a spare MBR partition are needed on the SD card "
+            Write-Host "   - The selected drives to include are configurable `n"
+            Write-Host "4. General - Combined Drive (Single .hdf file)" -ForegroundColor Cyan
+            Write-Host "   - Combines separate .hdf files from WinUAE install into a single .hdf`n"
+ 
+            Write-Host "-------------------------------"
+            Write-Host "B. BACK TO MAIN MENU" -ForegroundColor Red
+            
+            $c = (Read-Host "`nSelect").ToUpper()
+            switch ($c) {
+                '1' { 
+                    $InstallType = "PiStorm - WinUAE"
+                    $InstallLocation = "None Selected"
+                    $SourceLocation = "None Selected"
+                    foreach ($k in $DriveStatus.Keys) {
+                       $DriveStatus[$k].status = "Enabled"
+                    }
+                 }
+                '2' {
+                    $InstallType = "PiStorm - AGA"
+                    $InstallLocation = "None Selected"
+                    $SourceLocation = "None Selected"
+                } 
+                '3' {
+
+                    $InstallType = "PiStorm - Portable Install"
+                    $InstallLocation = "None Selected"
+                    $SourceLocation = "None Selected" 
+                    
+                    $DriveStatus["Workbench"].status  = "Disabled"
+                    $DriveStatus["Work"].status       = "Disabled"
+                    $DriveStatus["Music"].status      = "Disabled"
+                    $DriveStatus["Media"].status      = "Disabled"
+                    $DriveStatus["AGS_Drive"].status  = "Enabled"
+                    $DriveStatus["Emulators"].status  = "Enabled"
+                    $DriveStatus["Emulators2"].status = "Enabled"
+                    $DriveStatus["WHD_Games"].status  = "Enabled"
+                    $DriveStatus["WHD_Demos"].status  = "Enabled"
+                    $DriveStatus["Games"].status      = "Enabled"
+                    $DriveStatus["Premium"].status    = "Enabled"
+          
+                }
+                '4' {
+                    $InstallType = "General - Combined"
+                    $InstallLocation = "None Selected"
+                    $SourceLocation = "None Selected" 
+                    foreach ($k in $DriveStatus.Keys) {
+                       $DriveStatus[$k].status = "Enabled"
+                    }                    
+                }
+            }
+            if ($c -match '[1-4B]') { $menuStack = $menuStack[0..($menuStack.Count - 2)] }
+        }
+
+"Location to Install" {
+
+    if ($InstallType -eq "General - Combined") {
+        # OS-specific path examples
+        $PathExample = if ($HostOS -eq "Windows") { "C:\Amiga\MyCombinedDisk.hdf" } 
+                       elseif ($HostOS -eq "MacOS") { "/Users/$LoggedInUser/Documents/MyCombinedDisk.hdf" }
+                       else { "/home/$LoggedInUser/documents/MyCombinedDisk.hdf" }
+
+        Write-Host "Provide the full path for the new destination .hdf file" -ForegroundColor Gray
+        Write-Host "e.g., $PathExample" -ForegroundColor Gray
+        Write-Host "-------------------------------"
+        Write-Host "B. BACK TO MAIN MENU" -ForegroundColor Red
+        
+        $RawInput = Read-Host "`nPath"
+        if ($RawInput.ToUpper() -eq "B") { 
+            $menuStack = $menuStack[0..($menuStack.Count - 2)]
+            continue 
+        }
+        # Clean quotes and handle trailing slashes for Mac/Linux compatibility
+        $Path = $RawInput.Trim("'").Trim('"').TrimEnd('\').TrimEnd('/')
+
+        if ($Path -notlike "*.hdf") {
+        Write-Host "`nERROR: The destination must be a file ending in .hdf" -ForegroundColor Red
+        Write-Host "You entered: $Path" -ForegroundColor Gray
+        Pause
+        continue
+        }
+             
+            # Cross-platform parent directory check
+            $ParentDir = Split-Path -Path $Path -Parent
+            if ($ParentDir -and (Test-Path $ParentDir -PathType Container)) {
+                $InstallLocation = $Path
+                Write-Host "Target HDF set to: $InstallLocation" -ForegroundColor Green
+                Start-Sleep -Seconds 1
+                $menuStack = $menuStack[0..($menuStack.Count - 2)]
+            } else {
+                Write-Warning "The directory '$ParentDir' does not exist!"
+                Pause
+            }
+            continue 
+        }
+    
+            & $FullHSTImagerPath list
+            Write-Host "`n-------------------------------" -ForegroundColor Gray
+            Write-Host "B. BACK TO MAIN MENU" -ForegroundColor Red
+            
+            if ($HostOS -eq "Windows") {
+                $RawInput = Read-Host "Select disk number (e.g. 6) or 'B' to go back"
+            } else {
+                $RawInput = Read-Host "Select full path (e.g. /dev/sdb) or 'B' to go back"
+            }
+
+            if ($RawInput.ToUpper() -eq "B") { 
+                $menuStack = $menuStack[0..($menuStack.Count - 2)]
+                continue 
+            }
+
+            $CleanInput = $RawInput -replace '^\\disk', ''
+            $TargetDisk = if ($HostOS -eq "Windows") { "\disk$CleanInput" } else { $CleanInput }
+            
+            if ((& $FullHSTImagerPath list) -match "\\disk$CleanInput\b|disk $CleanInput\b") {
+                
+                if ($InstallType -eq "PiStorm - Portable Install") {
+                    Write-Host "Checking disk layout for Portable Install..." -ForegroundColor Cyan
+                    $MBROutput = & $FullHSTImagerPath mbr info $TargetDisk
+                    
+                    $FullText = $MBROutput -join "`n"
+                    $PartLines = @()
+                    if ($FullText -match "Partitions:") {
+                        $PartTableText = (($FullText -split "Partitions:")[1] -split "Partition table overview:")[0]
+                        $PartLines = $PartTableText -split "`n" | Where-Object { $_ -match "^\s*\d+\s*\|" }
+                    }
+
+                    $ValidationError = $false
+                    $FoundFAT32 = $false
+                    $Count0x76 = 0
+
+                    if ($PartLines.Count -gt 0) {
+                        $FirstPartCols = $PartLines[0] -split '\|' | ForEach-Object { $_.Trim() }
+                        if ($FirstPartCols[1] -eq "0xb") { $FoundFAT32 = $true }
+                    }
+
+                    foreach ($Line in $PartLines) {
+                        $Cols = $Line -split '\|' | ForEach-Object { $_.Trim() }
+                        if ($Cols[1] -eq "0x76") { $Count0x76++ }
+                    }
+
+                    # --- REPORT STATUS ---
+                    $FatColor = if ($FoundFAT32) { "Green" } else { "Red" }
+                    $RdbColor = if ($Count0x76 -gt 0) { "Green" } else { "Red" }
+                    $FatStatus = if ($FoundFAT32) { "Found" } else { "NOT FOUND" }
+
+                    Write-Host "FAT32 (0xb) Partition: $FatStatus" -ForegroundColor $FatColor
+                    Write-Host "PiStorm (0x76) Partitions Found: $Count0x76" -ForegroundColor $RdbColor
+                    Write-Host "Total Partitions: $($PartLines.Count)" -ForegroundColor Yellow
+
+                    # --- VALIDATE ---
+                    if (-not $FoundFAT32) {
+                        Write-Host "ERROR: No FAT32 partition found in the first slot." -ForegroundColor Red
+                        $ValidationError = $true
+                    }
+                    if ($Count0x76 -eq 0) {
+                        Write-Host "ERROR: No 0x76 partition found." -ForegroundColor Red
+                        $ValidationError = $true
+                    }
+                    if ($PartLines.Count -gt 3) {
+                        Write-Host "ERROR: Disk has $($PartLines.Count) existing partitions. Max 3 allowed." -ForegroundColor Red
+                        $ValidationError = $true
+                    }
+
+                    $FreeBytes = 0
+                    $UnallocatedLine = $MBROutput | Where-Object { $_ -match "Unallocated" } | Select-Object -Last 1
+                    if ($UnallocatedLine) {
+                        $Cols = $UnallocatedLine -split '\|' | ForEach-Object { $_.Trim() }
+                        if ($Cols.Count -ge 5) {
+                            $FreeBytes = ([int64]$Cols[4] - [int64]$Cols[3]) + 1
+                        }
+                    }
+
+                    $RequiredBytes = 0
+                    foreach($e in ($DriveStatus.Keys | Where-Object { $DriveStatus[$_].status -eq "Enabled" })) { 
+                        $RequiredBytes += $DriveStatus[$e].size
+                    }
+                    $RequiredBytes += (1024 * 1024) 
+
+                    if ($FreeBytes -lt $RequiredBytes) {
+
+                        Write-Host "`nWARNING: INSUFFICIENT SPACE" -ForegroundColor Yellow
+                        Write-Host "Available: $([math]::Round($FreeBytes / 1GB, 2)) GB"
+                        Write-Host "Required:  $([math]::Round($RequiredBytes / 1GB, 2)) GB"
+                        Write-Host "You can still select this disk, but you MUST deselect drives" -ForegroundColor White
+                        Write-Host "in the 'Drives to Install' menu before writing." -ForegroundColor White       
+                        Pause
+                    }
+
+                    if ($ValidationError) {
+                        Pause
+                        continue 
+                    }
+                    $PortablePartIndex = $PartLines.Count + 1
+                    $AvailableGB = [math]::Round($FreeBytes / 1GB, 2)
+                    $RequiredGB  = [math]::Round($RequiredBytes / 1GB, 2)
+                    Write-Host "Disk verified and compatible for Portable Install." -ForegroundColor Green
+                    Write-Host "Available Space: $AvailableGB GB" -ForegroundColor Green
+                    Write-Host "Required Space:  $RequiredGB GB" -ForegroundColor White
+                    Write-Host "Portable Install will use MBR Partition number: $PortablePartIndex" -ForegroundColor Cyan
+                    pause
+                }
+
+                $InstallLocation = $TargetDisk
+                Start-Sleep -s 1
+                $menuStack = $menuStack[0..($menuStack.Count - 2)]
+            } else { 
+                Write-Warning "Disk not found!"
+                Pause 
+            }
+        }
+        
+   "Source Location" {
+            
+            if (($InstallType -eq "PiStorm - WinUAE") -or ($InstallType -eq "General - Combined")) {
+                $PathExample = if ($HostOS -eq "Windows") { "C:\Emulators\AGS\WinUAE\AGS_UAE" } else { "/home/$LoggedInUser/documents/AGS/WinUAE/AGS_UAE" }
+                $FileTypeLabel = "folder containing your AGS .hdf files (e.g. $PathExample)"
+                $RequiredFiles = @("AGS_Drive.hdf", "Emulators.hdf", "Emulators2.hdf", "Games.hdf", "Media.hdf", "Music.hdf", "Premium.hdf", "WHD_Demos.hdf", "WHD_Games.hdf", "Work.hdf", "Workbench.hdf")
+            } 
+            elseif ($InstallType -eq "PiStorm - AGA") {
+                $PathExample = if ($HostOS -eq "Windows") { "C:\Emulators\AGS\WinUAE\AGS_Classic" } else { "/home/$LoggedInUser/documents/AGS/WinUAE/AGS_Classic" }
+                $FileTypeLabel = "path containing the AGA .img file (e.g. $PathExample)"
+                $RequiredFiles = @("AGS_Classic_AGA_KickstartFix_v30.img")
+            }
+            elseif ($InstallType -eq "PiStorm - Portable Install") {
+                $PathExample = if ($HostOS -eq "Windows") { "C:\Emulators\AGS\WinUAE\AGS_UAE" } else { "/home/$LoggedInUser/documents/AGS/WinUAE/AGS_UAE" }
+                $FileTypeLabel = "folder containing your AGS .hdf files (e.g. $PathExample)"
+                $RequiredFiles = @("AGS_Drive.hdf", "Emulators.hdf", "Emulators2.hdf", "Games.hdf", "Media.hdf", "Music.hdf", "Premium.hdf", "WHD_Demos.hdf", "WHD_Games.hdf", "Work.hdf", "Workbench.hdf")                
+            }
+            
+            Write-Host "Provide the $FileTypeLabel" -ForegroundColor Gray
+            Write-Host "B. BACK TO MAIN MENU" -ForegroundColor Red
+            
+            $RawInput = Read-Host "`nPath"
+            if ($RawInput.ToUpper() -eq "B") { 
+                $menuStack = $menuStack[0..($menuStack.Count - 2)]
+                continue 
+            }
+
+            $path = $RawInput.Trim("'").Trim('"').TrimEnd('\').TrimEnd('/')
+            if (Test-Path $path -PathType Container) {
+                $MissingItems = @()
+                foreach ($f in $RequiredFiles) {
+                    if (Test-Path (Join-Path $path $f)) {
+                        Write-Host "[FOUND] $f" -ForegroundColor Green
+                    } else {
+                        Write-Host "[MISSING] $f" -ForegroundColor Red
+                        $MissingItems += $f
+                    }
+                }
+
+                if ($MissingItems.Count -eq 0) {
+                    $SourceLocation = $path
+                    Write-Host "`nAll components found." -ForegroundColor Green
+                    Start-Sleep -Seconds 1
+                    $menuStack = $menuStack[0..($menuStack.Count - 2)]
+                } else { 
+                    Write-Warning "`nMissing: $($MissingItems.Count) required file(s)!"
+                    Pause 
+                }
+            } else { 
+                Write-Warning "Path does not exist!"
+                Pause 
+            }
+        }
+
+        "Drives to Install" {
+            Write-Host "Available drives (all selected by default):" -ForegroundColor Gray
+            Write-Host "Enter a number to toggle Enable/Disable the drive from installation.`n" -ForegroundColor Gray
+            
+            $visibleKeys = $DriveStatus.Keys | Where-Object { $DriveStatus[$_].Visible -eq $true }
+            $TotalBytes = 0
+            
+            foreach($k in $DriveStatus.Keys) { 
+                if($DriveStatus[$k].status -eq "Enabled") { $TotalBytes += $DriveStatus[$k].size } 
+            }
+   
+            for ($i=0; $i -lt $visibleKeys.Count; $i++) {
+                $k = $visibleKeys[$i]
+                # Reference .status property
+                $isEnabled = ($DriveStatus[$k].status -eq "Enabled")
+                $col = if ($isEnabled) { "Green" } else { "Red" }
+                # Reference .size property
+                $sizeGB = [math]::Round($DriveStatus[$k].size / 1GB, 2)
+                Write-Host "[$($i+1)] $k ($sizeGB GB) : $($DriveStatus[$k].status)" -ForegroundColor $col
+            }
+            
+            Write-Host "----------------------------------------------------"
+            Write-Host "Total Space Required: $([math]::Round($TotalBytes / 1GB, 2)) GB" -ForegroundColor Yellow
+
+            # --- PORTABLE INSTALL SPACE CHECK ---
+            if ($InstallType -eq "PiStorm - Portable Install" -and $InstallLocation -ne "None Selected") {
+                if ($TotalBytes -gt $FreeBytes) {
+                    Write-Host "WARNING: Selection exceeds available space on $InstallLocation ($([math]::Round($FreeBytes / 1GB, 2)) GB)!" -ForegroundColor Red
+                } else {
+                    Write-Host "Available on Disk: $([math]::Round($FreeBytes / 1GB, 2)) GB" -ForegroundColor Green
+                }
+            }            
+            # --- PORTABLE INSTALL SPACE CHECK ---
+
+            Write-Host "B. BACK TO MAIN MENU" -ForegroundColor Red
+
+            $c = (Read-Host "`nSelection").ToUpper()
+            if ($c -eq 'B') { 
+                $menuStack = $menuStack[0..($menuStack.Count-2)] 
+            }
+            
+            elseif ($c -match '^\d+$') { 
+                $idx = [int]$c - 1
+                if ($idx -ge 0 -and $idx -lt $visibleKeys.Count) {
+                    $k = $visibleKeys[$idx]
+                    $enabledVisibleCount = 0
+                    foreach ($vk in $visibleKeys) {
+                        # 1. Update: Check .status property
+                        if ($DriveStatus[$vk].status -eq "Enabled") { $enabledVisibleCount++ }
+                    }
+                    # 2. Update: Check .status property
+                    if ($DriveStatus[$k].status -eq "Enabled" -and $enabledVisibleCount -le 1) {
+                        Write-Host "`nERROR: You must have at least one additional drive selected." -ForegroundColor Red
+                        Start-Sleep -Seconds 2
+                    } else {
+                        # 3. Update: Toggle the .status property specifically
+                        $DriveStatus[$k].status = if ($DriveStatus[$k].status -eq "Enabled") { "Disabled" } else { "Enabled" }
+                    }
+                }
+            }
+        }
+
+        "Run Command" {
+
+            $MissingOptions = @()
+            if ($InstallLocation -eq "None Selected") { $MissingOptions += "Location to Install (Option 2)" }
+            if ($SourceLocation -eq "None Selected")  { $MissingOptions += "Source Location (Option 3)" }
+
+            if ($MissingOptions.Count -gt 0) {
+                Write-Host "`nERROR: Cannot proceed with writing." -ForegroundColor Red
+                Write-Host "The following options are not set:" -ForegroundColor Yellow
+                foreach ($opt in $MissingOptions) { Write-Host " - $opt" }
+                Write-Host "`nPlease configure these settings before writing the image." -ForegroundColor White
+                Pause
+                $menuStack = $menuStack[0..($menuStack.Count - 2)] # Go back to Main Menu
+                continue # Skip the rest of the Run Command logic
+            }
+
+            # --- PORTABLE INSTALL FINAL GUARD ---
+            if ($InstallType -eq "PiStorm - Portable Install") {
+                $finalReq = 1048576 # 1MB padding
+                foreach($e in ($DriveStatus.Keys | Where-Object { $DriveStatus[$_].status -eq "Enabled" })) { 
+                    $finalReq += $DriveStatus[$e].size 
+                }
+                
+                if ($InstallLocation -eq "None Selected") {
+                    Write-Host "ERROR: No install location selected!" -ForegroundColor Red
+                    Pause
+                    $menuStack = $menuStack[0..($menuStack.Count-2)]
+                    continue
+                }
+
+                if ($finalReq -gt $FreeBytes) {
+                    Write-Host "`n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" -ForegroundColor Red
+                    Write-Host "CRITICAL ERROR: INSUFFICIENT SPACE" -ForegroundColor Red
+                    Write-Host "The selected drives require $([math]::Round($finalReq / 1GB, 2)) GB."
+                    Write-Host "The destination disk only has $([math]::Round($FreeBytes / 1GB, 2)) GB free."
+                    Write-Host "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" -ForegroundColor Red
+                    Write-Host "Please deselect some drives before running."
+                    Pause
+                    $menuStack = $menuStack[0..($menuStack.Count-2)]
+                    continue      
+                }
+            }      
+            # --- PORTABLE INSTALL FINAL GUARD ---
+            $ScriptOutputFile = Join-Path -Path $TempFolderPath -ChildPath "hst_commands.txt"
+                      
+            # --- 6. FINAL CONFIRMATION ---
+            Write-Host "====================================================" -ForegroundColor Yellow
+            Write-Host "            READY TO WRITE TO DISK" -ForegroundColor Yellow
+            Write-Host "====================================================" -ForegroundColor Yellow
+            
+            # Display target based on InstallType (Disk vs HDF file)
+            if ($InstallType -eq "General - Combined") {
+                Write-Host "Target HDF File:      $InstallLocation" -ForegroundColor Cyan
+            } else {
+                Write-Host "Target Disk:          $InstallLocation" -ForegroundColor Red
+            }
+
+            Write-Host "Selected AGS Version: $InstallType" -ForegroundColor White
+            Write-Host "Source Folder:        $SourceLocation" -ForegroundColor White
+            Write-Host "----------------------------------------------------"
+
+            # Warning Logic: Only show ERASE warning for physical disks, not HDF files
+            if (($InstallType -ne "General - Combined") -and ($InstallType -ne "PiStorm - Portable Install")){
+                Write-Host "WARNING: This will ERASE all data on $InstallLocation." -ForegroundColor Red
+                if ($HostOS -ne "Windows") {
+                    Write-Host "CAUTION: Ensure $InstallLocation is the correct device node for your SD Card." -ForegroundColor Magenta
+                }
+            }
+            elseif ($InstallType -eq "PiStorm - Portable Install") {
+                Write-Host "WARNING: This will write to the card at $InstallLocation which already has data on it. If something goes wrong there is a" -ForegroundColor Red
+                Write-host "chance this could destroy data on this card! If you have not already, please make sure you have made a backup!" -ForegroundColor Red
+                if ($HostOS -ne "Windows") {
+                    Write-Host "CAUTION: Ensure $InstallLocation is the correct device node for your SD Card." -ForegroundColor Magenta
+                }
+            } 
+            else {
+                Write-Host "NOTICE: This will create/overwrite the file at $InstallLocation." -ForegroundColor Yellow
+            }
+
+            Write-Host "====================================================" -ForegroundColor Yellow
+            
+            if ($InstallType -eq "PiStorm - WinUAE") {
+                $currentTotalBytes = 1024*1024+1073741824
+                foreach($e in ($DriveStatus.Keys | Where-Object { $DriveStatus[$_].status -eq "Enabled" })) { 
+                    $currentTotalBytes += $DriveStatus[$e].size 
+                }
+                
+                $DriveCopyCommands = ""
+                
+                foreach ($k in $DriveStatus.Keys) {
+                    if ($DriveStatus[$k].status -eq "Enabled") {
+                        # Map the display name to the actual filename if they differ
+                        $FileName = "$k.hdf"
+                        $PartName = switch ($k) {
+                            "Workbench"      { "DH0" }
+                            "Work"           { "DH1" }
+                            "Media"          { "DH3" }
+                            "Music"          { "DH2" }        
+                            "AGS_Drive"      { "DH4" }
+                            "Emulators"      { "DH7" }
+                            "Emulators2"     { "DH15"}
+                            "WHD_Games"      { "DH13"}
+                            "WHD_Demos"      { "DH14"}
+                            "Games"          { "DH5" }
+                            "Premium"        { "DH6" }
+                        } 
+                        $DriveCopyCommands += "rdb part copy `"$SourceLocation\$FileName`" 1 `"$InstallLocation\MBR\2`" --name $PartName`n"
+               
+                    }
+                }
+
+                if ($HostOS -eq "Windows"){
+                    $DriveCopyCommands = ($DriveCopyCommands.Split("`n").Trim() | Where-Object {$_}) -join "`r`n"
+                }
+                else {
+                    $DriveCopyCommands = ($DriveCopyCommands.Split("`n").Trim() | Where-Object {$_}) -join "`n"
+                }
+                
+$ScriptContent = @"
+settings update --cache-type disk
+blank "$TempFolderPath\Clean.vhd" 10mb
+write "$TempFolderPath\Clean.vhd" $InstallLocation --skip-unused-sectors FALSE
+mbr init $InstallLocation
+mbr part add $InstallLocation 0xb 1073741824 --start-sector 2048
+mbr part format $InstallLocation 1 EMU68BOOT
+mbr part add $InstallLocation 0x76 ${currentTotalBytes} --start-sector 2099200
+rdb init $InstallLocation\mbr\2
+rdb filesystem add $InstallLocation\mbr\2 "$FileSystemFolder\pfs3aio" PDS3
+$DriveCopyCommands
+fs c "$FilestoAddPath\Emu68Boot" $InstallLocation\MBR\1\ -r -md -q
+fs mkdir $InstallLocation\MBR\1\SHARED\SaveGames
+fs c "$InstallLocation\MBR\2\rdb\DH0\s\startup-sequence" "$InstallLocation\MBR\2\rdb\DH0\s\startup-sequence.bak"
+fs c "$InstallLocation\MBR\2\rdb\DH0\s\user-startup" "$InstallLocation\MBR\2\rdb\DH0\s\user-startup.bak"
+fs c "$InstallLocation\MBR\2\rdb\DH0\s\AGS-Stuff" "$InstallLocation\MBR\2\rdb\DH0\s\AGS-Stuff.bak"
+fs c "$InstallLocation\MBR\2\rdb\DH0\c\whdload" "$InstallLocation\MBR\2\rdb\DH0\c\whdload.ori"
+fs c "$FilestoAddPath\WinUAE\Workbench" "$InstallLocation\MBR\2\rdb\DH0" -r -md -q -f
+fs c "$FilestoAddPath\WinUAE\Work" "$InstallLocation\MBR\2\rdb\DH1" -r -md -q -f
+fs c "$FilestoAddPath\WinUAE\AGS_Drive" "$InstallLocation\MBR\2\rdb\DH4" -r -md -q -f
+fs c "$InstallLocation\MBR\2\rdb\DH0\Devs\monitors\HD720*" "$InstallLocation\MBR\2\rdb\DH0\storage\monitors"
+fs c "$InstallLocation\MBR\2\rdb\DH0\Devs\monitors\HighGFX*" "$InstallLocation\MBR\2\rdb\DH0\storage\monitors"
+fs c "$InstallLocation\MBR\2\rdb\DH0\Devs\monitors\SuperPlus*" "$InstallLocation\MBR\2\rdb\DH0\storage\monitors"
+fs c "$InstallLocation\MBR\2\rdb\DH0\Devs\monitors\Xtreme*" "$InstallLocation\MBR\2\rdb\DH0\storage\monitors"
+fs c "$InstallLocation\MBR\2\rdb\DH0\Devs\Kickstarts\kick40068.A1200" "$InstallLocation\MBR\1\kick.rom"
+"@
+            } 
+            elseif ($InstallType -eq "General - Combined"){
+                $currentTotalBytes = 1024*1024
+                foreach($e in ($DriveStatus.Keys | Where-Object { $DriveStatus[$_].status -eq "Enabled" })) { 
+                    $currentTotalBytes += $DriveStatus[$e].size 
+                }
+                
+                $DriveCopyCommands = ""
+                
+                foreach ($k in $DriveStatus.Keys) {
+                    if ($DriveStatus[$k].status -eq "Enabled") {
+                        # Map the display name to the actual filename if they differ
+                        $FileName = "$k.hdf"
+                        $PartName = switch ($k) {
+                            "Workbench"      { "DH0" }
+                            "Work"           { "DH1" }
+                            "Media"          { "DH3" }
+                            "Music"          { "DH2" }        
+                            "AGS_Drive"      { "DH4" }
+                            "Emulators"      { "DH7" }
+                            "Emulators2"     { "DH15"}
+                            "WHD_Games"      { "DH13"}
+                            "WHD_Demos"      { "DH14"}
+                            "Games"          { "DH5" }
+                            "Premium"        { "DH6" }
+                        }                        
+                        $DriveCopyCommands += "rdb part copy `"$SourceLocation\$FileName`" 1 `"$InstallLocation`" --name $PartName`n"
+                    }
+                }
+                
+                if ($HostOS -eq "Windows"){
+                    $DriveCopyCommands = ($DriveCopyCommands.Split("`n").Trim() | Where-Object {$_}) -join "`r`n"
+                }
+                else {
+                    $DriveCopyCommands = ($DriveCopyCommands.Split("`n").Trim() | Where-Object {$_}) -join "`n"
+                }
+
+$ScriptContent = @"
+settings update --cache-type disk
+blank "$InstallLocation" ${currentTotalBytes}
+rdb init "$InstallLocation"
+rdb filesystem add "$InstallLocation" "$FileSystemFolder\pfs3aio" PDS3
+$DriveCopyCommands
+"@                
+            }
+            elseif ($InstallType -eq "PiStorm - Portable Install"){
+                $currentTotalBytes = 1024*1024
+                foreach($e in ($DriveStatus.Keys | Where-Object { $DriveStatus[$_].status -eq "Enabled" })) { 
+                    $currentTotalBytes += $DriveStatus[$e].size 
+                }
+                $DriveCopyCommands = ""
+                foreach ($k in $DriveStatus.Keys) {
+                    if ($DriveStatus[$k].status -eq "Enabled") {
+                        # Map the display name to the actual filename if they differ
+                        $FileName = "$k.hdf" 
+                        # Map the display name to the Amiga Partition Name (e.g., DH4)
+                        $PartName = switch ($k) {
+                            "AGS_Drive"      { "ADH0" }
+                            "Emulators"      { "ADH1" }
+                            "Emulators2"     { "ADH2" }
+                            "WHD_Games"      { "ADH3" }
+                            "WHD_Demos"      { "ADH4" }
+                            "Games"          { "ADH5" }
+                            "Premium"        { "ADH6" }
+                        }
+                        $DriveCopyCommands += "rdb part copy `"$SourceLocation\$FileName`" 1 `"$InstallLocation\MBR\$PortablePartIndex`" --name $PartName`n"
+                    }
+                }
+
+                if ($HostOS -eq "Windows"){
+                    $DriveCopyCommands = ($DriveCopyCommands.Split("`n").Trim() | Where-Object {$_}) -join "`r`n"
+                }
+                else {
+                    $DriveCopyCommands = ($DriveCopyCommands.Split("`n").Trim() | Where-Object {$_}) -join "`n"
+                }                
+                
+$ScriptContent = @"
+settings update --cache-type disk
+mbr part add $InstallLocation 0x76 ${currentTotalBytes}
+rdb init $InstallLocation\mbr\$PortablePartIndex
+rdb filesystem add $InstallLocation\mbr\$PortablePartIndex "$FileSystemFolder\pfs3aio" PDS3 
+$DriveCopyCommands 
+"@                
+            
+            }
+            elseif  ($InstallType -eq "AGS") {
+                $AGAImageFile = if($HostOS -eq "Windows"){"$SourceLocation\AGS_Classic_AGA_KickstartFix_v30.img"}{"$SourceLocation/AGS_Classic_AGA_KickstartFix_v30.img"}
+$ScriptContent = @"
+settings update --cache-type disk
+blank "$TempFolderPath\Clean.vhd" 10mb
+write "$TempFolderPath\Clean.vhd" $InstallLocation --skip-unused-sectors FALSE
+mbr init $InstallLocation
+mbr part add $InstallLocation 0xb 250mb --start-sector 2048
+mbr part format $InstallLocation 1 EMU68BOOT
+mbr part add $InstallLocation 0x76 30601641984B
+write "$AGAImageFile" "$InstallLocation\mbr\2"
+fs c "$InstallLocation\MBR\2\rdb\DH0\Devs\Kickstarts\kick40068.A1200" "$InstallLocation\MBR\1\kick.rom"
+fs c "$FilestoAddPath\Emu68Boot" $InstallLocation\MBR\1\ -r -md -q
+fs mkdir $InstallLocation\MBR\1\SHARED\SaveGames
+fs c "$InstallLocation\MBR\2\rdb\DH0\c\whdload" "$InstallLocation\MBR\2\rdb\DH0\c\whdload.ori"
+fs c "$FilestoAddPath\AGA\Workbench" "$InstallLocation\MBR\2\rdb\DH0" -r -md -q -f
+"@  
+            }
+
+            if ($HostOS -ne "Windows") { $ScriptContent = $ScriptContent.Replace("\","/") }
+            $ScriptContent | Out-File -FilePath $ScriptOutputFile -Encoding utf8 -Force
+            
+            Write-Host "`nTarget: $InstallLocation`nVersion: $InstallType" -ForegroundColor Yellow
+            if ((Read-Host "Type 'YES' to proceed").ToUpper() -eq "YES") {
+                if ($HostOS -eq "Windows") {
+                   & $FullHSTImagerPath script $ScriptOutputFile 
+                }
+                else {               
+                    $Commands = Get-Content -Path $ScriptOutputFile
+                    foreach ($Line in $Commands) {
+                        if (-not [string]::IsNullOrWhiteSpace($Line)) {
+                            $ArgList = [System.Management.Automation.PsParser]::Tokenize($Line, [ref]$null) | Select-Object -ExpandProperty Content
+                            & $FullHSTImagerPath @ArgList
+                            Start-Sleep -Seconds 1
+                        }
+                    }
+                }
+#                Write-Host "Execution skipped (Debug Mode)." -ForegroundColor Cyan
+                Write-Host "Process Complete. Press enter to exit" -ForegroundColor Green
+                $running = $false
+                return
+            }
+            $menuStack = $menuStack[0..($menuStack.Count-2)]
+        }
+    }
+}
