@@ -1,10 +1,26 @@
-unset wirelessmanagerPID
-set wirelessmanagerPID `status com=wirelessmanager`
-if VAL $wirelessmanagerPID GT 0
- echo "Quiting Wireless Manager"
- BREAK $wirelessmanagerPID
-else
- echo "Wireless Manager not running"
-ENDIF
+.KEY IPSTACK/K/A,DEVICE/K/A,KEEPWIRELESSMANAGER/S
+.BRA {
+.KET }
 
-unset wirelessmanagerPID
+failat 21
+
+If {IPSTACK} EQ "MIAMI"
+ assign exists Miami: >NIL:
+ if WARN
+  echo "Miami not installed!"
+  QUIT 10
+ endif
+endif
+
+If {DEVICE} EQ "WIFIPI"
+ if NOT KEEPWIRELESSMANAGER
+  execute sys:s/WifiOffline
+ endif
+endif
+
+If {IPSTACK} EQ "MIAMI"
+ rx sys:s/MiamiOffline.rexx 
+endif
+
+failat 10
+Quit 0
