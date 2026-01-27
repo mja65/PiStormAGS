@@ -4,6 +4,8 @@ sntp pool.ntp.org >Ram:sntplog.txt
 search Ram:sntplog.txt "Unknown host" >NIL:
 if not warn
  echo "Unable to synchronise time"
+ delete Ram:sntplog.txt >NIL: QUIET
+ Quit 10
  skip end
 endif
 setdst
@@ -11,3 +13,4 @@ echo "Time set and DST applied if applicable"
 Lab end
 delete Ram:sntplog.txt >NIL: QUIET
 failat 10
+Quit 0
