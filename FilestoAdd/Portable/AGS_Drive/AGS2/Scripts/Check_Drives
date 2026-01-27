@@ -1,0 +1,646 @@
+; Script to check which drives are installed and adapt the launcher list.
+
+SetEnv WHDGames 0
+SetEnv WHDDemos 0
+SetEnv Games 0
+SetEnv Premium 0
+SetEnv Emulators1 0
+SetEnv Emulators2 0
+
+AGS:
+
+; Check for drives
+
+If $HW NOT EQ "Mini"
+
+ InfoNew >ENV:WHDLGames WHD_Games:
+ Search >NIL: ENV:WHDLGames "WHD_Games [Mounted]" QUIET
+ If NOT WARN
+  SetEnv WHDGames 1
+ Endif
+ Delete >NIL: ENV:WHDLGames
+
+ InfoNew >ENV:WHDLDemos WHD_Demos:
+ Search >NIL: ENV:WHDLDemos "WHD_Demos [Mounted]" QUIET
+ If NOT WARN
+  SetEnv WHDDemos 1
+ Endif
+ Delete >NIL: ENV:WHDLDemos
+
+ InfoNew >ENV:GamesDrive Games:
+ Search >NIL: ENV:GamesDrive "Games [Mounted]" QUIET
+ If NOT WARN
+  SetEnv Games 1
+ Endif
+ Delete >NIL: ENV:GamesDrive
+
+Endif
+
+InfoNew >ENV:PremiumDrive Premium:
+Search >NIL: ENV:PremiumDrive "Premium [Mounted]" QUIET
+If NOT WARN
+ SetEnv Premium 1
+Endif
+Delete >NIL: ENV:PremiumDrive
+
+InfoNew >ENV:Emulators1Drive Emulators1:
+Search >NIL: ENV:Emulators1Drive "Emulators1 [Mounted]" QUIET
+If NOT WARN
+ SetEnv Emulators1 1
+Endif
+Delete >NIL: ENV:Emulators1Drive
+
+If $HW NOT EQ "Mini"
+
+ InfoNew >ENV:Emulators2Drive Emulators2:
+ Search >NIL: ENV:Emulators2Drive "Emulators2 [Mounted]" QUIET
+ If NOT WARN
+  SetEnv Emulators2 1
+ Endif
+ Delete >NIL: ENV:Emulators2Drive
+
+Endif
+
+If $HW EQ "Mini"
+
+ InfoNew >ENV:WHDLGames WHD1:
+ Search >NIL: ENV:WHDLGames "WHD1 [Mounted]" QUIET
+ If NOT WARN
+  SetEnv WHDGames 1
+  SetEnv WHDDemos 1
+ Endif
+ Delete >NIL: ENV:WHDLGames
+ 
+ InfoNew >ENV:GamesDrive Games1:
+ Search >NIL: ENV:GamesDrive "Games1 [Mounted]" QUIET
+ If NOT WARN
+  SetEnv Games 1
+ Endif
+ Delete >NIL: ENV:GamesDrive
+ 
+Endif
+
+; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Make changes for WHDGames
+
+If $WHDGames EQ "1"
+ 
+ Echo "WHDLoad games found."
+ 
+ If EXISTS "+  Games - 0-Z.agz"
+   Rename "+  Games - 0-Z.agz" TO "+  Games - 0-Z.ags"
+  Endif
+  
+ If $Adult EQ "1"
+  If EXISTS "+  Games - Adult.agz"
+   Rename "+  Games - Adult.agz" TO "+  Games - Adult.ags"
+  Endif
+ Endif
+  
+ If EXISTS "+  Games - AGA.agz"
+  Rename "+  Games - AGA.agz" TO "+  Games - AGA.ags"
+ Endif
+  
+ If EXISTS "+  Games - Beta.agz"
+  Rename "+  Games - Beta.agz" TO "+  Games - Beta.ags"
+ Endif
+  
+ If EXISTS "+  Games - By Genre.agz"
+  Rename "+  Games - By Genre.agz" TO "+  Games - By Genre.ags"
+ Endif
+  
+ If EXISTS "+  Games - By Publisher.agz"
+  Rename "+  Games - By Publisher.agz" TO "+  Games - By Publisher.ags"
+ Endif
+ 
+ If EXISTS "+  Games - By System.agz"
+  Rename "+  Games - By System.agz" TO "+  Games - By System.ags"
+ Endif
+ 
+ If EXISTS "+  Games - By Theme.agz"
+  Rename "+  Games - By Theme.agz" TO "+  Games - By Theme.ags"
+ Endif
+ 
+ If EXISTS "+  Games - By Year.agz"
+  Rename "+  Games - By Year.agz" TO "+  Games - By Year.ags"
+ Endif
+ 
+ If EXISTS "+  Games - Multiplayer.agz"
+  Rename "+  Games - Multiplayer.agz" TO "+  Games - Multiplayer.ags"
+ Endif
+ 
+ If EXISTS "+  Games - Non English.agz"
+  Rename "+  Games - Non English.agz" TO "+  Games - Non English.ags"
+ Endif
+ 
+ If EXISTS "+  Games - NTSC.agz"
+  Rename "+  Games - NTSC.agz" TO "+  Games - NTSC.ags"
+ Endif
+ 
+ If EXISTS "+  Games - Top 200.agz"
+  Rename "+  Games - Top 200.agz" TO "+  Games - Top 200.ags"
+ Endif
+ 
+ If EXISTS "-  -----------------------.agz"
+  Rename "-  -----------------------.agz" TO "-  -----------------------.ags"
+ Endif
+ 
+ If EXISTS "Play a Random Game.rub"
+  Rename "Play a Random Game.rub" TO "Play a Random Game.run"
+ Endif
+ 
+ ; Set Filter
+  
+ CD AGS:Filters.ags
+ 
+ If EXISTS "Hide AGA.rub"
+  Rename >NIL: "Hide AGA.rub" "Hide AGA.run"
+ Endif
+ 
+ If EXISTS "Show AGA.run"
+  Rename >NIL: "Show AGA.run" "Show AGA.rub"
+ Endif
+ 
+ If EXISTS "Hide Non English.rub"
+  Rename >NIL: "Hide Non English.rub" "Hide Non English.run"
+ Endif
+ 
+ If EXISTS "Show Non English.run"
+  Rename >NIL: "Show Non English.run" "Show Non English.rub"
+ Endif
+ 
+ If EXISTS "Hide NTSC.rub"
+  Rename >NIL: "Hide NTSC.rub" "Hide NTSC.run"
+ Endif
+ 
+ If EXISTS "Show NTSC.run"
+  Rename >NIL: "Show NTSC.run" "Show NTSC.rub"
+ Endif
+ 
+ AGS:
+    
+Else
+
+ Echo "WHDLoad games drive missing."
+
+ If EXISTS "+  Games - 0-Z.ags"
+  Rename "+  Games - 0-Z.ags" TO "+  Games - 0-Z.agz"
+ Endif
+ 
+ If EXISTS "+  Games - Adult.ags"
+  Rename "+  Games - Adult.ags" TO "+  Games - Adult.agz"
+ Endif
+ 
+ If EXISTS "+  Games - AGA.ags"
+  Rename "+  Games - AGA.ags" TO "+  Games - AGA.agz"
+ Endif
+ 
+ If EXISTS "+  Games - Beta.ags"
+  Rename "+  Games - Beta.ags" TO "+  Games - Beta.agz"
+ Endif
+ 
+ If EXISTS "+  Games - By Genre.ags"
+  Rename "+  Games - By Genre.ags" TO "+  Games - By Genre.agz"
+ Endif
+ 
+ If EXISTS "+  Games - By Publisher.ags"
+  Rename "+  Games - By Publisher.ags" TO "+  Games - By Publisher.agz"
+ Endif
+ 
+ If EXISTS "+  Games - By System.ags"
+  Rename "+  Games - By System.ags" TO "+  Games - By System.agz"
+ Endif
+ 
+ If EXISTS "+  Games - By Theme.ags"
+  Rename "+  Games - By Theme.ags" TO "+  Games - By Theme.agz"
+ Endif
+ 
+ If EXISTS "+  Games - By Year.ags"
+  Rename "+  Games - By Year.ags" TO "+  Games - By Year.agz"
+ Endif
+ 
+ If EXISTS "+  Games - Multiplayer.ags"
+  Rename "+  Games - Multiplayer.ags" TO "+  Games - Multiplayer.agz"
+ Endif
+ 
+ If EXISTS "+  Games - Non English.ags"
+  Rename "+  Games - Non English.ags" TO "+  Games - Non English.agz"
+ Endif
+ 
+ If EXISTS "+  Games - NTSC.ags"
+  Rename "+  Games - NTSC.ags" TO "+  Games - NTSC.agz"
+ Endif
+ 
+ If EXISTS "+  Games - Top 200.ags"
+  Rename "+  Games - Top 200.ags" TO "+  Games - Top 200.agz"
+ Endif
+ 
+ If EXISTS "-  -----------------------.ags"
+  Rename "-  -----------------------.ags" TO "-  -----------------------.agz"
+ Endif
+ 
+ If EXISTS "Play a Random Game.run"
+  Rename "Play a Random Game.run" TO "Play a Random Game.rub"
+ Endif
+  
+ ; Set Filter
+  
+ CD AGS:Filters.ags
+ 
+ If EXISTS "Hide AGA.run"
+  Rename >NIL: "Hide AGA.run" "Hide AGA.rub"
+ Endif
+ 
+ If EXISTS "Show AGA.run"
+  Rename >NIL: "Show AGA.run" "Show AGA.rub"
+ Endif
+ 
+ If EXISTS "Hide Non English.run"
+  Rename >NIL: "Hide Non English.run" "Hide Non English.run"
+ Endif
+ 
+ If EXISTS "Show Non English.run"
+  Rename >NIL: "Show Non English.run" "Show Non English.rub"
+ Endif
+ 
+ If EXISTS "Hide NTSC.run"
+  Rename >NIL: "Hide NTSC.run" "Hide NTSC.run"
+ Endif
+ 
+ If EXISTS "Show NTSC.run"
+  Rename >NIL: "Show NTSC.run" "Show NTSC.run"
+ Endif
+ 
+ AGS:
+ 
+Endif
+
+; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Make changes for WHD_Demos
+
+If $WHDDemos EQ "1"
+ 
+ Echo "WHDLoad demos found..."
+  
+ If EXISTS "-  Demos - 0-Z.agz"
+  Rename "-  Demos - 0-Z.agz" TO "-  Demos - 0-Z.ags"
+ Endif
+
+ If $Adult EQ "1"
+  If EXISTS "-  Demos - Adult.agz"
+   Rename "-  Demos - Adult.agz" TO "-  Demos - Adult.ags"
+  Endif
+ Endif
+
+ If EXISTS "-  Demos - AGA.agz"
+  Rename "-  Demos - AGA.agz" TO "-  Demos - AGA.ags"
+ Endif
+
+ If EXISTS "-  Demos - By Genre.agz"
+  Rename "-  Demos - By Genre.agz" TO "-  Demos - By Genre.ags"
+ Endif
+
+ If EXISTS "-  Demos - By Group.agz"
+  Rename "-  Demos - By Group.agz" TO "-  Demos - By Group.ags"
+ Endif
+
+ If EXISTS "-  Demos - By Year.agz"
+  Rename "-  Demos - By Year.agz" TO "-  Demos - By Year.ags"
+ Endif
+ 
+ If EXISTS "-  Disk Magazines.agz"
+  Rename "-  Disk Magazines.agz" TO "-  Disk Magazines.ags"
+ Endif
+
+ If EXISTS "-- -----------------------.agz"
+  Rename "-- -----------------------.agz" TO "-- -----------------------.ags"
+ Endif
+
+ If EXISTS "Play a Random Demo.rub"
+  Rename "Play a Random Demo.rub" TO "Play a Random Demo.run"
+ Endif
+   
+Else 
+ 
+ Echo "WHDLoad demos drive missing."
+  
+ If EXISTS "-  Demos - 0-Z.ags"
+  Rename "-  Demos - 0-Z.ags" TO "-  Demos - 0-Z.agz"
+ Endif
+
+ If $Adult EQ "1"
+  If EXISTS "-  Demos - Adult.ags"
+   Rename "-  Demos - Adult.ags" TO "-  Demos - Adult.agz"
+  Endif
+ Endif
+
+ If EXISTS "-  Demos - AGA.ags"
+  Rename "-  Demos - AGA.ags" TO "-  Demos - AGA.agz"
+ Endif
+
+ If EXISTS "-  Demos - By Genre.ags"
+  Rename "-  Demos - By Genre.ags" TO "-  Demos - By Genre.agz"
+ Endif
+
+ If EXISTS "-  Demos - By Group.ags"
+  Rename "-  Demos - By Group.ags" TO "-  Demos - By Group.agz"
+ Endif
+ 
+ If EXISTS "-  Demos - By Year.ags"
+  Rename "-  Demos - By Year.ags" TO "-  Demos - By Year.agz"
+ Endif
+
+ If EXISTS "-  Disk Magazines.ags"
+  Rename "-  Disk Magazines.ags" TO "-  Disk Magazines.agz"
+ Endif
+
+ If EXISTS "-- -----------------------.ags"
+  Rename "-- -----------------------.ags" TO "-- -----------------------.agz"
+ Endif
+
+ If EXISTS "Play a Random Demo.run"
+  Rename "Play a Random Demo.run" TO "Play a Random Demo.rub"
+ Endif
+
+Endif
+
+; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Check Games
+
+If $Games EQ "1"
+
+ Echo "Games drive found..."
+
+ If EXISTS "+  Extra Games.agz"
+  Rename >NIL: "+  Extra Games.agz" TO "+  Extra Games.ags"
+ Endif
+ 
+ CD AGS:Filters.ags
+ 
+ If Exists "Hide Extra Games.rub"
+  Rename >NIL: "Hide Extra Games.rub" "Hide Extra Games.run"
+ Endif
+ 
+ If EXISTS "Show Extra Games.run"
+  Rename >NIL: "Show Extra Games.run" "Show Extra Games.rub"
+ Endif
+ 
+ AGS:
+
+ SETENV Games "1"
+
+Else
+ 
+ Echo "Games drive missing."
+
+ If EXISTS "+  Extra Games.ags"
+  Rename >NIL: "+  Extra Games.ags" TO "+  Extra Games.agz"
+ Endif
+  
+ CD AGS:Filters.ags
+ 
+ If Exists "Hide Extra Games.run"
+  Rename >NIL: "Hide Extra Games.run" "Hide Extra Games.rub"
+ Endif
+ 
+ If EXISTS "Show Extra Games.run"
+  Rename >NIL: "Show Extra Games.run" "Show Extra Games.rub"
+ Endif
+
+ AGS:
+
+Endif
+
+; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Make changes for Premium Games
+
+If $Premium EQ "1"
+
+ Echo "Premium games drive found..."
+
+ If EXISTS "+  Extra Games Premium.agz"
+  Rename >NIL: "+  Extra Games Premium.agz" TO "+  Extra Games Premium.ags"
+ Endif
+
+ CD AGS:Filters.ags
+ 
+ If Exists "Hide Premium Games.rub"
+  Rename >NIL: "Hide Premium Games.rub" "Hide Premium Games.run"
+ Endif
+ 
+ If EXISTS "Show Premium Games.run"
+  Rename >NIL: "Show Premium Games.run" "Show Premium Games.rub"
+ Endif
+
+ AGS:
+ 
+Else
+
+ Echo "Premium games drive missing."
+
+ If EXISTS "+  Extra Games Premium.ags"
+  Rename >NIL: "+  Extra Games Premium.ags" TO "+  Extra Games Premium.agz"
+ Endif
+  
+ CD AGS:Filters.ags
+ 
+ If Exists "Hide Premium Games.run"
+  Rename >NIL: "Hide Premium Games.run" "Hide Premium Games.rub"
+ Endif
+ 
+ If EXISTS "Show Premium Games.run"
+  Rename >NIL: "Show Premium Games.run" "Show Premium Games.rub"
+ Endif
+
+ AGS:
+  
+Endif
+ 
+; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Check Emulators 1
+
+If $Emulators1 EQ "1"
+
+ Echo "Emulators 1 drive found..."
+ 
+ If EXISTS "+  Emulators.agz"
+  Rename >NIL: "+  Emulators.agz" TO "+  Emulators.ags"
+ Endif
+ 
+ CD "+  Emulators.ags"
+ 
+ If EXISTS "Amstrad CPC.agz"
+  Rename >NIL: "Amstrad CPC.agz" TO "Amstrad CPC.ags"
+ Endif 
+ 
+ If EXISTS "Commodore 64.agz"
+  Rename >NIL: "Commodore 64.agz" TO "Commodore 64.ags"
+ Endif 
+
+ If EXISTS "MSX - MSX2.agz"
+  Rename >NIL: "MSX - MSX2.agz" TO "MSX - MSX 2.ags"
+ Endif 
+ 
+ If EXISTS "Nintendo Game Boy.agz"
+  Rename >NIL: "Nintendo Game Boy.agz" TO "Nintendo Game Boy.ags"
+ Endif 
+ 
+ If EXISTS "Sega Genesis.agz"
+  Rename >NIL: "Sega Genesis.agz" TO "Sega Genesis.ags"
+ Endif 
+
+ If EXISTS "Sega Master System.agz"
+  Rename >NIL: "Sega Master System.agz" TO "Sega Master System.ags"
+ Endif 
+ 
+  If EXISTS "ZX Spectrum.agz"
+  Rename >NIL: "ZX Spectrum.agz" TO "ZX Spectrum.ags"
+ Endif 
+  
+ CD AGS:Filters.ags
+
+ If Exists "Hide Emulators.rub"
+  Rename >NIL: "Hide Emulators.rub" "Hide Emulators.run"
+ Endif
+ 
+ If EXISTS "Show Emulators.run"
+  Rename >NIL: "Show Emulators.run" "Show Emulators.rub"
+ Endif
+ 
+ AGS:
+  
+Else
+ 
+ Echo "Emulators drive missing."
+ 
+ If EXISTS "+  Emulators.ags"
+  Rename >NIL: "+  Emulators.ags" TO "+  Emulators.agz"
+ Endif
+  
+ CD AGS:Filters.ags
+ 
+ If Exists "Hide Emulators.run"
+  Rename >NIL: "Hide Emulators.run" "Hide Emulators.rub"
+ Endif
+ 
+ If EXISTS "Show Emulators.run"
+  Rename >NIL: "Show Emulators.run" "Show Emulators.rub"
+ Endif
+ 
+ AGS:
+   
+ SETENV Emulators1 "0"
+ 
+Endif
+  
+; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Check Emulators 2
+
+If $Emulators2 EQ "1"
+
+ Echo "Emulators 2 drive found..."
+ 
+ ; Check if Emulators1 drive is missing and rename folder back.
+ 
+ If $Emulators1 EQ "0"
+  If EXISTS "+  Emulators.agz"
+   Rename >NIL: "+  Emulators.agz" TO "+  Emulators.ags"
+  Endif 
+ Endif
+
+ CD "AGS:+  Emulators.ags"
+ 
+ ; Add ScummVM and Mame back to list.
+ 
+ If EXISTS "Mame.agz"
+  Rename >NIL: "Mame.agz" TO "Mame.ags"
+ Endif 
+ 
+ If EXISTS "ScummVM.agz"
+  Rename >NIL: "ScummVM.agz" TO "ScummVM.ags"
+ Endif 
+
+ ; Hide other emulator drawer if Emulators1 is missing
+
+ If $Emulators1 EQ "0"
+ 
+  If EXISTS "Amstrad CPC.ags"
+   Rename >NIL: "Amstrad CPC.ags" TO "Amstrad CPC.agz"
+  Endif 
+  
+  If EXISTS "Commodore 64.ags"
+   Rename >NIL: "Commodore 64.ags" TO "Commodore 64.agz"
+  Endif 
+ 
+  If EXISTS "MSX - MSX2.ags"
+   Rename >NIL: "MSX - MSX2.ags" TO "MSX - MSX 2.agz"
+  Endif 
+  
+  If EXISTS "Nintendo Game Boy.ags"
+   Rename >NIL: "Nintendo Game Boy.ags" TO "Nintendo Game Boy.agz"
+  Endif 
+  
+  If EXISTS "Sega Genesis.ags"
+   Rename >NIL: "Sega Genesis.ags" TO "Sega Genesis.agz"
+  Endif 
+ 
+  If EXISTS "Sega Master System.ags"
+   Rename >NIL: "Sega Master System.ags" TO "Sega Master System.agz"
+  Endif 
+
+  If EXISTS "ZX Spectrum.ags"
+   Rename >NIL: "ZX Spectrum.ags" TO "ZX Spectrum.agz"
+  Endif 
+ 
+ Endif
+  
+ CD AGS:Filters.ags
+ 
+ If Exists "Hide Emulators.rub"
+  Rename >NIL: "Hide Emulators.rub" "Hide Emulators.run"
+ Endif
+ 
+ If EXISTS "Show Emulators.run"
+  Rename >NIL: "Show Emulators.run" "Show Emulators.rub"
+ Endif
+ 
+ AGS:
+  
+Else
+
+ If $HW NOT EQ "Mini"
+ 
+  Echo "Emulators 2 drive missing."
+ 
+  If $Emulators1 EQ "0"
+  
+   If EXISTS "+  Emulators.ags"
+    ; Remove ScummVM and Mame from the list.
+    CD "AGS:+  Emulators.ags"
+    If EXISTS "Mame.ags"
+     Rename >NIL: "Mame.ags" TO "Mame.agz"
+    Endif 
+    If EXISTS "ScummVM.ags"
+     Rename >NIL: "ScummVM.ags" TO "ScummVM.agz"
+    Endif 
+    AGS: 
+    Rename >NIL: "+  Emulators.ags" TO "+  Emulators.agz"
+   Endif
+  
+   CD AGS:Filters.ags
+  
+   If Exists "Hide Emulators.run"
+    Rename >NIL: "Hide Emulators.run" "Hide Emulators.rub"
+   Endif
+ 
+   If EXISTS "Show Emulators.run"
+    Rename >NIL: "Show Emulators.run" "Show Emulators.rub"
+   Endif
+  
+  Endif
+   
+  
+
+ Endif
+ 
+Endif  
+  
+; Cleanup ENV:
+
+Echo ""
+
+Delete >NIL: ENV:FS

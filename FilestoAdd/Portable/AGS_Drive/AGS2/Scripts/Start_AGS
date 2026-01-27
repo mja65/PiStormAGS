@@ -1,0 +1,315 @@
+; Main Amiga Game Selector startup script.
+;
+; CHANGE THIS SCRIPT AT YOUR PERIL!
+
+AGS:
+
+if exists AGS_Drive:AGS2/OS/ENV/FIRSTBOOT
+ SetEnv ENV:HW "PiStorm"
+ SetEnv ENVARC:HW "PiStorm"
+ echo "Initial setup. Performing adjustment of files. This might take a moment."
+ list Libs: FILES Lformat="if exists AGS_Drive:ags2/os/Libs/%N*n delete AGS_Drive:ags2/os/libs/%N QUIET > NIL:*nENDIF" >T:DeleteCommands 
+ list Libs:Compressors FILES Lformat="if exists AGS_Drive:ags2/os/Libs/compressors/%N*n delete AGS_Drive:ags2/os/libs/compressors/%N QUIET >NIL:*nENDIF" >>T:DeleteCommands  
+ list c: FILES Lformat="if exists AGS_Drive:ags2/os/c/%M*n delete AGS_Drive:ags2/os/c/%M QUIET > NIL:*nENDIF" >>T:DeleteCommands
+ execute T:DeleteCommands
+ delete T:DeleteCommands QUIET >NIL:
+ Searchreplace FROM AGS_Drive:AGS2/ags2.conf TO AGS_Drive:AGS2/ags2.conf SEARCH $00029004 REPLACE $501E1000 INPLACE
+ Searchreplace from AGS_Drive:AGS2/ags2.conf TO AGS_Drive:AGS2/ags2.conf SEARCH $500A1000 REPLACE $501E1000 INPLACE
+ List AGS_Drive:AGS2/Themes >T:ThemeChange PAT #?.conf LFORMAT "searchreplace FROM %P%N TO %P%N SEARCH $00029004 REPLACE $501E1000 INPLACE"
+ Ex T:ThemeChange
+ Rename >NIL: "AGS_Drive:AGS2/Themes.ags/- Use RTG Screen -.run" to "AGS_Drive:AGS2/Themes.ags/- Use RTG Screen -.rub"
+ Rename >NIL: "AGS_Drive:AGS2/Themes.ags/- Use AGA Screen -.rub" to "AGS_Drive:AGS2/Themes.ags/- Use AGA Screen -.run"
+ delete AGS_Drive:AGS2/OS/ENV/FIRSTBOOT QUIET >NIL: 
+endif
+
+;Cls
+
+If $HW NOT EQ "Real"
+ CliWindow 100/100/640/512
+Endif
+
+
+assign exists LIBS: >T:AssignCheck 
+;echo "Checking for existing assign of LIBS"
+Search >NIL: T:AssignCheck "+ AGS_Drive:AGS2/OS/Libs" QUIET
+If WARN
+; echo "Assigning Libs"
+ Assign Libs: AGSOS:Libs ADD
+ delete T:AssignCheck QUIET >NIL:
+endif
+
+assign exists DEVS: >T:AssignCheck 
+;echo "Checking for existing assign of DEVS"
+Search >NIL: T:AssignCheck "+ AGS_Drive:AGS2/OS/Devs" QUIET
+If WARN
+; echo "Assigning Devs"
+ Assign DEVS: AGSOS:Devs ADD
+ delete T:AssignCheck QUIET >NIL:
+endif
+
+If NOT EXISTS "S:WHDLoad.prefs"
+; echo "Checking for existing assign of S"
+ assign exists S: >T:AssignCheck
+ Search >NIL: T:AssignCheck "+ AGS_Drive:AGS2/OS/S" QUIET
+ If WARN
+;  echo "Assigning S" 
+  Assign S: AGSOS:S ADD
+  delete T:AssignCheck QUIET >NIL:
+ Endif
+Endif
+
+If NOT EXISTS "ENV:Module"
+ Copy >NIL: AGSOS:ENV/Module ENV:
+ Copy >NIL: AGSOS:ENV/Module ENVARC:
+ Copy >NIL: AGSOS:ENV/bpvol ENV:
+ Copy >NIL: AGSOS:ENV/bpvol ENVARC:
+ Copy >NIL: AGSOS:ENV/Play ENV:
+ Copy >NIL: AGSOS:ENV/Play ENVARC:
+Endif
+
+If NOT EXISTS ENV:whdlsaves
+
+ Requestchoice >NIL: TITLE "WHDLoad Saves" BODY "Please select a drive/drawer for your*nWHDLoad save drawer. A new drawer will be created*ncalled WHDSaves.*n*nThis drawer will be saved to ENV:whdlsaves" "OK" 
+ 
+ Requestfile >ENV:WPath TITLE "Select a save folder"  DRAWER AGS: DRAWERSONLY 
+ 
+ Echo >ENV:WHD WHDSaves
+ 
+ CD $WPath
+ If NOT EXISTS $WHD
+  MakeDir $WHD
+ Endif 
+ 
+ SetENV ENV:whdlsaves $WPath$WHD
+ SetENV ENVARC:whdlsaves $WPath$WHD
+ 
+ Delete >NIL: ENV:WHD
+ Delete >NIL: ENV:WPath
+ 
+Endif
+
+Assign WHDSaves: $whdlsaves
+
+If NOT EXISTS ENV:HW
+ BMX Scripts:HW_Menu
+ Copy ENV:HW ENVARC:
+Endif
+
+
+; Check for portable install
+
+If NOT EXISTS s:AGS-Stuff
+
+ ;Cls
+ Echo ""
+ Echo "Portable install detected..."
+ Echo ""
+ 
+ SetENV Portable 1
+ 
+ CD AGS:Options.ags
+ 
+ If EXISTS "Boot Options.ags"
+  Rename "Boot Options.ags" "Boot Options.agz"
+ Endif
+ 
+ If EXISTS "Disk Options.ags"
+  Rename "Disk Options.ags" "Disk Options.agz"
+ Endif
+ 
+ If $HW NOT EQ "Real"
+  If NOT EXISTS Fonts:courier
+   Assign Fonts: AGSOS:fonts ADD
+  Endif
+  SetFont courier 13
+ Endif
+ 
+ Wait 1
+ 
+Else
+
+ SetENV Portable 0
+
+ CD AGS:Options.ags
+ 
+ If EXISTS "Boot Options.agz"
+  Rename "Boot Options.agz" "Boot Options.ags"
+ Endif
+ 
+ If EXISTS "Disk Options.agz"
+  Rename "Disk Options.agz" "Disk Options.ags"
+ Endif
+ 
+Endif
+
+; Set Max Speed on Emulators
+
+;If $HW NOT EQ "Real"
+; Ex Scripts:Speed_Reset
+;Endif
+
+; Flush Memory
+
+; MemClear FLUSH QUIET
+
+; Check Boot To Game
+
+
+If EXISTS ENV:BOOTGAME
+
+ Ex Scripts:Boot_Mode
+ Skip Cleanup
+  
+Endif
+
+
+; Clear the CLI and draw the title
+
+
+;Cls
+
+Echo "Amiga Game Selector Launcher"
+Echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+Echo ""
+
+
+; Check Expert Permanent Mode
+
+If $EXPERTPERM NOT EQ 1
+
+ ; Reset Expert Mode
+
+ SetEnv Expert 0
+ 
+ Failat 21
+ CD "AGS:Options.ags"
+ 
+ If EXISTS "Expert Mode Enabled.run"
+  Rename >NIL: "Expert Mode Enabled.run" "Expert Mode Enabled.rub"
+ Endif
+ 
+ If EXISTS "Expert Mode Disabled.rub"
+  Rename >NIL: "Expert Mode Disabled.rub" "Expert Mode Disabled.run"
+ Endif
+ 
+Endif
+
+If $EXPERTPERM EQ 1
+ 
+ SetEnv Expert "1"
+ SetEnv ENVARC:Expert "1"
+
+Endif
+
+; Filter list based on installed drives
+
+If $HW NOT EQ "Real"
+ Ex Scripts:Check_Drives
+Else
+ SetEnv WHDGames 1
+ SetEnv WHDDemos 1
+ SetEnv Games 1
+ SetEnv Premium 1
+ SetEnv Emulators1 1
+ SetEnv Emulators2 1
+Endif
+
+; Set Lists based on hardware variable
+
+If $HW EQ "Real"
+ CD AGS:Options.ags
+ If Exists "Degrader Options.agz"
+  Rename >NIL: "Degrader Options.agz" TO "Degrader Options.ags"
+ Endif
+ If Exists "Emulator Options.rub"
+  Rename >NIL: "Emulator Options.rub" TO "Emulator Options.run"
+ Endif
+ Set EnableOptions "1"
+endif
+if $HW EQ "PiStorm"
+  If Exists "Degrader Options.ags"
+   Rename >NIL: "Degrader Options.ags" TO "Degrader Options.agz"
+  Endif
+   If Exists "Emulator Options.run"
+  Rename >NIL: "Emulator Options.run" TO "Emulator Options.rub"
+ Endif
+ Set EnableOptions "1"
+endif
+
+If $EnableOptions EQ "1"
+ CD AGS:Options.ags
+ If Exists "CPU Options.ags"
+  Rename >NIL: "CPU Options.ags" TO "CPU Options.agz"
+ Endif
+ 
+Endif
+unset EnableOptions
+
+If $HW NOT EQ "Real"
+ If $HW NOT EQ "PiStorm"
+  CD AGS:Options.ags
+ 
+  If Exists "Degrader Options.ags"
+   Rename >NIL: "Degrader Options.ags" TO "Degrader Options.agz"
+  Endif
+ 
+  If Exists "CPU Options.agz"
+   Rename >NIL: "CPU Options.agz" TO "CPU Options.agz"
+  Endif
+ 
+ Endif
+Endif
+
+; Change to AGS drawer
+
+
+AGS:
+
+
+; Check ags2.conf filesize
+
+
+Filesize >ENV:FS "ags2.conf"
+If $FS EQ "-1"
+ Copy Themes/default.conf ags2.conf
+Endif
+If $FS EQ "0"
+ Copy Themes/default.conf ags2.conf
+Endif
+Delete >NIL: ENV:FS
+
+
+; Run Random Mod Script
+
+
+If $RandomMod EQ 1
+ Ex Scripts:Module_Random
+Endif
+
+
+; Start background mod player
+
+
+If $Play EQ "1"
+ Ex Scripts:Play_Module
+Endif
+
+
+; Run AGS launcher 
+
+
+Echo "Starting Launcher..."
+
+Wait 1
+
+AGS2
+
+
+; Close background module player on exit
+
+Bastyplayer >NIL: x
+
+Lab Cleanup
+
+Delete >NIL: ENV:ANS
+;Cls

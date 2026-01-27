@@ -1,0 +1,8 @@
+Assign AGS: AGS2
+Assign Scripts: AGS:Scripts
+Assign AGSOS: AGS:OS
+
+;Path AGSOS:Files
+path AGS_Drive:AGS2/OS/c add 
+
+Execute Scripts:Start_AGS
