@@ -203,9 +203,9 @@ while ($running) {
             Write-Host "   - Uses native Amiga video output"
             Write-Host "   - Requires an Amiga 1200 and PiStorm32lite"
             Write-Host "   - Note: Includes a smaller software range than WinUAE`n"
-            Write-Host "3. PiStorm - Portable Install" -ForegroundColor Cyan
+            Write-Host "3. PiStorm - Portable Install - EXPERIMENTAL" -ForegroundColor Cyan
             Write-Host "   - Adds AGS launcher and drives to an existing install"
-            Write-Host "   - Sufficient space and a spare MBR partition are needed on the SD card "
+            Write-Host "   - Sufficient space and a spare MBR partition are needed on the SD card"
             Write-Host "   - The selected drives to include are configurable `n"
             Write-Host "4. General - Combined Drive (Single .hdf file)" -ForegroundColor Cyan
             Write-Host "   - Combines separate .hdf files from WinUAE install into a single .hdf`n"
@@ -766,6 +766,7 @@ mbr part add $InstallLocation 0x76 ${currentTotalBytes}
 rdb init $InstallLocation\mbr\$PortablePartIndex
 rdb filesystem add $InstallLocation\mbr\$PortablePartIndex "$FileSystemFolder\pfs3aio" PDS3 
 $DriveCopyCommands 
+fs c "$FilestoAddPath\Portable\AGS_Drive" "$InstallLocation\MBR\$PortablePartIndex\rdb\ADH0" -r -md -q -f
 "@                
             
             }
@@ -828,6 +829,7 @@ fs c "$FilestoAddPath\AGA\Workbench" "$InstallLocation\MBR\2\rdb\DH0" -r -md -q 
                     
                 }
                 Write-Host "Process Complete. Press enter to exit" -ForegroundColor Green
+                pause
                 $running = $false
                 return
             }
