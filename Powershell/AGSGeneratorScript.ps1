@@ -663,9 +663,9 @@ settings update --cache-type disk
 blank "$TempFolderPath\Clean.vhd" 10mb
 write "$TempFolderPath\Clean.vhd" $InstallLocation --skip-unused-sectors FALSE
 mbr init $InstallLocation
-mbr part add $InstallLocation 0xb 1073741824 --start-sector 2048
+mbr part add $InstallLocation 0xb 200mb --start-sector 2048
 mbr part format $InstallLocation 1 EMU68BOOT
-mbr part add $InstallLocation 0x76 ${currentTotalBytes} --start-sector 2099200
+mbr part add $InstallLocation 0x76 ${currentTotalBytes}
 rdb init $InstallLocation\mbr\2
 rdb filesystem add $InstallLocation\mbr\2 "$FileSystemFolder\pfs3aio" PDS3
 $DriveCopyCommands
