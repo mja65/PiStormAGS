@@ -17,7 +17,7 @@ if ($IsWindows -or ($null -eq $IsWindows -and $env:OS -match "Windows")) {
     exit
 }
 
-Write-host "AGS Image Generator v0.3"
+Write-host "AGS Image Generator v0.5"
 
 Add-Type -AssemblyName System.Net.Http
 $client = [System.Net.Http.HttpClient]::new()
@@ -116,6 +116,9 @@ Pause
 $menuStack = @("Main")
 $running = $true
 $InstallType = "PiStorm - WinUAE"
+$FAT32PartitionSizeBytes = 209715200
+$RDBOverheadBytes = 10485760
+$DiskSelectedSizeBytes = $null
 $InstallLocation = "None Selected"
 $SourceLocation  = "None Selected"
 $FreeBytes = 0
@@ -134,7 +137,11 @@ $DriveStatus = [ordered]@{
     "Premium"        = [pscustomobject]@{ status = "Enabled"; visible = $true;size = 8159993856}
 }
 
-
+$currentTotalBytesHDF = $RDBOverheadBytes
+foreach($e in ($DriveStatus.Keys | Where-Object { $DriveStatus[$_].status -eq "Enabled" })) { 
+    $currentTotalBytesHDF += $DriveStatus[$e].size 
+}
+              
 # --- 6. MAIN LOOP ---
 while ($running) {
     Clear-Host
@@ -154,9 +161,9 @@ while ($running) {
             Write-Host "   - Sets the location for the source file(s)"                    
             if ($InstallType -eq "PiStorm - Portable Install") {
                 $enabled = ($DriveStatus.Keys | Where-Object { $DriveStatus[$_].status -eq "Enabled" })
-                $currentTotalBytes = 0
-                foreach($e in $enabled) { $currentTotalBytes += $DriveStatus[$e].size }
-                $currentTotalGB = [math]::Round($currentTotalBytes / 1GB, 2)
+                $currentTotalBytesHDF = $RDBOverheadBytes
+                foreach($e in $enabled) { $currentTotalBytesHDF += $DriveStatus[$e].size }
+                $currentTotalGB = [math]::Round($currentTotalBytesHDF / 1GB, 2)
                 
                 # Logic for Available Space
                 $availText = if ($InstallLocation -ne "None Selected" -and $FreeBytes -gt 0) { 
@@ -173,6 +180,11 @@ while ($running) {
                 Write-Host "     do not want to install the full set of drives"    
                 Write-Host "5. Write image" -ForegroundColor Cyan
             } 
+            elseif (($InstallType -eq "PiStorm - WinUAE")  -or ($InstallType -eq "PiStorm - AGA")){
+                Write-Host "4. Set FAT32 Partition Size" -ForegroundColor Cyan
+                Write-Host "   - Allows you to set a larger/smaller FAT32 partition size"
+                Write-Host "5. Write image" -ForegroundColor Cyan
+            }             
             else {
                 Write-Host "4. Write image" -ForegroundColor Cyan
             }
@@ -188,7 +200,12 @@ while ($running) {
             elseif ($InstallType -eq "PiStorm - Portable Install") {
                 if ($choice -eq '4') { $menuStack += "Drives to Install" }
                 elseif ($choice -eq '5') { $menuStack += "Run Command" }
-            } else {
+            }
+            elseif (($InstallType -eq "PiStorm - WinUAE") -or ($InstallType -eq "PiStorm - AGA")){
+                if ($choice -eq '4') { $menuStack += "Set FAT32 Partition Size" }
+                elseif ($choice -eq '5') { $menuStack += "Run Command" }
+            }             
+            else {
                 if ($choice -eq '4') { $menuStack += "Run Command" }
             }
         }
@@ -217,20 +234,32 @@ while ($running) {
             switch ($c) {
                 '1' { 
                     $InstallType = "PiStorm - WinUAE"
+                    $DiskSelectedSizeBytes =$null
+                    $FAT32PartitionSizeBytes = 209715200
                     $InstallLocation = "None Selected"
                     $SourceLocation = "None Selected"
                     foreach ($k in $DriveStatus.Keys) {
                        $DriveStatus[$k].status = "Enabled"
                     }
+                    $currentTotalBytesHDF = $RDBOverheadBytes
+                    foreach($e in ($DriveStatus.Keys | Where-Object { $DriveStatus[$_].status -eq "Enabled" })) { 
+                        $currentTotalBytesHDF += $DriveStatus[$e].size 
+                    }                    
                  }
                 '2' {
                     $InstallType = "PiStorm - AGA"
+                    $FAT32PartitionSizeBytes = 209715200
+                    $DiskSelectedSizeBytes = $null
+                    $currentTotalBytesHDF = $null
                     $InstallLocation = "None Selected"
                     $SourceLocation = "None Selected"
                 } 
                 '3' {
 
                     $InstallType = "PiStorm - Portable Install"
+                    $FAT32PartitionSizeBytes = $null
+                    $DiskSelectedSizeBytes = $null
+                    $DiskSelectedSizeBytes = 0
                     $InstallLocation = "None Selected"
                     $SourceLocation = "None Selected" 
                     
@@ -245,15 +274,25 @@ while ($running) {
                     $DriveStatus["WHD_Demos"].status  = "Enabled"
                     $DriveStatus["Games"].status      = "Enabled"
                     $DriveStatus["Premium"].status    = "Enabled"
+                    $currentTotalBytesHDF = $RDBOverheadBytes
+                    foreach($e in ($DriveStatus.Keys | Where-Object { $DriveStatus[$_].status -eq "Enabled" })) { 
+                        $currentTotalBytesHDF += $DriveStatus[$e].size 
+                    }                       
           
                 }
                 '4' {
                     $InstallType = "General - Combined"
+                    $FAT32PartitionSizeBytes = $null
+                    $DiskSelectedSizeBytes =$null
                     $InstallLocation = "None Selected"
                     $SourceLocation = "None Selected" 
+                    $currentTotalBytesHDF = $RDBOverheadBytes
                     foreach ($k in $DriveStatus.Keys) {
                        $DriveStatus[$k].status = "Enabled"
-                    }                    
+                    }                        
+                    foreach($e in ($DriveStatus.Keys | Where-Object { $DriveStatus[$_].status -eq "Enabled" })) { 
+                        $currentTotalBytesHDF += $DriveStatus[$e].size 
+                    }   
                 }
             }
             if ($c -match '[1-4B]') { $menuStack = $menuStack[0..($menuStack.Count - 2)] }
@@ -289,137 +328,210 @@ while ($running) {
         Pause
         continue
         }
-             
-            # Cross-platform parent directory check
-            $ParentDir = Split-Path -Path $Path -Parent
-            if ($ParentDir -and (Test-Path $ParentDir -PathType Container)) {
-                $InstallLocation = $Path
-                Write-Host "Target HDF set to: $InstallLocation" -ForegroundColor Green
-                Start-Sleep -Seconds 1
-                $menuStack = $menuStack[0..($menuStack.Count - 2)]
-            } else {
-                Write-Warning "The directory '$ParentDir' does not exist!"
-                Pause
-            }
-            continue 
+        
+        # Cross-platform parent directory check
+        $ParentDir = Split-Path -Path $Path -Parent
+        if ($ParentDir -and (Test-Path $ParentDir -PathType Container)) {
+            $InstallLocation = $Path
+            Write-Host "Target HDF set to: $InstallLocation" -ForegroundColor Green
+            Start-Sleep -Seconds 1
+            $menuStack = $menuStack[0..($menuStack.Count - 2)]
+        } else {
+            Write-Warning "The directory '$ParentDir' does not exist!"
+            Pause
         }
+        continue 
+    }
+        
+    $DiskDetails = & $FullHSTImagerPath list
+
+    $DiskDetails
+    Write-Host "`n-------------------------------" -ForegroundColor Gray
+    Write-Host "B. BACK TO MAIN MENU" -ForegroundColor Red
     
-            & $FullHSTImagerPath list
-            Write-Host "`n-------------------------------" -ForegroundColor Gray
-            Write-Host "B. BACK TO MAIN MENU" -ForegroundColor Red
-            
-            if ($HostOS -eq "Windows") {
-                $RawInput = Read-Host "Select disk number (e.g. 6) or 'B' to go back"
-            } else {
-                $RawInput = Read-Host "Select full path (e.g. /dev/sdb) or 'B' to go back"
-            }
+    if ($HostOS -eq "Windows") {
+        $RawInput = Read-Host "Select disk number (e.g. 6) or 'B' to go back"
+    } else {
+        $RawInput = Read-Host "Select full path (e.g. /dev/sdb) or 'B' to go back"
+    }
 
-            if ($RawInput.ToUpper() -eq "B") { 
-                $menuStack = $menuStack[0..($menuStack.Count - 2)]
-                continue 
-            }
-
-            $CleanInput = $RawInput -replace '^\\disk', ''
-            $TargetDisk = if ($HostOS -eq "Windows") { "\disk$CleanInput" } else { $CleanInput }
+    if ($RawInput.ToUpper() -eq "B") { 
+        $menuStack = $menuStack[0..($menuStack.Count - 2)]
+        continue 
+    }
+        
+    $CleanInput = $RawInput -replace '^\\disk', ''
+    $TargetDisk = if ($HostOS -eq "Windows") { "\disk$CleanInput" } else { $CleanInput }
+        
+        if ($DiskDetails -match "\\disk$CleanInput\b|disk $CleanInput\b") {
             
-            if ((& $FullHSTImagerPath list) -match "\\disk$CleanInput\b|disk $CleanInput\b") {
+            if ($InstallType -eq "PiStorm - Portable Install") {
+                Write-Host "Checking disk layout for Portable Install..." -ForegroundColor Cyan
+                $MBROutput = & $FullHSTImagerPath mbr info $TargetDisk
                 
-                if ($InstallType -eq "PiStorm - Portable Install") {
-                    Write-Host "Checking disk layout for Portable Install..." -ForegroundColor Cyan
-                    $MBROutput = & $FullHSTImagerPath mbr info $TargetDisk
-                    
-                    $FullText = $MBROutput -join "`n"
-                    $PartLines = @()
-                    if ($FullText -match "Partitions:") {
-                        $PartTableText = (($FullText -split "Partitions:")[1] -split "Partition table overview:")[0]
-                        $PartLines = $PartTableText -split "`n" | Where-Object { $_ -match "^\s*\d+\s*\|" }
-                    }
-
-                    $ValidationError = $false
-                    $FoundFAT32 = $false
-                    $Count0x76 = 0
-
-                    if ($PartLines.Count -gt 0) {
-                        $FirstPartCols = $PartLines[0] -split '\|' | ForEach-Object { $_.Trim() }
-                        if ($FirstPartCols[1] -eq "0xb") { $FoundFAT32 = $true }
-                    }
-
-                    foreach ($Line in $PartLines) {
-                        $Cols = $Line -split '\|' | ForEach-Object { $_.Trim() }
-                        if ($Cols[1] -eq "0x76") { $Count0x76++ }
-                    }
-
-                    # --- REPORT STATUS ---
-                    $FatColor = if ($FoundFAT32) { "Green" } else { "Red" }
-                    $RdbColor = if ($Count0x76 -gt 0) { "Green" } else { "Red" }
-                    $FatStatus = if ($FoundFAT32) { "Found" } else { "NOT FOUND" }
-
-                    Write-Host "FAT32 (0xb) Partition: $FatStatus" -ForegroundColor $FatColor
-                    Write-Host "PiStorm (0x76) Partitions Found: $Count0x76" -ForegroundColor $RdbColor
-                    Write-Host "Total Partitions: $($PartLines.Count)" -ForegroundColor Yellow
-
-                    # --- VALIDATE ---
-                    if (-not $FoundFAT32) {
-                        Write-Host "ERROR: No FAT32 partition found in the first slot." -ForegroundColor Red
-                        $ValidationError = $true
-                    }
-                    if ($Count0x76 -eq 0) {
-                        Write-Host "ERROR: No 0x76 partition found." -ForegroundColor Red
-                        $ValidationError = $true
-                    }
-                    if ($PartLines.Count -gt 3) {
-                        Write-Host "ERROR: Disk has $($PartLines.Count) existing partitions. Max 3 allowed." -ForegroundColor Red
-                        $ValidationError = $true
-                    }
-
-                    $FreeBytes = 0
-                    $UnallocatedLine = $MBROutput | Where-Object { $_ -match "Unallocated" } | Select-Object -Last 1
-                    if ($UnallocatedLine) {
-                        $Cols = $UnallocatedLine -split '\|' | ForEach-Object { $_.Trim() }
-                        if ($Cols.Count -ge 5) {
-                            $FreeBytes = ([int64]$Cols[4] - [int64]$Cols[3]) + 1
-                        }
-                    }
-
-                    $RequiredBytes = 0
-                    foreach($e in ($DriveStatus.Keys | Where-Object { $DriveStatus[$_].status -eq "Enabled" })) { 
-                        $RequiredBytes += $DriveStatus[$e].size
-                    }
-                    $RequiredBytes += (1024 * 1024) 
-
-                    if ($FreeBytes -lt $RequiredBytes) {
-
-                        Write-Host "`nWARNING: INSUFFICIENT SPACE" -ForegroundColor Yellow
-                        Write-Host "Available: $([math]::Round($FreeBytes / 1GB, 2)) GB"
-                        Write-Host "Required:  $([math]::Round($RequiredBytes / 1GB, 2)) GB"
-                        Write-Host "You can still select this disk, but you MUST deselect drives" -ForegroundColor White
-                        Write-Host "in the 'Drives to Install' menu before writing." -ForegroundColor White       
-                        Pause
-                    }
-
-                    if ($ValidationError) {
-                        Pause
-                        continue 
-                    }
-                    $PortablePartIndex = $PartLines.Count + 1
-                    $AvailableGB = [math]::Round($FreeBytes / 1GB, 2)
-                    $RequiredGB  = [math]::Round($RequiredBytes / 1GB, 2)
-                    Write-Host "Disk verified and compatible for Portable Install." -ForegroundColor Green
-                    Write-Host "Available Space: $AvailableGB GB" -ForegroundColor Green
-                    Write-Host "Required Space:  $RequiredGB GB" -ForegroundColor White
-                    Write-Host "Portable Install will use MBR Partition number: $PortablePartIndex" -ForegroundColor Cyan
-                    pause
+                $FullText = $MBROutput -join "`n"
+                $PartLines = @()
+                if ($FullText -match "Partitions:") {
+                    $PartTableText = (($FullText -split "Partitions:")[1] -split "Partition table overview:")[0]
+                    $PartLines = $PartTableText -split "`n" | Where-Object { $_ -match "^\s*\d+\s*\|" }
                 }
 
-                $InstallLocation = $TargetDisk
-                Start-Sleep -s 1
-                $menuStack = $menuStack[0..($menuStack.Count - 2)]
-            } else { 
-                Write-Warning "Disk not found!"
-                Pause 
+                $ValidationError = $false
+                $FoundFAT32 = $false
+                $Count0x76 = 0
+
+                if ($PartLines.Count -gt 0) {
+                    $FirstPartCols = $PartLines[0] -split '\|' | ForEach-Object { $_.Trim() }
+                    if ($FirstPartCols[1] -eq "0xb") { $FoundFAT32 = $true }
+                }
+
+                foreach ($Line in $PartLines) {
+                    $Cols = $Line -split '\|' | ForEach-Object { $_.Trim() }
+                    if ($Cols[1] -eq "0x76") { $Count0x76++ }
+                }
+
+                # --- REPORT STATUS ---
+                $FatColor = if ($FoundFAT32) { "Green" } else { "Red" }
+                $RdbColor = if ($Count0x76 -gt 0) { "Green" } else { "Red" }
+                $FatStatus = if ($FoundFAT32) { "Found" } else { "NOT FOUND" }
+
+                Write-Host "FAT32 (0xb) Partition: $FatStatus" -ForegroundColor $FatColor
+                Write-Host "PiStorm (0x76) Partitions Found: $Count0x76" -ForegroundColor $RdbColor
+                Write-Host "Total Partitions: $($PartLines.Count)" -ForegroundColor Yellow
+
+                # --- VALIDATE ---
+                if (-not $FoundFAT32) {
+                    Write-Host "ERROR: No FAT32 partition found in the first slot." -ForegroundColor Red
+                    $ValidationError = $true
+                }
+                if ($Count0x76 -eq 0) {
+                    Write-Host "ERROR: No 0x76 partition found." -ForegroundColor Red
+                    $ValidationError = $true
+                }
+                if ($PartLines.Count -gt 3) {
+                    Write-Host "ERROR: Disk has $($PartLines.Count) existing partitions. Max 3 allowed." -ForegroundColor Red
+                    $ValidationError = $true
+                }
+
+                $FreeBytes = 0
+                $UnallocatedLine = $MBROutput | Where-Object { $_ -match "Unallocated" } | Select-Object -Last 1
+                if ($UnallocatedLine) {
+                    $Cols = $UnallocatedLine -split '\|' | ForEach-Object { $_.Trim() }
+                    if ($Cols.Count -ge 5) {
+                        $FreeBytes = ([int64]$Cols[4] - [int64]$Cols[3]) + 1
+                    }
+                }
+
+                $RequiredBytes = 0
+                foreach($e in ($DriveStatus.Keys | Where-Object { $DriveStatus[$_].status -eq "Enabled" })) { 
+                    $RequiredBytes += $DriveStatus[$e].size
+                }
+                $RequiredBytes += (1024 * 1024) 
+
+                if ($FreeBytes -lt $RequiredBytes) {
+
+                    Write-Host "`nWARNING: INSUFFICIENT SPACE" -ForegroundColor Yellow
+                    Write-Host "Available: $([math]::Round($FreeBytes / 1GB, 2)) GB"
+                    Write-Host "Required:  $([math]::Round($RequiredBytes / 1GB, 2)) GB"
+                    Write-Host "You can still select this disk, but you MUST deselect drives" -ForegroundColor White
+                    Write-Host "in the 'Drives to Install' menu before writing." -ForegroundColor White       
+                    Pause
+                }
+
+                if ($ValidationError) {
+                    Pause
+                    continue 
+                }
+                $PortablePartIndex = $PartLines.Count + 1
+                $AvailableGB = [math]::Round($FreeBytes / 1GB, 2)
+                $RequiredGB  = [math]::Round($RequiredBytes / 1GB, 2)
+                Write-Host "Disk verified and compatible for Portable Install." -ForegroundColor Green
+                Write-Host "Available Space: $AvailableGB GB" -ForegroundColor Green
+                Write-Host "Required Space:  $RequiredGB GB" -ForegroundColor White
+                Write-Host "Portable Install will use MBR Partition number: $PortablePartIndex" -ForegroundColor Cyan
+                pause
             }
+
+            if (($InstallType -eq "PiStorm - WinUAE") -or ($InstallType -eq "PiStorm - AGA")) {
+                $DiskSpaceDetails = & $FullHSTImagerPath info $TargetDisk
+                $DiskSelectedSizeBytes = ($DiskSpaceDetails| Where-Object { $_ -match 'Size:' }) -replace '.*\((\d+) bytes\).*', '$1'        
+            }
+            $InstallLocation = $TargetDisk
+            Start-Sleep -s 1
+            $menuStack = $menuStack[0..($menuStack.Count - 2)]
+        } else { 
+            Write-Warning "Disk not found!"
+            Pause 
         }
-        
+    }
+    
+    
+"Set FAT32 Partition Size" {
+
+    $TotalSpaceNeededBytes = $currentTotalBytesHDF + $FAT32PartitionSizeBytes + $RDBOverheadBytes
+
+    # 3. Set the display text
+    $availText = if ($InstallLocation -ne "None Selected" -and ($DiskSelectedSizeBytes)) { 
+        "$([math]::Round($DiskSelectedSizeBytes / 1GB, 2)) GB" 
+    } else { 
+        "N/A" 
+    }
+
+    $Fat32SizetoDisplay = if ($FAT32PartitionSizeBytes -ge 1GB) {
+        "$([math]::Round($FAT32PartitionSizeBytes / 1GB, 2)) GiB"
+    }
+    else 
+    {
+        "$([math]::Round($FAT32PartitionSizeBytes / 1MB, 2)) MiB"
+    }
+
+    Write-Host "Set the size for the FAT32 (EMU68BOOT) partition." -ForegroundColor Gray
+    Write-Host "Current FAT32 Partition Size: $Fat32SizetoDisplay" -ForegroundColor Cyan
+    Write-Host "Destination Disk:   $InstallLocation" -ForegroundColor Gray
+    Write-Host "Total Disk Size:   $availText" -ForegroundColor Yellow
+    if ($currentTotalBytesHDF){
+        Write-Host "Required Space: $([math]::Round($TotalSpaceNeededBytes / 1GB, 2)) GB" -ForegroundColor Gray
+    }
+    else {
+       Write-Host "Required Space: N/A" -ForegroundColor Gray 
+    }
+    Write-Host "-------------------------------"
+    Write-Host "B. BACK TO MAIN MENU (Keep $Fat32SizetoDisplay)" -ForegroundColor Red
+
+    $NewSize = Read-Host "`nEnter new size (e.g., 250mb, 500mb, 1gb)"
+
+    if ($NewSize.ToUpper() -ne "B" -and -not [string]::IsNullOrWhiteSpace($NewSize)) {
+        if ($NewSize -match '^\d+(mb|gb)$') {
+            
+            # --- VALIDATION LOGIC ---
+            $Val = [int64]($NewSize -replace '[^\d]')
+            $Mult = if ($NewSize -match "gb") { 1GB } else { 1MB }
+            $RequestedFatBytes = $Val * $Mult
+
+            if (-not ($DiskSelectedSizeBytes)){
+                Write-Warning "Need to select disk first!"
+                Pause            
+            }
+            elseif (($RequestedFatBytes + $currentTotalBytesHDF) -gt $DiskSelectedSizeBytes) {
+                Write-Host "`nERROR: Combined size exceeds disk capacity!" -ForegroundColor Red
+                Write-Host "Disk Capacity: $([math]::Round($DiskSelectedSizeBytes/1GB, 2)) GB" -ForegroundColor Yellow
+                Pause
+            } 
+            else {
+                $Fat32SizetoDisplay = $NewSize.ToLower()
+                $FAT32PartitionSizeBytes = $RequestedFatBytes
+                Write-Host "Size updated." -ForegroundColor Green
+                Start-Sleep -Seconds 1
+            }
+        } else {
+            Write-Warning "Invalid format! Use 'mb' or 'gb'."
+            Pause
+        }
+    }
+    $menuStack = $menuStack[0..($menuStack.Count - 2)]
+  
+}
+    
    "Source Location" {
             
             if (($InstallType -eq "PiStorm - WinUAE") -or ($InstallType -eq "General - Combined")) {
@@ -465,6 +577,12 @@ while ($running) {
 
                 if ($MissingItems.Count -eq 0) {
                     $SourceLocation = $path
+                    if ($InstallType -eq "PiStorm - AGA") {
+                        foreach ($f in $RequiredFiles) {
+                            $DiskSpaceDetails = & $FullHSTImagerPath info $(Join-Path $path $f)
+                        }
+                        $currentTotalBytesHDF = [int64](($DiskSpaceDetails| Where-Object { $_ -match 'Size:' }) -replace '.*\((\d+) bytes\).*', '$1')   
+                    }
                     Write-Host "`nAll components found." -ForegroundColor Green
                     Start-Sleep -Seconds 1
                     $menuStack = $menuStack[0..($menuStack.Count - 2)]
@@ -558,7 +676,7 @@ while ($running) {
 
             # --- PORTABLE INSTALL FINAL GUARD ---
             if ($InstallType -eq "PiStorm - Portable Install") {
-                $finalReq = 1048576 # 1MB padding
+                $finalReq = $RDBOverheadBytes
                 foreach($e in ($DriveStatus.Keys | Where-Object { $DriveStatus[$_].status -eq "Enabled" })) { 
                     $finalReq += $DriveStatus[$e].size 
                 }
@@ -616,16 +734,13 @@ while ($running) {
                 }
             } 
             else {
+                Write-Host "Make sure you have sufficient space on your destination drive!" -ForegroundColor Yellow
                 Write-Host "NOTE: This will create/overwrite the file at $InstallLocation" -ForegroundColor Yellow
             }
 
             Write-Host "====================================================" -ForegroundColor Yellow
             
             if ($InstallType -eq "PiStorm - WinUAE") {
-                $currentTotalBytes = 1024*1024+1073741824
-                foreach($e in ($DriveStatus.Keys | Where-Object { $DriveStatus[$_].status -eq "Enabled" })) { 
-                    $currentTotalBytes += $DriveStatus[$e].size 
-                }
                 
                 $DriveCopyCommands = ""
                 
@@ -663,18 +778,16 @@ settings update --cache-type disk
 blank "$TempFolderPath\Clean.vhd" 10mb
 write "$TempFolderPath\Clean.vhd" $InstallLocation --skip-unused-sectors FALSE
 mbr init $InstallLocation
-mbr part add $InstallLocation 0xb 200mb --start-sector 2048
+mbr part add $InstallLocation 0xb $FAT32PartitionSizeBytes --start-sector 2048
 mbr part format $InstallLocation 1 EMU68BOOT
-mbr part add $InstallLocation 0x76 ${currentTotalBytes}
+mbr part add $InstallLocation 0x76 ${currentTotalBytesHDF}
 rdb init $InstallLocation\mbr\2
 rdb filesystem add $InstallLocation\mbr\2 "$FileSystemFolder\pfs3aio" PDS3
-$DriveCopyCommands
+fs c "$SourceLocation\Workbench.hdf\rdb\1\Devs\Kickstarts\kick40068.A1200" "$InstallLocation\MBR\1\kick.rom" -f
 fs c "$FilestoAddPath\Emu68Boot" $InstallLocation\MBR\1\ -r -md -q
 fs mkdir $InstallLocation\MBR\1\SHARED\SaveGames
-fs c "$InstallLocation\MBR\2\rdb\DH0\s\startup-sequence" "$InstallLocation\MBR\2\rdb\DH0\s\startup-sequence.bak"
-fs c "$InstallLocation\MBR\2\rdb\DH0\s\user-startup" "$InstallLocation\MBR\2\rdb\DH0\s\user-startup.bak"
-fs c "$InstallLocation\MBR\2\rdb\DH0\s\AGS-Stuff" "$InstallLocation\MBR\2\rdb\DH0\s\AGS-Stuff.bak"
-fs c "$InstallLocation\MBR\2\rdb\DH0\c\whdload" "$InstallLocation\MBR\2\rdb\DH0\c\whdload.ori"
+$DriveCopyCommands
+fs c "$SourceLocation\Workbench.hdf\rdb\1\c\whdload" "$InstallLocation\MBR\2\rdb\DH0\c\whdload.ori"
 fs c "$FilestoAddPath\WinUAE\Workbench" "$InstallLocation\MBR\2\rdb\DH0" -r -md -q -f
 fs c "$FilestoAddPath\WinUAE\Work" "$InstallLocation\MBR\2\rdb\DH1" -r -md -q -f
 fs c "$FilestoAddPath\WinUAE\AGS_Drive" "$InstallLocation\MBR\2\rdb\DH4" -r -md -q -f
@@ -682,13 +795,12 @@ fs c "$InstallLocation\MBR\2\rdb\DH0\Devs\monitors\HD720*" "$InstallLocation\MBR
 fs c "$InstallLocation\MBR\2\rdb\DH0\Devs\monitors\HighGFX*" "$InstallLocation\MBR\2\rdb\DH0\storage\monitors"
 fs c "$InstallLocation\MBR\2\rdb\DH0\Devs\monitors\SuperPlus*" "$InstallLocation\MBR\2\rdb\DH0\storage\monitors"
 fs c "$InstallLocation\MBR\2\rdb\DH0\Devs\monitors\Xtreme*" "$InstallLocation\MBR\2\rdb\DH0\storage\monitors"
-fs c "$InstallLocation\MBR\2\rdb\DH0\Devs\Kickstarts\kick40068.A1200" "$InstallLocation\MBR\1\kick.rom"
 "@
             } 
             elseif ($InstallType -eq "General - Combined"){
-                $currentTotalBytes = 1024*1024
+                $currentTotalBytesHDF = $RDBOverheadBytes
                 foreach($e in ($DriveStatus.Keys | Where-Object { $DriveStatus[$_].status -eq "Enabled" })) { 
-                    $currentTotalBytes += $DriveStatus[$e].size 
+                    $currentTotalBytesHDF += $DriveStatus[$e].size 
                 }
                 
                 $DriveCopyCommands = ""
@@ -723,16 +835,16 @@ fs c "$InstallLocation\MBR\2\rdb\DH0\Devs\Kickstarts\kick40068.A1200" "$InstallL
 
 $ScriptContent = @"
 settings update --cache-type disk
-blank "$InstallLocation" ${currentTotalBytes}
+blank "$InstallLocation" ${currentTotalBytesHDF}
 rdb init "$InstallLocation"
 rdb filesystem add "$InstallLocation" "$FileSystemFolder\pfs3aio" PDS3
 $DriveCopyCommands
 "@                
             }
             elseif ($InstallType -eq "PiStorm - Portable Install"){
-                $currentTotalBytes = 1024*1024
+                $currentTotalBytesHDF = $RDBOverheadBytes
                 foreach($e in ($DriveStatus.Keys | Where-Object { $DriveStatus[$_].status -eq "Enabled" })) { 
-                    $currentTotalBytes += $DriveStatus[$e].size 
+                    $currentTotalBytesHDF += $DriveStatus[$e].size 
                 }
                 $DriveCopyCommands = ""
                 foreach ($k in $DriveStatus.Keys) {
@@ -762,7 +874,7 @@ $DriveCopyCommands
                 
 $ScriptContent = @"
 settings update --cache-type disk
-mbr part add $InstallLocation 0x76 ${currentTotalBytes}
+mbr part add $InstallLocation 0x76 ${currentTotalBytesHDF}
 rdb init $InstallLocation\mbr\$PortablePartIndex
 rdb filesystem add $InstallLocation\mbr\$PortablePartIndex "$FileSystemFolder\pfs3aio" PDS3 
 $DriveCopyCommands 
@@ -771,20 +883,20 @@ fs c "$FilestoAddPath\Portable\AGS_Drive" "$InstallLocation\MBR\$PortablePartInd
             
             }
             elseif  ($InstallType -eq "PiStorm - AGA") {
-                $AGAImageFile = if($HostOS -eq "Windows"){"$SourceLocation\AGS_Classic_AGA_KickstartFix_v30.img"}{"$SourceLocation/AGS_Classic_AGA_KickstartFix_v30.img"}
+                $AGAImageFile = if($HostOS -eq "Windows"){"$SourceLocation\AGS_Classic_AGA_KickstartFix_v30.img"} Else {"$SourceLocation/AGS_Classic_AGA_KickstartFix_v30.img"}
 $ScriptContent = @"
 settings update --cache-type disk
 blank "$TempFolderPath\Clean.vhd" 10mb
 write "$TempFolderPath\Clean.vhd" $InstallLocation --skip-unused-sectors FALSE
 mbr init $InstallLocation
-mbr part add $InstallLocation 0xb 250mb --start-sector 2048
+mbr part add $InstallLocation 0xb $FAT32PartitionSizeBytes --start-sector 2048
 mbr part format $InstallLocation 1 EMU68BOOT
-mbr part add $InstallLocation 0x76 30601641984B
+mbr part add $InstallLocation 0x76 ${currentTotalBytesHDF}
 write "$AGAImageFile" "$InstallLocation\mbr\2"
-fs c "$InstallLocation\MBR\2\rdb\DH0\Devs\Kickstarts\kick40068.A1200" "$InstallLocation\MBR\1\kick.rom"
+fs c "$AGAImageFile\rdb\1\Devs\Kickstarts\kick40068.A1200" "$InstallLocation\MBR\1\kick.rom" -f
 fs c "$FilestoAddPath\Emu68Boot" $InstallLocation\MBR\1\ -r -md -q
 fs mkdir $InstallLocation\MBR\1\SHARED\SaveGames
-fs c "$InstallLocation\MBR\2\rdb\DH0\c\whdload" "$InstallLocation\MBR\2\rdb\DH0\c\whdload.ori"
+fs c "$AGAImageFile\rdb\1\c\whdload" "$InstallLocation\MBR\2\rdb\DH0\c\whdload.ori"
 fs c "$FilestoAddPath\AGA\Workbench" "$InstallLocation\MBR\2\rdb\DH0" -r -md -q -f
 "@  
             }

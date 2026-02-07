@@ -1,6 +1,7 @@
 /* ARexx script to create wireless.prefs with error checking */
 
 filename = "sys:Prefs/Env-Archive/sys/wireless.prefs"
+filenameENV = "ENV:Sys/wireless.prefs"
 
 Say "Utility to create Wireless.prefs file for wifipi.device for PiStorm"
 Say "You must have a compatible Wifi Network. This needs to be WPA2-AES (NOT mixed mode). Ideally this is 2.4ghz band"
@@ -46,5 +47,7 @@ ELSE DO
     SAY "Error: Could not open file for writing."
     EXIT 10
 END
+
+address command 'copy 'filename' TO 'filenameENV
 
 EXIT

@@ -122,7 +122,7 @@ If $FirstBoot EQ "1"
  failat 10
 Endif
 
- DevEx >NIL brcm-emmc.device
+ DevEx >NIL: brcm-emmc.device
  If NOT WARN
   Copy SYS:Storage/DOSDrivers/PC0_Pistorm_emmc DEVS:DOSDrivers/PCO
   Copy SYS:Storage/DOSDrivers/PC0_Pistorm_emmc.info DEVS:DOSDrivers/PCO.info

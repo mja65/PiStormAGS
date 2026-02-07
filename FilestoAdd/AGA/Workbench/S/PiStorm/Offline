@@ -1,4 +1,4 @@
-.KEY IPSTACK/K/A,DEVICE/K/A
+.KEY IPSTACK/K/A,DEVICE/K/A,KEEPWIRELESSMANAGER/S
 .BRA {
 .KET }
 
@@ -13,11 +13,9 @@ If {IPSTACK} EQ "MIAMI"
 endif
 
 If {DEVICE} EQ "WIFIPI"
- execute sys:s/WifiOffline
-endif
-
-if ERROR
- QUIT 10
+ if NOT KEEPWIRELESSMANAGER
+  execute sys:s/WifiOffline
+ endif
 endif
 
 If {IPSTACK} EQ "MIAMI"
