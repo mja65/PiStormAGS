@@ -1,23 +1,23 @@
 if ($IsWindows -or ($null -eq $IsWindows -and $env:OS -match "Windows")) {
     $HostOS = "Windows"
     $HSTImagerExecutableName = "Hst.imager.exe"
-    $HSTImagerURL = "https://github.com/henrikstengaard/hst-imager/releases/download/1.5.541/hst-imager_v1.5.541-90b4b77_console_windows_x64.zip"
+    $HSTImagerURL = "https://github.com/henrikstengaard/hst-imager/releases/download/1.5.564/hst-imager_v1.5.564-123f110_console_windows_x64.zip"
 } elseif ($IsLinux) {
     $HostOS = "Linux"
     $LoggedInUser = $env:SUDO_USER
     $HSTImagerExecutableName = "hst.imager"
-    $HSTImagerURL = "https://github.com/henrikstengaard/hst-imager/releases/download/1.5.541/hst-imager_v1.5.541-90b4b77_console_linux_x64.zip"
+    $HSTImagerURL = "https://github.com/henrikstengaard/hst-imager/releases/download/1.5.564/hst-imager_v1.5.564-123f110_console_linux_x64.zip"
 } elseif ($IsMacOS) {
     $HostOS = "MacOS"
     $LoggedInUser = $env:SUDO_USER
     $HSTImagerExecutableName = "hst.imager"
-    $HSTImagerURL = "https://github.com/henrikstengaard/hst-imager/releases/download/1.5.541/hst-imager_v1.5.541-90b4b77_console_macos_x64.zip"
+    $HSTImagerURL = "https://github.com/henrikstengaard/hst-imager/releases/download/1.5.564/hst-imager_v1.5.564-123f110_console_macos_x64.zip"
 } else {
     Write-Error "Unsupported OS for automatic download."
     exit
 }
 
-Write-host "AGS Image Generator v0.5"
+Write-host "AGS Image Generator v0.6"
 
 Add-Type -AssemblyName System.Net.Http
 $client = [System.Net.Http.HttpClient]::new()
@@ -382,12 +382,19 @@ while ($running) {
 
                 if ($PartLines.Count -gt 0) {
                     $FirstPartCols = $PartLines[0] -split '\|' | ForEach-Object { $_.Trim() }
-                    if ($FirstPartCols[1] -eq "0xb") { $FoundFAT32 = $true }
+                    if (($FirstPartCols[1] -eq "0xb") -or ($FirstPartCols[1] -eq "0xc")) {
+                        $FoundFAT32 = $true 
+                    }
+
                 }
 
                 foreach ($Line in $PartLines) {
-                    $Cols = $Line -split '\|' | ForEach-Object { $_.Trim() }
-                    if ($Cols[1] -eq "0x76") { $Count0x76++ }
+                    $Cols = $Line -split '\|' | ForEach-Object {
+                         $_.Trim() 
+                    }
+                    if ($Cols[1] -eq "0x76") { 
+                        $Count0x76++ 
+                    }
                 }
 
                 # --- REPORT STATUS ---
@@ -742,8 +749,9 @@ while ($running) {
             
             if ($InstallType -eq "PiStorm - WinUAE") {
                 
-                $DriveCopyCommands = ""
-                
+                $DriveCopyCommands = ""              
+                $Counter = 1
+
                 foreach ($k in $DriveStatus.Keys) {
                     if ($DriveStatus[$k].status -eq "Enabled") {
                         # Map the display name to the actual filename if they differ
@@ -762,6 +770,8 @@ while ($running) {
                             "Premium"        { "DH6" }
                         } 
                         $DriveCopyCommands += "rdb part copy `"$SourceLocation\$FileName`" 1 `"$InstallLocation\MBR\2`" --name $PartName`n"
+                        $DriveCopyCommands += "rdb part update `"$InstallLocation\MBR\2`" $Counter --buffers 300"
+                        $Counter ++
                
                     }
                 }
@@ -804,7 +814,7 @@ fs c "$InstallLocation\MBR\2\rdb\DH0\Devs\monitors\Xtreme*" "$InstallLocation\MB
                 }
                 
                 $DriveCopyCommands = ""
-                
+
                 foreach ($k in $DriveStatus.Keys) {
                     if ($DriveStatus[$k].status -eq "Enabled") {
                         # Map the display name to the actual filename if they differ
@@ -847,6 +857,8 @@ $DriveCopyCommands
                     $currentTotalBytesHDF += $DriveStatus[$e].size 
                 }
                 $DriveCopyCommands = ""
+                $Counter = 1
+                                
                 foreach ($k in $DriveStatus.Keys) {
                     if ($DriveStatus[$k].status -eq "Enabled") {
                         # Map the display name to the actual filename if they differ
@@ -862,6 +874,8 @@ $DriveCopyCommands
                             "Premium"        { "ADH6" }
                         }
                         $DriveCopyCommands += "rdb part copy `"$SourceLocation\$FileName`" 1 `"$InstallLocation\MBR\$PortablePartIndex`" --name $PartName`n"
+                        $DriveCopyCommands += "rdb part update `"$InstallLocation\MBR\$PortablePartIndex`" $Counter --buffers 300"
+                        $Counter ++
                     }
                 }
 
@@ -893,6 +907,11 @@ mbr part add $InstallLocation 0xb $FAT32PartitionSizeBytes --start-sector 2048
 mbr part format $InstallLocation 1 EMU68BOOT
 mbr part add $InstallLocation 0x76 ${currentTotalBytesHDF}
 write "$AGAImageFile" "$InstallLocation\mbr\2"
+"rdb part update `"$InstallLocation\MBR\2`" 1 --buffers 300"
+"rdb part update `"$InstallLocation\MBR\2`" 2 --buffers 300"
+"rdb part update `"$InstallLocation\MBR\2`" 3 --buffers 300"
+"rdb part update `"$InstallLocation\MBR\2`" 4 --buffers 300"
+"rdb part update `"$InstallLocation\MBR\2`" 5 --buffers 300"
 fs c "$AGAImageFile\rdb\1\Devs\Kickstarts\kick40068.A1200" "$InstallLocation\MBR\1\kick.rom" -f
 fs c "$FilestoAddPath\Emu68Boot" $InstallLocation\MBR\1\ -r -md -q
 fs mkdir $InstallLocation\MBR\1\SHARED\SaveGames
