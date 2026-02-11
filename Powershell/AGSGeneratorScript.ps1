@@ -359,11 +359,10 @@ while ($running) {
         $menuStack = $menuStack[0..($menuStack.Count - 2)]
         continue 
     }
-        
     $CleanInput = $RawInput -replace '^\\disk', ''
     $TargetDisk = if ($HostOS -eq "Windows") { "\disk$CleanInput" } else { $CleanInput }
         
-        if ($DiskDetails -match "\\disk$CleanInput\b|disk $CleanInput\b") {
+        if (($DiskDetails -match "\\disk$CleanInput\b|disk $CleanInput\b" -and $HostOS -eq "Windows") -or  ($HostOS -ne "Windows" -and $DiskDetails -match $CleanInput)){
             
             if ($InstallType -eq "PiStorm - Portable Install") {
                 Write-Host "Checking disk layout for Portable Install..." -ForegroundColor Cyan
@@ -466,7 +465,8 @@ while ($running) {
             $InstallLocation = $TargetDisk
             Start-Sleep -s 1
             $menuStack = $menuStack[0..($menuStack.Count - 2)]
-        } else { 
+        } 
+        else { 
             Write-Warning "Disk not found!"
             Pause 
         }
@@ -770,7 +770,7 @@ while ($running) {
                             "Premium"        { "DH6" }
                         } 
                         $DriveCopyCommands += "rdb part copy `"$SourceLocation\$FileName`" 1 `"$InstallLocation\MBR\2`" --name $PartName`n"
-                        $DriveCopyCommands += "rdb part update `"$InstallLocation\MBR\2`" $Counter --buffers 300"
+                        $DriveCopyCommands += "rdb part update `"$InstallLocation\MBR\2`" $Counter --buffers 300`n"
                         $Counter ++
                
                     }
@@ -928,7 +928,8 @@ fs c "$FilestoAddPath\AGA\Workbench" "$InstallLocation\MBR\2\rdb\DH0" -r -md -q 
                 if ($HostOS -eq "Windows") {
                    & $FullHSTImagerPath script $ScriptOutputFile 
                 }
-                else {               
+                else {   
+                    # & $FullHSTImagerPath script $ScriptOutputFile                                 
                     $Commands = Get-Content -Path $ScriptOutputFile
                     foreach ($Line in $Commands) {
                         if (-not [string]::IsNullOrWhiteSpace($Line)) {
@@ -937,28 +938,28 @@ fs c "$FilestoAddPath\AGA\Workbench" "$InstallLocation\MBR\2\rdb\DH0" -r -md -q 
                             Start-Sleep -Seconds 1
                         }
                     }
-
-                    If ($HostOS -ne "Windows"){
-                        Write-Host "Cleaning up permissions and ownership of temporary files" -ForegroundColor Cyan
-                        Write-Host "so not restricted to Root access" -ForegroundColor Cyan
-                        $dirArgs = @($TempFolderPath, "-type", "d", "-exec", "chmod", "755", "{}", "+")
-                        $fileArgs = @($TempFolderPath, "-type", "f", "-exec", "chmod", "644", "{}", "+")
-                        $ownerArgs = @("-R", "$($LoggedInUser):$($LoggedInUser)", $TempFolderPath)
-                        
-                        # Set default Directory permissions to 755
-                        & /usr/bin/find -- $dirArgs
-                        # Set default File permissions to 644
-                        & /usr/bin/find -- $fileArgs
-                        & chown $ownerArgs        
-                        if ($InstallType -eq "General - Combined"){
-                            Write-Host "Applying ownership and permissions to destination .hdf file" -ForegroundColor Cyan
-                            Write-Host "so not restricted to root access" -ForegroundColor Cyan
-                            & chown "$($LoggedInUser):$($LoggedInUser)" "$InstallLocation"
-                            & chmod 644 "$InstallLocation"
-                        }
-                    }                    
-                    
                 }
+                
+                If ($HostOS -ne "Windows"){
+                    Write-Host "Cleaning up permissions and ownership of temporary files" -ForegroundColor Cyan
+                    Write-Host "so not restricted to Root access" -ForegroundColor Cyan
+                    $dirArgs = @($TempFolderPath, "-type", "d", "-exec", "chmod", "755", "{}", "+")
+                    $fileArgs = @($TempFolderPath, "-type", "f", "-exec", "chmod", "644", "{}", "+")
+                    $ownerArgs = @("-R", "$($LoggedInUser):$($LoggedInUser)", $TempFolderPath)
+                    
+                    # Set default Directory permissions to 755
+                    & /usr/bin/find -- $dirArgs
+                    # Set default File permissions to 644
+                    & /usr/bin/find -- $fileArgs
+                    & chown $ownerArgs        
+                    if ($InstallType -eq "General - Combined"){
+                        Write-Host "Applying ownership and permissions to destination .hdf file" -ForegroundColor Cyan
+                        Write-Host "so not restricted to root access" -ForegroundColor Cyan
+                        & chown "$($LoggedInUser):$($LoggedInUser)" "$InstallLocation"
+                        & chmod 644 "$InstallLocation"
+                    }
+                }                    
+                    
                 Write-Host "Process Complete. Press enter to exit" -ForegroundColor Green
                 pause
                 $running = $false
