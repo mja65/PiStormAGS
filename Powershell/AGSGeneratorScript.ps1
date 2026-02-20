@@ -1,3 +1,6 @@
+$DefaultHeads = 16
+$DefaultSectors = 63
+
 if ($IsWindows -or ($null -eq $IsWindows -and $env:OS -match "Windows")) {
     $HostOS = "Windows"
     $HSTImagerExecutableName = "Hst.imager.exe"
@@ -49,6 +52,128 @@ $FilestoAddPath = (get-item (Join-Path -Path $BaseDir -ChildPath "..\FilestoAdd"
 $TempFolderPath   = $Paths["Temp"]
 $HSTProgramFolder = $Paths["HSTImager"]
 $FullHSTImagerPath = Join-Path $HSTProgramFolder -ChildPath $HSTImagerExecutableName
+
+function Get-MBRInfo {
+    param (
+        $MBDiskInfo 
+    )
+
+    # $MBRDiskInfo = $MBROutput
+
+    $FullTextMBR = $MBRDiskInfo -join "`n"
+    $MBRText = (($FullTextMBR -split "Partitions:")[1] -split "Partition table overview:")[0]
+
+    $MBRData = $MBRText -split "`n"  | where-object {$_.trim() -ne "" -and $_ -notmatch "File System" -and $_ -notmatch "--"} | ForEach-Object {
+        $cols = $_ -split "\|" | ForEach-Object { 
+            $_.Trim() 
+        }
+        If ($_ -ne ""){
+            [PSCustomObject]@{
+                Number      = $cols[0]
+                ID          = $cols[1]
+                Type        = $cols[2]
+                FileSystem  = $cols[3]
+                Size        = $cols[4]
+                StartSector = $cols[5]
+                EndSector   = $cols[6]
+                Active      = $cols[7]
+                Primary     = $cols[8]
+            }
+        }
+    }
+        
+    return $MBRData
+}
+
+
+function Get-RDBInfo {
+    param (
+        $RDBDiskInfo
+    )
+ 
+    $FullTextRDB = $RDBDiskInfo -join "`n"
+    $rdbBlockText = (($FullTextRDB -split "Rigid Disk Block:")[1] -split "File systems:")[0]
+  
+    $rdbData = $rdbBlockText -split "`n" | Where-Object { $_ -match "\|" -and $_ -notmatch "---" -and $_ -notmatch "Product" } | ForEach-Object {
+        $cols = $_ -split "\|" | ForEach-Object { $_.Trim() }
+        [PSCustomObject]@{
+            Product      = $cols[0]
+            Vendor       = $cols[1]
+            Revision     = $cols[2]
+            Size         = $cols[3]
+            Cylinders    = $cols[4]
+            Heads        = $cols[5]
+            Sectors      = $cols[6]
+            BlockSize    = $cols[7]
+            Flags        = $cols[8]
+            HostId       = $cols[9]
+            RDBBlockLo   = $cols[10]
+            RDBBlockHi   = $cols[11]
+        }
+    }
+     
+    return $rdbData 
+
+}
+
+
+
+function Get-RDBPartitionInfo {
+    param (
+        $RDBDiskInfo
+    )
+ 
+    $FullTextRDB = $RDBDiskInfo -join "`n"
+    $partBlockText = (($FullTextRDB -split "Partitions:")[1] -split "Partition table overview:")[0]
+    
+    $partData = $partBlockText -split "`n" | Where-Object { $_ -match "^\s*\d+\s*\|" } | ForEach-Object {
+        $cols = $_ -split "\|" | ForEach-Object { $_.Trim() }
+        [PSCustomObject]@{
+            ID          = $cols[0]
+            Name        = $cols[1]
+            Size        = $cols[2]
+            LowCyl      = $cols[3]
+            HighCyl     = $cols[4]
+            Reserved    = $cols[5]
+            PreAlloc    = $cols[6]
+            BlockSize   = $cols[7]
+            Buffers     = $cols[8]
+            DosType     = $cols[9]
+            Mask        = $cols[10]
+            MaxTransfer = $cols[11]
+            Bootable    = $cols[12]
+            NoMount     = $cols[13]
+            Priority    = $cols[14]
+        }
+    }
+
+    return $partData 
+
+}
+
+function Get-RDBPartitionSizeInfo {
+    param (
+        $RDBDiskInfo
+    )
+ 
+    $FullTextRDB = $RDBDiskInfo -join "`n"
+    $partBlockText = (($FullTextRDB -split "- Partition table: 'RigidDiskBlock'")[1] -split "INF] Done")[0]
+    
+    $partData = $partBlockText -split "`n" | Where-Object { $_ -match "^\s*\d+\s*\|" } | ForEach-Object {
+        $cols = $_ -split "\|" | ForEach-Object { $_.Trim() }
+        [PSCustomObject]@{
+            ID          = $cols[0]
+            Type      = $cols[1]
+            Size        = $cols[2]
+            StartOffset = $cols[3]
+            EndOffset   = $cols[4]
+        }
+    }
+
+    return $partData 
+
+}
+
 
 # --- 3. DOWNLOAD HST IMAGER ---
 if (-not (Test-Path $FullHSTImagerPath)) {
@@ -159,7 +284,7 @@ while ($running) {
             Write-Host "   - Sets the location of where the install will be made"        
             Write-Host "3. Source Location     [$SourceLocation]" -ForegroundColor Cyan
             Write-Host "   - Sets the location for the source file(s)"                    
-            if ($InstallType -eq "PiStorm - Portable Install") {
+            if (($InstallType -eq "PiStorm - Portable Install") -or ($InstallType -eq  "Amiga RDB - Portable Install")) {
                 $enabled = ($DriveStatus.Keys | Where-Object { $DriveStatus[$_].status -eq "Enabled" })
                 $currentTotalBytesHDF = $RDBOverheadBytes
                 foreach($e in $enabled) { $currentTotalBytesHDF += $DriveStatus[$e].size }
@@ -197,7 +322,7 @@ while ($running) {
             elseif ($choice -eq '2') { $menuStack += "Location to Install" }
             elseif ($choice -eq '3') { $menuStack += "Source Location" }
             elseif ($choice -eq 'X') { $running = $false }
-            elseif ($InstallType -eq "PiStorm - Portable Install") {
+            elseif (($InstallType -eq "PiStorm - Portable Install") -or ($InstallType -eq "Amiga RDB - Portable Install")){
                 if ($choice -eq '4') { $menuStack += "Drives to Install" }
                 elseif ($choice -eq '5') { $menuStack += "Run Command" }
             }
@@ -224,7 +349,9 @@ while ($running) {
             Write-Host "   - Adds AGS launcher and drives to an existing install"
             Write-Host "   - Sufficient space and a spare MBR partition are needed on the SD card"
             Write-Host "   - The selected drives to include are configurable `n"
-            Write-Host "4. General - Combined Drive (Single .hdf file)" -ForegroundColor Cyan
+            Write-Host "4. Amiga RDB - Portable Install - EXPERIMENTAL" -ForegroundColor Cyan
+            Write-Host "   - Adds AGS launcher and drives to an existing install"      
+            Write-Host "5. General - Combined Drive (Single .hdf file)" -ForegroundColor Cyan
             Write-Host "   - Combines separate .hdf files from WinUAE install into a single .hdf`n"
  
             Write-Host "-------------------------------"
@@ -281,6 +408,32 @@ while ($running) {
           
                 }
                 '4' {
+
+                    $InstallType = "Amiga RDB - Portable Install"
+                    $FAT32PartitionSizeBytes = $null
+                    $DiskSelectedSizeBytes = $null
+                    $DiskSelectedSizeBytes = 0
+                    $InstallLocation = "None Selected"
+                    $SourceLocation = "None Selected" 
+                    
+                    $DriveStatus["Workbench"].status  = "Disabled"
+                    $DriveStatus["Work"].status       = "Disabled"
+                    $DriveStatus["Music"].status      = "Disabled"
+                    $DriveStatus["Media"].status      = "Disabled"
+                    $DriveStatus["AGS_Drive"].status  = "Enabled"
+                    $DriveStatus["Emulators"].status  = "Enabled"
+                    $DriveStatus["Emulators2"].status = "Enabled"
+                    $DriveStatus["WHD_Games"].status  = "Enabled"
+                    $DriveStatus["WHD_Demos"].status  = "Enabled"
+                    $DriveStatus["Games"].status      = "Enabled"
+                    $DriveStatus["Premium"].status    = "Enabled"
+                    $currentTotalBytesHDF = $RDBOverheadBytes
+                    foreach($e in ($DriveStatus.Keys | Where-Object { $DriveStatus[$_].status -eq "Enabled" })) { 
+                        $currentTotalBytesHDF += $DriveStatus[$e].size 
+                    }                       
+          
+                }                
+                '5' {
                     $InstallType = "General - Combined"
                     $FAT32PartitionSizeBytes = $null
                     $DiskSelectedSizeBytes =$null
@@ -342,135 +495,179 @@ while ($running) {
         }
         continue 
     }
-        
-    $DiskDetails = & $FullHSTImagerPath list
-
-    $DiskDetails
-    Write-Host "`n-------------------------------" -ForegroundColor Gray
-    Write-Host "B. BACK TO MAIN MENU" -ForegroundColor Red
     
-    if ($HostOS -eq "Windows") {
-        $RawInput = Read-Host "Select disk number (e.g. 6) or 'B' to go back"
-    } else {
-        $RawInput = Read-Host "Select full path (e.g. /dev/sdb) or 'B' to go back"
-    }
+    else {
 
-    if ($RawInput.ToUpper() -eq "B") { 
-        $menuStack = $menuStack[0..($menuStack.Count - 2)]
-        continue 
-    }
-    $CleanInput = $RawInput -replace '^\\disk', ''
-    $TargetDisk = if ($HostOS -eq "Windows") { "\disk$CleanInput" } else { $CleanInput }
+        $DiskDetails = & $FullHSTImagerPath list
+    
+        $DiskDetails
+        Write-Host "`n-------------------------------" -ForegroundColor Gray
+        Write-Host "B. BACK TO MAIN MENU" -ForegroundColor Red
         
-        if (($DiskDetails -match "\\disk$CleanInput\b|disk $CleanInput\b" -and $HostOS -eq "Windows") -or  ($HostOS -ne "Windows" -and $DiskDetails -match $CleanInput)){
-            
-            if ($InstallType -eq "PiStorm - Portable Install") {
-                Write-Host "Checking disk layout for Portable Install..." -ForegroundColor Cyan
-                $MBROutput = & $FullHSTImagerPath mbr info $TargetDisk
-                
-                $FullText = $MBROutput -join "`n"
-                $PartLines = @()
-                if ($FullText -match "Partitions:") {
-                    $PartTableText = (($FullText -split "Partitions:")[1] -split "Partition table overview:")[0]
-                    $PartLines = $PartTableText -split "`n" | Where-Object { $_ -match "^\s*\d+\s*\|" }
-                }
-
-                $ValidationError = $false
-                $FoundFAT32 = $false
-                $Count0x76 = 0
-
-                if ($PartLines.Count -gt 0) {
-                    $FirstPartCols = $PartLines[0] -split '\|' | ForEach-Object { $_.Trim() }
-                    if (($FirstPartCols[1] -eq "0xb") -or ($FirstPartCols[1] -eq "0xc")) {
-                        $FoundFAT32 = $true 
-                    }
-
-                }
-
-                foreach ($Line in $PartLines) {
-                    $Cols = $Line -split '\|' | ForEach-Object {
-                         $_.Trim() 
-                    }
-                    if ($Cols[1] -eq "0x76") { 
-                        $Count0x76++ 
-                    }
-                }
-
-                # --- REPORT STATUS ---
-                $FatColor = if ($FoundFAT32) { "Green" } else { "Red" }
-                $RdbColor = if ($Count0x76 -gt 0) { "Green" } else { "Red" }
-                $FatStatus = if ($FoundFAT32) { "Found" } else { "NOT FOUND" }
-
-                Write-Host "FAT32 (0xb) Partition: $FatStatus" -ForegroundColor $FatColor
-                Write-Host "PiStorm (0x76) Partitions Found: $Count0x76" -ForegroundColor $RdbColor
-                Write-Host "Total Partitions: $($PartLines.Count)" -ForegroundColor Yellow
-
-                # --- VALIDATE ---
-                if (-not $FoundFAT32) {
-                    Write-Host "ERROR: No FAT32 partition found in the first slot." -ForegroundColor Red
-                    $ValidationError = $true
-                }
-                if ($Count0x76 -eq 0) {
-                    Write-Host "ERROR: No 0x76 partition found." -ForegroundColor Red
-                    $ValidationError = $true
-                }
-                if ($PartLines.Count -gt 3) {
-                    Write-Host "ERROR: Disk has $($PartLines.Count) existing partitions. Max 3 allowed." -ForegroundColor Red
-                    $ValidationError = $true
-                }
-
-                $FreeBytes = 0
-                $UnallocatedLine = $MBROutput | Where-Object { $_ -match "Unallocated" } | Select-Object -Last 1
-                if ($UnallocatedLine) {
-                    $Cols = $UnallocatedLine -split '\|' | ForEach-Object { $_.Trim() }
-                    if ($Cols.Count -ge 5) {
-                        $FreeBytes = ([int64]$Cols[4] - [int64]$Cols[3]) + 1
-                    }
-                }
-
-                $RequiredBytes = 0
-                foreach($e in ($DriveStatus.Keys | Where-Object { $DriveStatus[$_].status -eq "Enabled" })) { 
-                    $RequiredBytes += $DriveStatus[$e].size
-                }
-                $RequiredBytes += (1024 * 1024) 
-
-                if ($FreeBytes -lt $RequiredBytes) {
-
-                    Write-Host "`nWARNING: INSUFFICIENT SPACE" -ForegroundColor Yellow
-                    Write-Host "Available: $([math]::Round($FreeBytes / 1GB, 2)) GB"
-                    Write-Host "Required:  $([math]::Round($RequiredBytes / 1GB, 2)) GB"
-                    Write-Host "You can still select this disk, but you MUST deselect drives" -ForegroundColor White
-                    Write-Host "in the 'Drives to Install' menu before writing." -ForegroundColor White       
-                    Pause
-                }
-
-                if ($ValidationError) {
-                    Pause
-                    continue 
-                }
-                $PortablePartIndex = $PartLines.Count + 1
-                $AvailableGB = [math]::Round($FreeBytes / 1GB, 2)
-                $RequiredGB  = [math]::Round($RequiredBytes / 1GB, 2)
-                Write-Host "Disk verified and compatible for Portable Install." -ForegroundColor Green
-                Write-Host "Available Space: $AvailableGB GB" -ForegroundColor Green
-                Write-Host "Required Space:  $RequiredGB GB" -ForegroundColor White
-                Write-Host "Portable Install will use MBR Partition number: $PortablePartIndex" -ForegroundColor Cyan
-                pause
-            }
-
-            if (($InstallType -eq "PiStorm - WinUAE") -or ($InstallType -eq "PiStorm - AGA")) {
-                $DiskSpaceDetails = & $FullHSTImagerPath info $TargetDisk
-                $DiskSelectedSizeBytes = ($DiskSpaceDetails| Where-Object { $_ -match 'Size:' }) -replace '.*\((\d+) bytes\).*', '$1'        
-            }
-            $InstallLocation = $TargetDisk
-            Start-Sleep -s 1
-            $menuStack = $menuStack[0..($menuStack.Count - 2)]
-        } 
-        else { 
-            Write-Warning "Disk not found!"
-            Pause 
+        if ($HostOS -eq "Windows") {
+            $RawInput = Read-Host "Select disk number (e.g. 6) or 'B' to go back"
+        } else {
+            $RawInput = Read-Host "Select full path (e.g. /dev/sdb) or 'B' to go back"
         }
+    
+        if ($RawInput.ToUpper() -eq "B") { 
+            $menuStack = $menuStack[0..($menuStack.Count - 2)]
+            continue 
+        }
+        $CleanInput = $RawInput -replace '^\\disk', ''
+        $TargetDisk = if ($HostOS -eq "Windows") { "\disk$CleanInput" } else { $CleanInput }
+            
+            if (($DiskDetails -match "\\disk$CleanInput\b|disk $CleanInput\b" -and $HostOS -eq "Windows") -or  ($HostOS -ne "Windows" -and $DiskDetails -match $CleanInput)){
+                
+                if (($InstallType -eq "PiStorm - WinUAE") -or ($InstallType -eq "PiStorm - AGA")) {
+                    $DiskSpaceDetails = & $FullHSTImagerPath info $TargetDisk
+                    $DiskSelectedSizeBytes = ($DiskSpaceDetails| Where-Object { $_ -match 'Size:' }) -replace '.*\((\d+) bytes\).*', '$1'        
+                }
+                else { # Portable Install
+
+                    if ($InstallType -eq "Amiga RDB - Portable Install") {
+                        Write-Host "Checking disk layout for Amiga RDB Portable Install..." -ForegroundColor Cyan
+                        $RDBOutput = & $FullHSTImagerPath rdb info $TargetDisk
+
+                        $ValidationError = $false
+
+                        if ($RDBOutput -match "No Rigid Disk Block present"){                         
+                            Write-Host "ERROR: Disk selected is not a RDB Disk." -ForegroundColor Red
+                            $ValidationError = $true
+                            Pause
+                            continue                                      
+                        }
+
+                        if (((Get-RDBInfo -RDBDiskInfo $RDBOutput).Heads -eq $DefaultHeads) -and ((Get-RDBInfo -RDBDiskInfo $RDBOutput).Sectors -eq $DefaultSectors)){
+                            $CopyType = "PartitionLevel"
+                        }
+                        else {
+                            $CopyType = "FileLevel"
+                        }
+
+                        $RDBSizeBytes = ($RDBOutput -match "- Size: ").Split('(')[1].Split(' ')[0]
+                        $EndPartitionBytes = (Get-RDBPartitionSizeInfo -RDBDiskInfo $RDBOutput).EndOffset | Select-Object -Last 1
+                        $FreeBytes = $RDBSizeBytes - $EndPartitionBytes 
+                        
+                        
+                     if ($FreeBytes -lt $RequiredBytes) {
+        
+                            Write-Host "`nWARNING: INSUFFICIENT SPACE" -ForegroundColor Yellow
+                            Write-Host "Available: $([math]::Round($FreeBytes / 1GB, 2)) GB"
+                            Write-Host "Required:  $([math]::Round($RequiredBytes / 1GB, 2)) GB"
+                            Write-Host "You can still select this disk, but you MUST deselect drives" -ForegroundColor White
+                            Write-Host "in the 'Drives to Install' menu before writing." -ForegroundColor White       
+                            Pause
+                        }
+        
+                        if ($ValidationError) {
+                            Pause
+                            continue 
+                        }
+                        $PortablePartIndex = $PartLines.Count + 1
+                        $AvailableGB = [math]::Round($FreeBytes / 1GB, 2)
+                        $RequiredGB  = [math]::Round($RequiredBytes / 1GB, 2)
+                        Write-Host "Disk verified and compatible for Portable Install." -ForegroundColor Green
+                        Write-Host "Available Space: $AvailableGB GB" -ForegroundColor Green
+                        Write-Host "Required Space:  $RequiredGB GB" -ForegroundColor White
+                        pause
+                    }
+
+                    elseif ($InstallType -eq "PiStorm - Portable Install") {
+                        Write-Host "Checking disk layout for PiStorm Portable Install..." -ForegroundColor Cyan
+                        $MBROutput = & $FullHSTImagerPath mbr info $TargetDisk
+                        
+                        $ValidationError = $false
+                        $FoundFAT32 = $false
+                        $Count0x76 = 0
+                        
+                        $PartitionCount = 1
+        
+                        (Get-MBRInfo -MBDiskInfo $MBROutput) | ForEach-Object {
+                            if (($PartitionCount -eq 1) -and ($_.ID -eq "0xb" -or $_.ID -eq "0xc")){
+                                $FoundFAT32 = $true
+                            }
+                            if ($_.ID -eq "0x76"){
+                                $Count0x76 ++
+                            }
+                            $PartitionCount ++
+                        }
+                          
+                        # --- REPORT STATUS ---
+                        $FatColor = if ($FoundFAT32) { "Green" } else { "Red" }
+                        $RdbColor = if ($Count0x76 -gt 0) { "Green" } else { "Red" }
+                        $FatStatus = if ($FoundFAT32) { "Found" } else { "NOT FOUND" }
+        
+                        Write-Host "FAT32 (0xb) Partition: $FatStatus" -ForegroundColor $FatColor
+                        Write-Host "PiStorm (0x76) Partitions Found: $Count0x76" -ForegroundColor $RdbColor
+                        Write-Host "Total Partitions: $($PartLines.Count)" -ForegroundColor Yellow
+        
+                        # --- VALIDATE ---
+                        if (-not $FoundFAT32) {
+                            Write-Host "ERROR: No FAT32 partition found in the first slot." -ForegroundColor Red
+                            $ValidationError = $true
+                        }
+                        if ($Count0x76 -eq 0) {
+                            Write-Host "ERROR: No 0x76 partition found." -ForegroundColor Red
+                            $ValidationError = $true
+                        }
+                        if ($PartLines.Count -gt 3) {
+                            Write-Host "ERROR: Disk has $($PartLines.Count) existing partitions. Max 3 allowed." -ForegroundColor Red
+                            $ValidationError = $true
+                        }
+        
+                        $FreeBytes = 0
+                        $UnallocatedLine = $MBROutput | Where-Object { $_ -match "Unallocated" } | Select-Object -Last 1
+                        if ($UnallocatedLine) {
+                            $Cols = $UnallocatedLine -split '\|' | ForEach-Object { $_.Trim() }
+                            if ($Cols.Count -ge 5) {
+                                $FreeBytes = ([int64]$Cols[4] - [int64]$Cols[3]) + 1
+                            }
+                        }
+        
+                        $RequiredBytes = 0
+                        foreach($e in ($DriveStatus.Keys | Where-Object { $DriveStatus[$_].status -eq "Enabled" })) { 
+                            $RequiredBytes += $DriveStatus[$e].size
+                        }
+                        $RequiredBytes += (1024 * 1024) 
+        
+                        if ($FreeBytes -lt $RequiredBytes) {
+        
+                            Write-Host "`nWARNING: INSUFFICIENT SPACE" -ForegroundColor Yellow
+                            Write-Host "Available: $([math]::Round($FreeBytes / 1GB, 2)) GB"
+                            Write-Host "Required:  $([math]::Round($RequiredBytes / 1GB, 2)) GB"
+                            Write-Host "You can still select this disk, but you MUST deselect drives" -ForegroundColor White
+                            Write-Host "in the 'Drives to Install' menu before writing." -ForegroundColor White       
+                            Pause
+                        }
+        
+                        if ($ValidationError) {
+                            Pause
+                            continue 
+                        }
+                        $PortablePartIndex = $PartLines.Count + 1
+                        $AvailableGB = [math]::Round($FreeBytes / 1GB, 2)
+                        $RequiredGB  = [math]::Round($RequiredBytes / 1GB, 2)
+                        Write-Host "Disk verified and compatible for Portable Install." -ForegroundColor Green
+                        Write-Host "Available Space: $AvailableGB GB" -ForegroundColor Green
+                        Write-Host "Required Space:  $RequiredGB GB" -ForegroundColor White
+                        Write-Host "Portable Install will use MBR Partition number: $PortablePartIndex" -ForegroundColor Cyan
+                        pause
+                    }
+                } 
+    
+                $InstallLocation = $TargetDisk
+                Start-Sleep -s 1
+                $menuStack = $menuStack[0..($menuStack.Count - 2)]
+            } 
+            else { 
+                Write-Warning "Disk not found!"
+                Pause 
+            }
+
     }
+    
+}
     
     
 "Set FAT32 Partition Size" {
@@ -551,7 +748,7 @@ while ($running) {
                 $FileTypeLabel = "path containing the AGA .img file (e.g. $PathExample)"
                 $RequiredFiles = @("AGS_Classic_AGA_KickstartFix_v30.img")
             }
-            elseif ($InstallType -eq "PiStorm - Portable Install") {
+            elseif (($InstallType -eq "PiStorm - Portable Install") -or ($InstallType -eq "Amiga RDB - Portable Install")) {
                 $PathExample = if ($HostOS -eq "Windows") { "C:\Emulators\AGS\WinUAE\AGS_UAE" } else { "/home/$LoggedInUser/documents/AGS/WinUAE/AGS_UAE" }
                 $FileTypeLabel = "folder containing your AGS .hdf files (e.g. $PathExample)"
                 $RequiredFiles = @("AGS_Drive.hdf", "Emulators.hdf", "Emulators2.hdf", "Games.hdf", "Media.hdf", "Music.hdf", "Premium.hdf", "WHD_Demos.hdf", "WHD_Games.hdf", "Work.hdf", "Workbench.hdf")                
@@ -628,7 +825,7 @@ while ($running) {
             Write-Host "Total Space Required: $([math]::Round($TotalBytes / 1GB, 2)) GB" -ForegroundColor Yellow
 
             # --- PORTABLE INSTALL SPACE CHECK ---
-            if ($InstallType -eq "PiStorm - Portable Install" -and $InstallLocation -ne "None Selected") {
+            if (($InstallType -eq "PiStorm - Portable Install" -or $InstallType -eq "Amiga RDB - Portable Install")  -and ($InstallLocation -ne "None Selected")) {
                 if ($TotalBytes -gt $FreeBytes) {
                     Write-Host "WARNING: Selection exceeds available space on $InstallLocation ($([math]::Round($FreeBytes / 1GB, 2)) GB)!" -ForegroundColor Red
                 } else {
@@ -682,7 +879,7 @@ while ($running) {
             }
 
             # --- PORTABLE INSTALL FINAL GUARD ---
-            if ($InstallType -eq "PiStorm - Portable Install") {
+            if (($InstallType -eq "PiStorm - Portable Install") -or ("Amiga RDB - Portable Install")) {
                 $finalReq = $RDBOverheadBytes
                 foreach($e in ($DriveStatus.Keys | Where-Object { $DriveStatus[$_].status -eq "Enabled" })) { 
                     $finalReq += $DriveStatus[$e].size 
@@ -727,7 +924,7 @@ while ($running) {
             Write-Host "----------------------------------------------------"
 
             # Warning Logic: Only show ERASE warning for physical disks, not HDF files
-            if (($InstallType -ne "General - Combined") -and ($InstallType -ne "PiStorm - Portable Install")){
+            if (($InstallType -ne "General - Combined") -and ($InstallType -ne "Amiga RDB - Portable Install") -and ($InstallType -ne "PiStorm - Portable Install")){
                 Write-Host "WARNING: This will ERASE all data on $InstallLocation." -ForegroundColor Red
                 if ($HostOS -ne "Windows") {
                     Write-Host "CAUTION: Ensure $InstallLocation is the correct device node for your SD Card." -ForegroundColor Magenta
@@ -740,6 +937,13 @@ while ($running) {
                     Write-Host "CAUTION: Ensure $InstallLocation is the correct device node for your SD Card." -ForegroundColor Magenta
                 }
             } 
+            elseif ($InstallType -eq "Amiga RDB - Portable Install"){
+                Write-Host "WARNING: This will write to the card at $InstallLocation which already has data on it. If something goes wrong there is a" -ForegroundColor Red
+                Write-host "chance this could destroy data on this card! If you have not already, please make sure you have made a backup!" -ForegroundColor Red
+                if ($HostOS -ne "Windows") {
+                    Write-Host "CAUTION: Ensure $InstallLocation is the correct device node for your SD Card." -ForegroundColor Magenta
+                }                         
+            }
             else {
                 Write-Host "Make sure you have sufficient space on your destination drive!" -ForegroundColor Yellow
                 Write-Host "NOTE: This will create/overwrite the file at $InstallLocation" -ForegroundColor Yellow
@@ -895,6 +1099,9 @@ $DriveCopyCommands
 fs c "$FilestoAddPath\Portable\AGS_Drive" "$InstallLocation\MBR\$PortablePartIndex\rdb\ADH0" -r -md -q -f
 "@                
             
+            }
+            elseif ($InstallType -eq "Amiga RDB - Portable Install"){
+#NOT BUILT
             }
             elseif  ($InstallType -eq "PiStorm - AGA") {
                 $AGAImageFile = if($HostOS -eq "Windows"){"$SourceLocation\AGS_Classic_AGA_KickstartFix_v30.img"} Else {"$SourceLocation/AGS_Classic_AGA_KickstartFix_v30.img"}
