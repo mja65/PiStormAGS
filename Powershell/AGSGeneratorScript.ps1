@@ -924,11 +924,11 @@ mbr part add $InstallLocation 0xb $FAT32PartitionSizeBytes --start-sector 2048
 mbr part format $InstallLocation 1 EMU68BOOT
 mbr part add $InstallLocation 0x76 ${currentTotalBytesHDF}
 write "$AGAImageFile" "$InstallLocation\mbr\2"
-"rdb part update `"$InstallLocation\MBR\2`" 1 --buffers 300"
-"rdb part update `"$InstallLocation\MBR\2`" 2 --buffers 300"
-"rdb part update `"$InstallLocation\MBR\2`" 3 --buffers 300"
-"rdb part update `"$InstallLocation\MBR\2`" 4 --buffers 300"
-"rdb part update `"$InstallLocation\MBR\2`" 5 --buffers 300"
+rdb part update "$InstallLocation\MBR\2" 1 --buffers 300
+rdb part update "$InstallLocation\MBR\2" 2 --buffers 300
+rdb part update "$InstallLocation\MBR\2" 3 --buffers 300
+rdb part update "$InstallLocation\MBR\2" 4 --buffers 300
+rdb part update "$InstallLocation\MBR\2" 5 --buffers 300
 fs c "$AGAImageFile\rdb\1\Devs\Kickstarts\kick40068.A1200" "$InstallLocation\MBR\1\kick.rom" -f
 fs c "$FilestoAddPath\Emu68Boot" $InstallLocation\MBR\1\ -r -md -q
 fs mkdir $InstallLocation\MBR\1\SHARED\SaveGames
