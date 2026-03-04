@@ -1,7 +1,11 @@
-; Loads PeterK's icon library
-
-Remlib >NIL: icon.library
-
+Version >NIL: exec.library 40
+IF NOT WARN
+  Version >NIL: exec.library 41
+  IF WARN
+    ; Loads PeterK's icon library
+    Remlib >NIL: icon.library
+  ENDIF
+ENDIF
 ; Check and install setpatch
 
 FailAt 21
@@ -52,15 +56,18 @@ If $PiStorm EQ "1"
   Delete >NIL: Libs:68040.library 
   Delete >NIL: Libs:68060.library 
   Delete >NIL: SYS:Prefs/Env-Archive/FirstBoot
-  endif 
+  Echo "Rebooting!"
+  Diskchange DH0:
+  reboot
+ endif 
 
  DevEx >NIL: brcm-emmc.device
  If NOT WARN
-  Copy SYS:Storage/DOSDrivers/PC0_Pistorm_emmc DEVS:DOSDrivers/PCO
-  Copy SYS:Storage/DOSDrivers/PC0_Pistorm_emmc.info DEVS:DOSDrivers/PCO.info
+  Copyreplace >NIL: SYS:Storage/DOSDrivers/PC0_Pistorm_emmc DEVS:DOSDrivers/PCO FOOVR CLONE
+  Copyreplace >NIL: SYS:Storage/DOSDrivers/PC0_Pistorm_emmc.info DEVS:DOSDrivers/PCO.info FOOVR CLONE
  Else
-  Copy SYS:Storage/DOSDrivers/PC0_Pistorm_sdhc DEVS:DOSDrivers/PCO
-  Copy SYS:Storage/DOSDrivers/PC0_Pistorm_sdhc.info DEVS:DOSDrivers/PCO.info
+  Copyreplace >NIL: SYS:Storage/DOSDrivers/PC0_Pistorm_sdhc DEVS:DOSDrivers/PCO FOOVR CLONE
+  Copyreplace >NIL: SYS:Storage/DOSDrivers/PC0_Pistorm_sdhc.info DEVS:DOSDrivers/PCO.info FOOVR CLONE
  Endif
 Endif
 

@@ -120,15 +120,18 @@ If $FirstBoot EQ "1"
  Rename >NIL: "- Use AGA Screen -.rub" to "- Use AGA Screen -.run"
  Delete >NIL: SYS:Prefs/Env-Archive/FirstBoot
  failat 10
+ Echo "Rebooting!"
+ Diskchange DH0:
+ reboot
 Endif
 
  DevEx >NIL: brcm-emmc.device
  If NOT WARN
-  Copy SYS:Storage/DOSDrivers/PC0_Pistorm_emmc DEVS:DOSDrivers/PCO
-  Copy SYS:Storage/DOSDrivers/PC0_Pistorm_emmc.info DEVS:DOSDrivers/PCO.info
+  Copyreplace >NIL: SYS:Storage/DOSDrivers/PC0_Pistorm_emmc DEVS:DOSDrivers/PCO FOOVR CLONE
+  Copyreplace >NIL: SYS:Storage/DOSDrivers/PC0_Pistorm_emmc.info DEVS:DOSDrivers/PCO.info FOOVR CLONE
  Else
-  Copy SYS:Storage/DOSDrivers/PC0_Pistorm_sdhc DEVS:DOSDrivers/PCO
-  Copy SYS:Storage/DOSDrivers/PC0_Pistorm_sdhc.info DEVS:DOSDrivers/PCO.info
+  Copyreplace >NIL: SYS:Storage/DOSDrivers/PC0_Pistorm_sdhc DEVS:DOSDrivers/PCO FOOVR CLONE
+  Copyreplace >NIL: SYS:Storage/DOSDrivers/PC0_Pistorm_sdhc.info DEVS:DOSDrivers/PCO.info FOOVR CLONE
  Endif
 
 Endif
