@@ -1,0 +1,43 @@
+Assign >NIL: AmiSSL: EXISTS 
+
+IF WARN
+ ECHO "AmiSSL not found!"
+ C:Wait 10
+ C:EndCLI
+ELSE
+
+ECHO "Downloading DBs for..."
+ECHO "Pistorm32-lite RPi3..." NOLINE
+S:WHDLoad-Wrapper/Updater/aget "https://docs.google.com/document/d/1XhrX06ipCerV_Y73Ry_iEdpKyXJ4prqpegbGsb-0heg/export?format=txt" TO RAM:T/DB-pistorm32lite-RPi3.txt QUIET
+ECHO "Done!"
+ECHO "Pistorm32-lite RPi4..." NOLINE
+S:WHDLoad-Wrapper/Updater/aget "https://docs.google.com/document/d/1WOPgUkc0XCY7oEYT170KtHdcRgdZP7FF3lkA6LTfqz8/export?format=txt" TO RAM:T/DB-pistorm32lite-RPi4.txt QUIET
+ECHO "Done!"
+ECHO "Pistorm RPi3/RPiZero2W..." NOLINE
+S:WHDLoad-Wrapper/Updater/aget "https://docs.google.com/document/d/1m7D3Q3RMpBkH_TyD9ZMVdt19DSrS7XQjbuUaOi-lvkM/export?format=txt" TO RAM:T/DB-pistorm-RPi3.txt QUIET
+ECHO "Done!"
+ECHO "Updating DBs..." NOLINE
+
+S:WHDLoad-Wrapper/Updater/TEL >NIL: RAM:T/DB-pistorm32lite-RPi3.txt S:WHDLoad-Wrapper/DB-pistorm32lite-RPi3
+S:WHDLoad-Wrapper/Updater/TEL >NIL: RAM:T/DB-pistorm32lite-RPi4.txt S:WHDLoad-Wrapper/DB-pistorm32lite-RPi4
+S:WHDLoad-Wrapper/Updater/TEL >NIL: RAM:T/DB-pistorm-RPi3.txt S:WHDLoad-Wrapper/DB-pistorm-RPi3
+
+C:Delete RAM:T/DB-#?.txt QUIET
+
+ECHO "Done!"
+
+ECHO "Updating Slave DB..." NOLINE
+S:WHDLoad-Wrapper/Updater/aget "http://ftp2.grandis.nu/turran/FTP/Misc/WHDUpdate/datafile/Supreme010Dat" TO S:WHDLoad-Wrapper/Updater/SupremeDat QUIET
+ECHO "Done!"
+
+ECHO "Updating Slave DB Version..." NOLINE
+S:WHDLoad-Wrapper/Updater/aget "http://ftp2.grandis.nu/turran/FTP/Misc/WHDUpdate/datafile/Supreme010Version" TO S:WHDLoad-Wrapper/Updater/SupremeVersion QUIET
+ECHO "Done!"
+
+ECHO "All done!"
+
+C:Wait 10
+
+C:EndCLI
+
+ENDIF

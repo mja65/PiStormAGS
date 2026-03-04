@@ -1,0 +1,118 @@
+Failat 11
+IF EXISTS C:CardPatch
+    C:CardPatch
+ENDIF
+IF EXISTS C:CardReset
+    run >NIL: C:CardReset TICKS 50
+ENDIF
+
+Version >NIL: exec.library 40
+IF NOT WARN
+  Version >NIL: exec.library 41
+  IF WARN
+    ; Loads PeterK's icon library
+    Remlib >NIL: icon.library
+  ENDIF
+ENDIF
+
+Setpatch QUIET
+
+; Loads a patched scsi.device with large partition support if WHDLoad: drive
+; not found.
+
+MakeDir RAM:T RAM:Clipboards RAM:ENV RAM:ENV/Sys
+Assign >NIL: ENV: RAM:ENV
+Copy >NIL: ENVARC: RAM:ENV ALL NOREQ
+
+Assign VOLS >RAM:VOLUMES
+Search >NIL: RAM:VOLUMES "WHDLoad [Mounted]" QUIET
+
+If WARN
+
+ Echo "WHDLoad: drive not found!"
+ Echo "Adding patched scsi.device..."
+ Wait 2
+
+ If Exists DEVS:scsi.device
+  LoadModule DEVS:scsi.device
+ Else
+  Echo "Please select your Amiga from the menu."
+  BMX scsi_hw_select
+  Wait 2
+  If EXISTS devs:scsi.device
+   LoadModule DEVS:scsi.device
+  Else
+   CLS
+   Echo "Please select your Amiga to continue!"
+   Echo ""
+   Echo "Rebooting!"
+   Reboot
+  Endif
+ Endif
+ 
+Endif
+
+Delete >NIL: RAM:VOLUMES
+
+; Installs the PiStorm SHARED drive DOS driver.
+; You need to set ENVARC:PiStorm to 1
+
+If $PiStorm EQ "1"
+
+ If $FirstBoot EQ "1"
+  Delete >NIL: Libs:680x0.library
+  Delete >NIL: Libs:68020.library 
+  Delete >NIL: Libs:68030.library 
+  Delete >NIL: Libs:68040.library 
+  Delete >NIL: Libs:68060.library 
+  Delete >NIL: SYS:Prefs/Env-Archive/FirstBoot
+  Echo "Rebooting!"
+  Diskchange DH0:
+  reboot
+ endif 
+
+ DevEx >NIL: brcm-emmc.device
+ If NOT WARN
+  Copyreplace >NIL: SYS:Storage/DOSDrivers/PC0_Pistorm_emmc DEVS:DOSDrivers/PCO FOOVR CLONE
+  Copyreplace >NIL: SYS:Storage/DOSDrivers/PC0_Pistorm_emmc.info DEVS:DOSDrivers/PCO.info FOOVR CLONE
+ Else
+  Copyreplace >NIL: SYS:Storage/DOSDrivers/PC0_Pistorm_sdhc DEVS:DOSDrivers/PCO FOOVR CLONE
+  Copyreplace >NIL: SYS:Storage/DOSDrivers/PC0_Pistorm_sdhc.info DEVS:DOSDrivers/PCO.info FOOVR CLONE
+ Endif
+Endif
+
+Copy >NIL: ENVARC:Sys/def_RAM.info RAM:Disk.info
+
+Assign >NIL: T: RAM:T
+Assign >NIL: CLIPS: RAM:Clipboards
+Assign >NIL: REXX: S:
+Assign >NIL: PRINTERS: DEVS:Printers
+Assign >NIL: KEYMAPS: DEVS:Keymaps
+Assign >NIL: LOCALE: S:
+
+IF NOT EXISTS SYS:Fonts
+  Assign FONTS:
+EndIF
+
+BindDrivers
+Mount >NIL: DEVS:DOSDrivers/~(#?.info)
+
+Resident >NIL: C:Execute PURE
+
+IF EXISTS DEVS:Monitors
+  List >NIL: DEVS:Monitors/~(#?.info) TO T:M LFORMAT "DEVS:Monitors/%s"
+  Execute T:M
+  Delete >NIL: T:M
+EndIF
+
+Path >NIL: RAM: C: SYS:Utilities SYS:System S: SYS:Prefs SYS:WBStartup SYS:Tools
+
+C:IPrefs
+C:Iconstofastmem
+C:BBlank
+C:NoClick
+
+Execute s:user-startup
+
+LoadWB
+EndCLI

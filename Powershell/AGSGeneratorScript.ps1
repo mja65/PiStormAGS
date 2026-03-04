@@ -145,7 +145,7 @@ foreach($e in ($DriveStatus.Keys | Where-Object { $DriveStatus[$_].status -eq "E
 # --- 6. MAIN LOOP ---
 while ($running) {
     Clear-Host
-    Write-Host "AGS Image Generator v0.3" -ForegroundColor Yellow
+    Write-Host "AGS Image Generator v0.6" -ForegroundColor Yellow
     Write-Host "Menu: $($menuStack -join " > ")" -ForegroundColor Gray
     Write-Host "-------------------------------"
 
@@ -180,7 +180,7 @@ while ($running) {
                 Write-Host "     do not want to install the full set of drives"    
                 Write-Host "5. Write image" -ForegroundColor Cyan
             } 
-            elseif (($InstallType -eq "PiStorm - WinUAE")  -or ($InstallType -eq "PiStorm - AGA")){
+            elseif (($InstallType -eq "PiStorm - WinUAE")   -or ($InstallType -eq "PiStorm - ECS") -or ($InstallType -eq "PiStorm - AGA")){
                 Write-Host "4. Set FAT32 Partition Size" -ForegroundColor Cyan
                 Write-Host "   - Allows you to set a larger/smaller FAT32 partition size"
                 Write-Host "5. Write image" -ForegroundColor Cyan
@@ -201,7 +201,7 @@ while ($running) {
                 if ($choice -eq '4') { $menuStack += "Drives to Install" }
                 elseif ($choice -eq '5') { $menuStack += "Run Command" }
             }
-            elseif (($InstallType -eq "PiStorm - WinUAE") -or ($InstallType -eq "PiStorm - AGA")){
+            elseif (($InstallType -eq "PiStorm - WinUAE") -or ($InstallType -eq "PiStorm - ECS") -or ($InstallType -eq "PiStorm - AGA")){
                 if ($choice -eq '4') { $menuStack += "Set FAT32 Partition Size" }
                 elseif ($choice -eq '5') { $menuStack += "Run Command" }
             }             
@@ -220,11 +220,15 @@ while ($running) {
             Write-Host "   - Uses native Amiga video output"
             Write-Host "   - Requires an Amiga 1200 and PiStorm32lite"
             Write-Host "   - Note: Includes a smaller software range than WinUAE`n"
-            Write-Host "3. PiStorm - Portable Install - EXPERIMENTAL" -ForegroundColor Cyan
+            Write-Host "3. PiStorm - ECS Version" -ForegroundColor Cyan
+            Write-Host "   - Uses native Amiga video output"
+            Write-Host "   - Requires an Amiga with PiStorm"
+            Write-Host "   - Note: Includes a smaller software range than WinUAE`n"
+            Write-Host "4. PiStorm - Portable Install - EXPERIMENTAL" -ForegroundColor Cyan
             Write-Host "   - Adds AGS launcher and drives to an existing install"
             Write-Host "   - Sufficient space and a spare MBR partition are needed on the SD card"
             Write-Host "   - The selected drives to include are configurable `n"
-            Write-Host "4. General - Combined Drive (Single .hdf file)" -ForegroundColor Cyan
+            Write-Host "5. General - Combined Drive (Single .hdf file)" -ForegroundColor Cyan
             Write-Host "   - Combines separate .hdf files from WinUAE install into a single .hdf`n"
  
             Write-Host "-------------------------------"
@@ -255,6 +259,14 @@ while ($running) {
                     $SourceLocation = "None Selected"
                 } 
                 '3' {
+                    $InstallType = "PiStorm - ECS"
+                    $FAT32PartitionSizeBytes = 209715200
+                    $DiskSelectedSizeBytes = $null
+                    $currentTotalBytesHDF = $null
+                    $InstallLocation = "None Selected"
+                    $SourceLocation = "None Selected"
+                }                 
+                '4' {
 
                     $InstallType = "PiStorm - Portable Install"
                     $FAT32PartitionSizeBytes = $null
@@ -280,7 +292,7 @@ while ($running) {
                     }                       
           
                 }
-                '4' {
+                '5' {
                     $InstallType = "General - Combined"
                     $FAT32PartitionSizeBytes = $null
                     $DiskSelectedSizeBytes =$null
@@ -295,7 +307,7 @@ while ($running) {
                     }   
                 }
             }
-            if ($c -match '[1-4B]') { $menuStack = $menuStack[0..($menuStack.Count - 2)] }
+            if ($c -match '[1-5B]') { $menuStack = $menuStack[0..($menuStack.Count - 2)] }
         }
 
 "Location to Install" {
@@ -458,7 +470,7 @@ while ($running) {
                 pause
             }
 
-            if (($InstallType -eq "PiStorm - WinUAE") -or ($InstallType -eq "PiStorm - AGA")) {
+            if (($InstallType -eq "PiStorm - WinUAE") -or ($InstallType -eq "PiStorm - ECS") -or ($InstallType -eq "PiStorm - AGA")) {
                 $DiskSpaceDetails = & $FullHSTImagerPath info $TargetDisk
                 $DiskSelectedSizeBytes = ($DiskSpaceDetails| Where-Object { $_ -match 'Size:' }) -replace '.*\((\d+) bytes\).*', '$1'        
             }
@@ -551,6 +563,11 @@ while ($running) {
                 $FileTypeLabel = "path containing the AGA .img file (e.g. $PathExample)"
                 $RequiredFiles = @("AGS_Classic_AGA_KickstartFix_v30.img")
             }
+            elseif ($InstallType -eq "PiStorm - ECS") {
+                $PathExample = if ($HostOS -eq "Windows") { "C:\Emulators\AGS\WinUAE\AGS_Classic" } else { "/home/$LoggedInUser/documents/AGS/WinUAE/AGS_Classic" }
+                $FileTypeLabel = "path containing the ECS .img file (e.g. $PathExample)"
+                $RequiredFiles = @("AGS_Classic_ECS_v31a.img")
+            }            
             elseif ($InstallType -eq "PiStorm - Portable Install") {
                 $PathExample = if ($HostOS -eq "Windows") { "C:\Emulators\AGS\WinUAE\AGS_UAE" } else { "/home/$LoggedInUser/documents/AGS/WinUAE/AGS_UAE" }
                 $FileTypeLabel = "folder containing your AGS .hdf files (e.g. $PathExample)"
@@ -584,14 +601,14 @@ while ($running) {
 
                 if ($MissingItems.Count -eq 0) {
                     $SourceLocation = $path
-                    if ($InstallType -eq "PiStorm - AGA") {
+                    if (($InstallType -eq "PiStorm - AGA") -or ($InstallType -eq "PiStorm - ECS")){
                         foreach ($f in $RequiredFiles) {
                             $DiskSpaceDetails = & $FullHSTImagerPath info $(Join-Path $path $f)
                         }
                         $currentTotalBytesHDF = [int64](($DiskSpaceDetails| Where-Object { $_ -match 'Size:' }) -replace '.*\((\d+) bytes\).*', '$1')   
                     }
                     Write-Host "`nAll components found." -ForegroundColor Green
-                    Start-Sleep -Seconds 1
+                    Start-Sleep -Seconds 2
                     $menuStack = $menuStack[0..($menuStack.Count - 2)]
                 } else { 
                     Write-Warning "`nMissing: $($MissingItems.Count) required file(s)!"
@@ -919,6 +936,29 @@ fs c "$AGAImageFile\rdb\1\c\whdload" "$InstallLocation\MBR\2\rdb\DH0\c\whdload.o
 fs c "$FilestoAddPath\AGA\Workbench" "$InstallLocation\MBR\2\rdb\DH0" -r -md -q -f
 "@  
             }
+            elseif  ($InstallType -eq "PiStorm - ECS") {
+                $ECSImageFile = if($HostOS -eq "Windows"){"$SourceLocation\AGS_Classic_ECS_v31a.img"} Else {"$SourceLocation/AGS_Classic_ECS_v31a.img"}
+$ScriptContent = @"
+settings update --cache-type disk
+blank "$TempFolderPath\Clean.vhd" 10mb
+write "$TempFolderPath\Clean.vhd" $InstallLocation --skip-unused-sectors FALSE
+mbr init $InstallLocation
+mbr part add $InstallLocation 0xb $FAT32PartitionSizeBytes --start-sector 2048
+mbr part format $InstallLocation 1 EMU68BOOT
+mbr part add $InstallLocation 0x76 ${currentTotalBytesHDF}
+write "$ECSImageFile" "$InstallLocation\mbr\2"
+rdb part update "$InstallLocation\MBR\2" 1 --buffers 300
+rdb part update "$InstallLocation\MBR\2" 2 --buffers 300
+rdb part update "$InstallLocation\MBR\2" 3 --buffers 300
+rdb part update "$InstallLocation\MBR\2" 4 --buffers 300
+rdb part update "$InstallLocation\MBR\2" 5 --buffers 300
+fs c "$ECSImageFile\rdb\1\Devs\Kickstarts\kick40068.A1200" "$InstallLocation\MBR\1\kick.rom" -f
+fs c "$FilestoAddPath\Emu68Boot" $InstallLocation\MBR\1\ -r -md -q
+fs mkdir $InstallLocation\MBR\1\SHARED\SaveGames
+fs c "$ECSImageFile\rdb\1\c\whdload" "$InstallLocation\MBR\2\rdb\DH0\c\whdload.ori"
+fs c "$FilestoAddPath\ECS\Workbench" "$InstallLocation\MBR\2\rdb\DH0" -r -md -q -f
+"@  
+            }            
 
             if ($HostOS -ne "Windows") { $ScriptContent = $ScriptContent.Replace("\","/") }
             $ScriptContent | Out-File -FilePath $ScriptOutputFile -Encoding utf8 -Force

@@ -1,0 +1,26 @@
+.KEY IPSTACK/K/A,DEVICE/K/A,KEEPWIRELESSMANAGER/S
+.BRA {
+.KET }
+
+failat 21
+
+If {IPSTACK} EQ "MIAMI"
+ assign exists Miami: >NIL:
+ if WARN
+  echo "Miami not installed!"
+  QUIT 10
+ endif
+endif
+
+If {DEVICE} EQ "WIFIPI"
+ if NOT KEEPWIRELESSMANAGER
+  execute sys:s/WifiOffline
+ endif
+endif
+
+If {IPSTACK} EQ "MIAMI"
+ rx sys:s/MiamiOffline.rexx 
+endif
+
+failat 10
+Quit 0

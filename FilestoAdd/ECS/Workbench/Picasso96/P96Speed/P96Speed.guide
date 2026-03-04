@@ -1,0 +1,482 @@
+@database p96speed
+@width 78
+@wordwrap
+
+@node MAIN "P96Speed"
+
+
+                              @{b}P96Speed v1.2@{ub}
+                 @{b}The graphics system independent benchmark@{ub}
+
+                          written by @{" Jens Langner " LINK "AUTHOR"}
+
+ @{b}Introduction@{ub}
+   @{" Why another benchmark? " link WHY}   - The reason why I coded this program
+   @{" Author                 " link AUTHOR}   - Thats me :-)
+   @{" Thanks                 " link THANX}   - I want to thank for help...
+   @{" Copyright Notes        " link COPYRIGHT}   - What you have to know !
+
+ @{b}The P96Speed benchmark@{ub}
+   @{" Requirements           " link REQUIREMENTS}   - Requirements for P96Speed ?
+   @{" Incompatibilities?     " link INCOMPATIBLE}   - Incompatible ?
+   @{" Starting P96Speed      " link START}   - Getting started
+   @{" Usage                  " link USAGE}   - How to use this benchmark
+
+ @{b}Additional Information@{ub}
+   @{" Todo                   " link TODO}   - Is there something left ?
+   @{" History                " link HISTORY}   - The history so far
+   @{" Known Bugs             " link KNOWNBUGS}   - Shit!!!
+
+@endnode
+@node WHY "Why another benchmark ?"
+
+  @{b}Why another benchmark ?@{ub}
+
+    P96Speed is another graphics benchmark which tests the speed of
+    your graphics system and graphics card if possible.
+
+    Now you will wonder why I wrote this benchmark while they are other ones
+    like IntuiSpeed or WSpeed.
+    The reason why I decided to code a graphics benchmark program is that
+    those other systems are quite old and outdated.
+    Also this is my first C project and it was very funny to write and
+    learn more about my Amiga ;-).
+
+    I also choosen GTLAYOUT as the GUI because gadtools looks ugly and
+    MUI is not usefull for such a benchmark which should be started directly
+    after a clear bootup. - I hope you agree with me...
+
+    The reason why I called this benchmark "P96Speed" was that I really like
+    the graphics system Picasso96 and I want to dedicate it to this graphics
+    system - but it will run on all KNOWN graphics systems like CyberGraphX,
+    ProBench or simply AGA.
+
+    I hope you will like this benchmark. Please give me your feedback on
+    it by emailing me your opinion....
+   
+@endnode
+@node AUTHOR "That`s me ;)"
+
+  @{b}Snail Mail@{ub}
+    Jens Langner
+    Bergstrasse 68
+    01069 Dresden
+    Germany
+
+  @{b}Phone@{ub}
+    Telephone: +49/351-4721080
+    Fax......: +49/351-4721081
+    Mobile...: +49/172-4452254
+
+  @{b}E-Mail@{ub}
+    htw10895@informatik.htw-dresden.de
+    langner@tz-rotech.de
+
+  @{b}WWW@{ub}
+    http://damato.home.pages.de/
+    http://p96speed.home.pages.de/
+
+  @{b}IRC@{ub}
+    Nick:     DaMato
+    Channel:  #amigager
+
+@endnode
+@node THANX "I want to thank..."
+
+  @{b}Betatesters@{ub}
+
+    Jens Tröger
+    Michael Rock
+    Torsten Franke
+    John Sandgren
+
+  @{b}Others@{ub}
+
+    Tobias Abt
+    Alexander Kneer
+    Olaf `Olsen` Barthel
+    Richard Körber
+    Niels Knoop
+
+@endnode
+@node COPYRIGHT "Copyright information"
+
+    @{b}COPYRIGHT: @{ub}
+    ==========
+
+    a. This software is E-Mail Ware. That means that if you are using this
+       software you at least send the @{" author " LINK "AUTHOR"} a E-mail that
+       you are using his software and your opinion about it. You can also
+       send direct mail or presents ;)
+
+    b. This software is copyrighted by @{" Jens Langner " LINK "AUTHOR"}. That means that you
+       are NOT ALLOWED to modify the program(s) and documentation in any way.
+       Especially you MUST NOT REMOVE the documentation or any other file in
+       the distribution.
+
+    c. You are NOT allowed to use this software or any part of it for any other
+       purpose than that one mentioned in its documentation, this also includes
+       any fonts,  images or samples.  If the developer(s)  did NOT include the
+       source code of the program(s) in this package you are NOT allowed to de-
+       compile any part of it.
+
+    @{b}DISTRIBUTION: @{ub}
+    =============
+
+    This package is freely distributable.  That means  you are allowed to re-
+    distribute this package as long as you follow these points:
+
+    a. Any re-distribution  has to include  all files in this archive without
+       any modifications. You are NOT allowed to add any files to the archive.
+
+    b. This package may be freely distributed via BBSs, InterNet/UseNet,
+       software libraries such as Fred Fish's and Aminet CD-ROM, and other
+       similar electronic channels.
+
+    c. Disk magazines and services that charge extra for file transfers or
+       sell software on CDs may NOT distribute it without written permission
+       by me!
+
+    @{b}DISCLAIMER: @{ub}
+    ===========
+
+    By using this product, you accept the FULL responsibility for any damage
+    or loss that might occur through its use or the inability to use it. The
+    author can NOT be held responsible.
+
+    IMPORTANT: The author do NOT give any guarantee for the quality and
+               the sinn of THIS product!
+
+@endnode
+@node REQUIREMENTS "Requirements"
+
+  @{b}Requirements for running P96Speed@{ub}
+
+    - Amiga compatible model (A4000/3000/2000/1200 etc.)
+    - 68020 processor or better
+    - Kickstart v2.0+ (v36) or better
+    - minimum of 1MB RAM.
+    - gtlayout.library v16+
+    - identify.library v8+
+    
+@endnode
+@node INCOMPATIBLE "Incompatible?"
+
+  @{b}Any Incompatibilities ?@{ub}
+
+    P96Speed is completly compatible with all known graphic systems.
+
+    In fact that means that it should run without problems on graphic
+    systems like:
+
+        Picasso96
+        CyberGraphX
+        ProBench
+        AGA
+        ECS
+        
+        and all other graphic systems running on Kickstart 2.0 or
+        higher.
+
+@endnode
+@node START "How to start P96Speed"
+
+  @{b}How to start P96Speed@{ub}
+
+    Starting P96Speed is completly easy. You can either start P96Speed directly
+    by double-clicking on it`s Icon or you can start it from shell without any
+    arguments.
+
+    It should be mentioned that P96Speed searches for a file called "Compare.dat"
+    in the directory it was started. This should be a standard MachineList with
+    at least version 1.0 as P96Speed v1.0 saves it.
+    
+@endnode
+@node USAGE "How to use this benchmark."
+
+  @{b}How to use this benchmark:@{ub}
+
+    The usage of this benchmark is very simple.
+
+    After starting P96Speed you will find yourself in a nice big Window
+    displaying all needed information.
+    The main controls are the TAB Gadget where you can switch the
+    registers to display and modify different informations.
+    
+    @{b}Register 1 (Own machine):@{ub}
+    =========================
+
+    Here you can directly run all graphics test by pressing the button
+    of the desired test and P96Speed will display the results after the
+    test is finished.
+
+    @{b}Register 2 (Compare machine):@{ub}
+    =============================
+
+    This register is for doing comparsion against different systems
+    which are in the database you created/loaded in the third register.
+    
+    You will find yourseld in area with to POPUP Button on the top of
+    the register.
+
+    The left one is for selecting the machine which should be compared to
+    the machine in the right popup-gadget, normal it`s your own machine
+    where the results from register 1 will be used.
+
+    The right gadget as told, is for selecting the machine which should be
+    compared to the left one. You will also notice that after selecting a
+    machine in the right gadget the results in the window will be updated
+    and displayed. So all results displayed in the "Register 2" will be
+    from the machine selected from the right popup-gadget.
+
+    After changing one of the gadgets P96Speed will update the calculated
+    difference and directly displays it in the window.
+
+    The calculation results will be display in the "Diff" Column.
+    It will be display as real numbers as multiplicators.
+
+    @{b}Register 3 (Compare Preferences):@{ub}
+    =================================
+
+    In the third register you can manage all the database stuff. You can
+    add your own machine results (from first register) to the list by
+    pressing the gadget "Add own machine" on the left bottom.
+    You also can select own of the machines in the listview and all
+    data about that machine will be displayed on the top and on the right
+    of the register.
+
+    You can also remove a machine from the list by pressing the gadget
+    "Remove".
+
+    @{b}Register 4 (Preferences):@{ub}
+    =========================
+
+    Here you can select needed informations for P96Speed like the
+    screenmode you want the test to be done. The length of the tests in
+    seconds (default 13) and also the graphics card you use for the tests.
+    (not needed).
+
+@endnode
+@node TODO "What ist left to do"
+
+  @{b}Personal aims@{ub}
+    - all main stuff is implemented.
+    - perhaps change the GUI to SaVGUI, if this GUI System will be ready soon.
+
+  @{b}Suggestions by others@{ub}
+    - none yet.
+
+  @{b}Does this make sense ?@{ub}
+    - create a API for users to implement their own tests
+    - make the program GUI independent (GTL, MUI, etc...)
+    - Do a PPC Port
+
+@endnode
+@node HISTORY "The History of P96Speed!"
+
+@{b}History: @{ub}
+~~~~~~~~
+  @{u}1.2 (February 10, 1999)@{uu}
+    February 10, 1999
+      - after a long night I removed a mungwall hit which was caused by a bad
+        initialized timer.device. This hit corrupted the memlist which often
+        ends up in random crashes. @{i}(Jens Tröger)@{ui}
+    February 09, 1999
+      - found/removed a enforcer hit which happened on using the menu shortcuts.
+    February 08, 1999
+      - added french localization. @{i}(Pascal Chiozzi)@{ui}
+      - added russian localization. @{i}(Russian Amiga Translation Organization)@{ui}
+      - found/removed bug in the locale initialization which caused weird pointers
+        that sometimes hung the system.
+      - found/removed ugly bug in the load IFF routines where I didn`t terminated
+        strings correctly.
+    February 06, 1999
+      - found/removed bug which caused recoverable alerts on "reload database"
+        @{i}(Rene. W. Olsen)@{ui}
+    February 04, 1999
+      - reordered the shortcuts(Hotkeys) for the testroutines to be more simple
+        @{i}(Niels Knoop)@{ui}
+      - hopefully removed the ugly GUI bug when switching the Pagegroups, the
+        standard buttons got corrupt. @{i}(Niels Knoop)@{ui}
+      - fixed the installscript to work correctly with the new installer
+        (SaVInstaller) @{i}(Jens Tröger)@{ui}
+    February 02, 1999
+      - reordered the testroutines in the "compare machine" register and also
+        added the forgotten difference field.
+        @{i}(Niels Knoop)@{ui}
+
+  @{u}1.1 (January 30, 1999)@{uu}
+    January 28, 1999
+      - removed the requirement of the identify.library introduced with the
+        v1.0 version. Now you can also use P96Speed without this library, but
+        a warningrequester will pop up. @{i}(Tobias Abt)@{ui}
+    January 27, 1999
+      - implemented new testroutine Draw() Hor/Ver, that tests the speed of
+        drawing horizontal and vertical Lines. @{i}(Niels Knoop)@{ui}
+    December, 1998
+      - disabled multitasking for ScrollRaster() routines.
+      - doublechecked all drawroutines again to be sure to NOT draw outside the
+        RastPort which caused crashes with WritePixelLine8().
+      - modified the way that all tests are run. Now the screen will not close
+        and open everytime if you running "Run all tests."
+      - The Draw() testroutine will now draw a circle to test the speed. This way
+        of testing Draw() is more "standard" ;)
+      - WritePixel() will now draw all pixel on random colors.
+      - included some more error-checks
+      - added a requester to tell the user that he/she is trying to load an
+        incompatible version of a database.
+      - removed bug on the autoselection of the screenmode.
+      - changed the BuildEasyRequesters to act as v2.0+ EasyRequest requesters.
+        @{i}(Jens Tröger)@{ui}
+      - using my best friends tools lib "savage.lib" with many useful functions.
+        @{i}(Jens Tröger)@{ui}
+      - removed a ugly bug in the list/node handling @{i}(Jens Tröger)@{ui}
+
+  @{u}1.0 (December 8, 1998)@{uu}
+    November, 1998
+      - bumped version up to v1.00 because P96Speed is final now. All known bugs
+        should be removed.
+        Please report any bugs who are left directly to:
+        htw10895@informatik.htw-dresden.de
+      - recompiled P96Speed with StormC v3.0
+        all future versions of P96Speed will be compiled with StormC
+
+  @{u}0.18ß (internal release)@{uu}
+    October, 1998
+      - added feature to also select the source machine for the comparsion.
+      - added feature to select the comparsion machine directly from the
+        comparsion page.
+      - added long awaited locale support. Now every guy can tune his own
+        translation (P96Speed.cd included)
+      - fixed bug in the ScreenTitle allocation.
+      - forgot to free some memory in the list/node routines
+      - added more information to the database like Owner, E-mail etc.
+      - removed ugly bug in the TAB_KIND notification with the AutoPageID feature
+        of gtlayout. @{i}(Olaf Barthel)@{ui}
+      - rewritten the IFFParse routines completly from scratch. Implemented it in
+        a way that future versions of P96Speed will stay compatible in the file
+        format. Earlier versions ( < 0.18ß) are now incompatible with the file
+        format of the compare datas. Iam sorry for that but this change was
+        needed to keep the format compatible in future versions.
+      - added feature to sort the entries in the database (Top/Up/Down/Bottom).
+      - Now you can directly choose a screenmode if the programm requests you for
+        one.
+      - Changed the way the save button will be handled. It will change its name
+        in the different pagegroups.
+      - Changed the layout of the GUI a little bit to solve problems with long
+        strings
+      - again optimzed the timing routine that calculates the executed operations
+        per second.
+      - now P96Speed uses GetSysTime() instead of requesting Time with
+        TR_GETSYSTIME this should make the tests more accurate.
+      - removed bug in the WritePixelLine8() routine. The lines were drawn
+        outside the rastport what results in some crashes on PAL Screens.
+
+  @{u}0.17ß (January 31, 1998)@{uu}
+      - replaced all SYS: requesters with PROGDIR: ones...
+      - removed the very BAD BUG introduced in v0.16ß @{i}(Johan Sandgren)@{ui}
+      - removed other bug in the "Test all" routine, to check for v40 kick
+        correctly !
+      - included some errorchecks for the OpenScreen() routines to check if
+        the open was ok !
+      - included a requester at the Save Button, asking people in which format
+        they want to save their data.
+        They can even choose between saving the ACTUAL results of THEIR machine
+        in a ASCII file - or they can save the WHOLE database they created in
+        "Preferences".
+        (That was implemented because people are sending me ASCII files instead
+        of database ones and I can`t import them to my database)
+      - removed bug in ScrollX() and ScrollY() routines were I drawed outside
+        the RastPort.
+      - now the actual results will be cleared when changeing the screenmode.
+
+  @{u}0.16ß (January 25, 1998)@{uu}
+      - added a workaround for the v39 bug in the GTTX_Justification so that
+        the GUI will pop up correct.
+      - added support for v8 of identify.library which allows now to autofind
+        the graphics board.
+      - now Picasso96 will be idenified with the release version. support for
+        CGFX missing here. Tell me how and I will do ;-). @{i}(Tobias Abt)@{ui}
+      - included Load/Save routines for the Comparsion modules. @{i}(Tobias Abt)@{ui}
+      - splitted the sourcecode in some smaller pieces for better style.
+        @{i}(Tobias Abt)@{ui}
+      - changed routines:
+        - WriteChunkyPixels()
+        - WritePixelArray8()
+        - WritePixelLine8()
+        to operate more accurate.
+      - implemented routines: BltBitMap() and BltBitMapRastPort()
+        @{i}(Johan Sandgren)@{ui}
+      - implemented routines: BitMapScale() @{i}(Johan Sandgren)@{ui}
+      - include NewIcons @{i}(Arturo Roa)@{ui}
+
+  @{u}0.15ß (internal release)@{uu}
+
+  @{u}0.14ß (1997)@{uu}
+      - removed bug in ASL-Filerequester. The File was not saved if the path was
+        not a root path.
+      - removed little bug in installscript.
+      - did some cosmetic changes to the GUI.
+      - prepared the GUI for the upcoming comparsion module which will be
+        implemented in the 0.15ß release (can take some time).
+
+  @{u}0.13ß (1997)@{uu}
+      - reworked DrawEllipse() and DrawCircle() to be sure that radius will not
+        be zero.
+      - reworked DrawEllipse() to be sure that it will draw real ellipses and
+        not r1=r2.
+      - added kickstart 3.1 recognition for disabling routines that will only
+        work with 3.1 and therefore it must be disabled for other versions.
+      - noticed that Text() is a routine of the graphics library and so I moved
+        it to the correct position in the GUI.
+      - removed bug in ASL FileRequester. If filerequester was canceled P96Speed
+        locked.
+      - removed bug in CON-Output. Window will open on it`s right screen now.
+      - added PLAIN and NOSIZE to the CON-Output routine for more accurate
+        results.
+      - now the File- and Screenrequester will be opened on the same screen as
+        the mainwindow.
+      - removed Enforcerhit at WritePixelLine8() and WritePixelArray8() routines.
+      - changed the way the screenmoderequester will handle screenmodes if the
+        user allready selected one or canceled the requester.
+      - include a installscript in future version.
+
+  @{u}0.12ß (1997)@{uu}
+      - added RectFill() with Pattern testroutine. @{i}(Alexander Kneer)@{ui}
+      - added CON-Output testroutine.
+      - switched all screens to open in standard Topaz/8 Mode for more accurate
+        tests.
+      - changed SizeWindow() routine to just size between to different sizes.
+      - fixed a small bug if you don`t selected another screenmode than your
+        default one.
+      - included "identify.library" support to get system informations.
+      - restyled the GUI.
+      - restyled the saveing routine.
+      - added slider for selecting the testlength
+
+  @{u}0.11ß (1997)@{uu}
+      - added WriteChunkyPixels() testroutine.
+      - added WritePixelArray8() testroutine.
+      - added WritePixelLine8() testroutine.
+      - optimized all testroutines to show more accurate results.
+      - changed ASL-Screenmode Requester to pop up in "sticky" mode
+        (actual screenmode).
+      - removed "ops"-Results because they are not needed.
+      - added saveroutine for saveing your results.
+
+  @{u}0.10ß (first public betaversion)@{uu}
+
+  @{u}0.01-0.09ß (internal betaversions)@{uu}
+
+@endnode
+@node KNOWNBUGS "Known Bugs!"
+
+  @{b}Any known Bugs ?@{ub}
+
+    - No known bugs yet...
+ 
+    If you will find a bug please send the @{"author" LINK "AUTHOR"} a E-Mail
+    with a complete description about the problem with a complete list
+    about your system configuration. Thanks !
+
+@endnode

@@ -1,0 +1,19 @@
+;------------------------------------
+;  DATABASE file for WHDLoadWrapper
+;------------------------------------
+;        GENERIC Database
+;------------------------------------
+; WNC     : WHDLoad NOCACHE option (Switch)
+; WEC     : WHDLoad EXPCHIP option (Switch)
+; WHD="x" : Additional WHDLoad options you need 
+;------------------------------------
+Default;
+;---------------
+; WHDLoad GAMES
+;---------------
+;---------------
+; WHDLoad DEMOS
+;---------------
+;---------------
+; WHDLoad INTROS
+;---------------
