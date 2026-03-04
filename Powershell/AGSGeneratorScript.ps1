@@ -17,7 +17,7 @@ if ($IsWindows -or ($null -eq $IsWindows -and $env:OS -match "Windows")) {
     exit
 }
 
-Write-host "AGS Image Generator v0.6"
+Write-host "AGS Image Generator v0.61"
 
 Add-Type -AssemblyName System.Net.Http
 $client = [System.Net.Http.HttpClient]::new()
@@ -145,7 +145,7 @@ foreach($e in ($DriveStatus.Keys | Where-Object { $DriveStatus[$_].status -eq "E
 # --- 6. MAIN LOOP ---
 while ($running) {
     Clear-Host
-    Write-Host "AGS Image Generator v0.6" -ForegroundColor Yellow
+    Write-Host "AGS Image Generator v0.61" -ForegroundColor Yellow
     Write-Host "Menu: $($menuStack -join " > ")" -ForegroundColor Gray
     Write-Host "-------------------------------"
 
